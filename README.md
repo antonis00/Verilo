@@ -29,6 +29,21 @@ npm run dev                              # http://localhost:3001
 
 Sign-in emails go to the local mail catcher at http://127.0.0.1:54324.
 
+## News ingestion
+
+The outlets and their feeds are listed in [workers/data/sources.toml](workers/data/sources.toml),
+each with its trust tier, political lean and the reason for both.
+
+```sh
+cd workers && python -m venv .venv && .venv/bin/pip install -e ".[dev]"
+.venv/bin/python -m verilo_workers check-feeds          # try every feed, store nothing
+.venv/bin/python -m verilo_workers sync-sources         # write the registry to the database
+.venv/bin/python -m verilo_workers ingest --loop        # fetch due feeds every minute
+.venv/bin/python -m verilo_workers make-editor you@example.com   # open /desk for your account
+```
+
+Verilo stores only the headline, a short snippet, the link and the date of each article.
+
 ## Checks
 
 ```sh

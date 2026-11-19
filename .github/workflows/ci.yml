@@ -84,4 +84,19 @@ jobs:
       - run: pip install -e ".[dev]"
       - run: ruff check .
       - run: ruff format --check .
-      - run: pytest
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      # The database tests (tests/test_ingest_db.py) need the local Supabase; without it they skip.
+      - name: Start local Supabase
+        working-directory: .
+        run: |
+          npm ci
+          npx supabase start
+
+      - name: Tests
+        run: pytest -v

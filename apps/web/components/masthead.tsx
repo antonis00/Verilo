@@ -34,6 +34,11 @@ async function ReaderLinks() {
   const reader = await getReader();
   return (
     <nav aria-label="Account" className="flex items-center gap-5">
+      {reader?.isEditor ? (
+        <Link href="/desk" className="quiet-link">
+          Desk
+        </Link>
+      ) : null}
       {reader ? (
         <Link href="/my-news" className="quiet-link font-semibold">
           My News

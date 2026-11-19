@@ -1,0 +1,617 @@
+# Verilo's source registry. Edit here, then run `python -m verilo_workers sync-sources`.
+#
+# tier     1 = fact base (wire services, public broadcasters), 2 = reputable outlet,
+#          3 = shown with a label but never used to write summaries.
+# lean     left | lean_left | center | lean_right | right
+# kind     wire | public_broadcaster | newspaper | broadcaster | digital | magazine
+# basis    why this tier and lean. The first labels are the initial proposal (Nov 2026), made
+#          from general knowledge of public media-bias ratings (AllSides, Ad Fontes Media) and
+#          NOT checked against those sites line by line; `reviewed` stays empty until the owner
+#          has checked each one. Ratings providers' own scores are not shown in the app until
+#          their licences are checked.
+# feeds    news sections only (opinion sections are left out); `poll` in minutes.
+#
+# Wire services (Reuters, AP, AFP) publish no public RSS feeds, so none are listed yet:
+# the public broadcasters are the fact base until a licensed or API source is added.
+
+[[source]]
+slug = "bbc-news"
+name = "BBC News"
+homepage = "https://www.bbc.co.uk/news"
+country = "GB"
+kind = "public_broadcaster"
+tier = 1
+lean = "center"
+basis = "UK public broadcaster with a charter duty of impartiality; generally rated centre and highly reliable."
+feeds = [
+  { url = "https://feeds.bbci.co.uk/news/rss.xml", section = "top", poll = 10 },
+  { url = "https://feeds.bbci.co.uk/news/world/rss.xml", section = "world", poll = 10 },
+  { url = "https://feeds.bbci.co.uk/news/business/rss.xml", section = "business", poll = 30 },
+  { url = "https://feeds.bbci.co.uk/news/science_and_environment/rss.xml", section = "science", poll = 60 },
+  { url = "https://feeds.bbci.co.uk/news/technology/rss.xml", section = "technology", poll = 60 },
+]
+
+[[source]]
+slug = "npr"
+name = "NPR"
+homepage = "https://www.npr.org"
+country = "US"
+kind = "public_broadcaster"
+tier = 1
+lean = "lean_left"
+basis = "US public radio; news reporting generally rated reliable, commonly rated lean left."
+feeds = [
+  { url = "https://feeds.npr.org/1001/rss.xml", section = "top", poll = 10 },
+  { url = "https://feeds.npr.org/1004/rss.xml", section = "world", poll = 15 },
+  { url = "https://feeds.npr.org/1014/rss.xml", section = "politics", poll = 15 },
+  { url = "https://feeds.npr.org/1006/rss.xml", section = "business", poll = 30 },
+]
+
+[[source]]
+slug = "pbs-newshour"
+name = "PBS NewsHour"
+homepage = "https://www.pbs.org/newshour"
+country = "US"
+kind = "public_broadcaster"
+tier = 1
+lean = "center"
+basis = "US public television news programme; generally rated reliable and close to centre."
+feeds = [
+  { url = "https://www.pbs.org/newshour/feeds/rss/headlines", section = "top", poll = 15 },
+]
+
+[[source]]
+slug = "cbc-news"
+name = "CBC News"
+homepage = "https://www.cbc.ca/news"
+country = "CA"
+kind = "public_broadcaster"
+tier = 1
+lean = "center"
+note = "Nov 2026: robots.txt did not answer from the development machine; the fetcher skips it until it does."
+basis = "Canadian public broadcaster; generally rated reliable; ratings place it centre to lean left."
+feeds = [
+  { url = "https://www.cbc.ca/webfeed/rss/rss-topstories", section = "top", poll = 10 },
+  { url = "https://www.cbc.ca/webfeed/rss/rss-world", section = "world", poll = 15 },
+  { url = "https://www.cbc.ca/webfeed/rss/rss-canada", section = "national", poll = 15 },
+]
+
+[[source]]
+slug = "abc-australia"
+name = "ABC News (Australia)"
+homepage = "https://www.abc.net.au/news"
+country = "AU"
+kind = "public_broadcaster"
+tier = 1
+lean = "center"
+basis = "Australian public broadcaster with a statutory duty of impartiality; generally rated reliable."
+feeds = [
+  { url = "https://www.abc.net.au/news/feed/45910/rss.xml", section = "top", poll = 10 },
+  { url = "https://www.abc.net.au/news/feed/51120/rss.xml", section = "latest", poll = 15 },
+]
+
+[[source]]
+slug = "rte-news"
+name = "RTÉ News"
+homepage = "https://www.rte.ie/news"
+country = "IE"
+kind = "public_broadcaster"
+tier = 1
+lean = "center"
+basis = "Irish public broadcaster with a statutory duty of impartiality; generally rated reliable."
+feeds = [
+  { url = "https://www.rte.ie/feeds/rss/?index=/news/", section = "top", poll = 15 },
+]
+
+[[source]]
+slug = "nytimes"
+name = "The New York Times"
+homepage = "https://www.nytimes.com"
+country = "US"
+kind = "newspaper"
+tier = 2
+lean = "lean_left"
+basis = "US paper of record; news desk generally rated reliable; commonly rated lean left."
+feeds = [
+  { url = "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml", section = "top", poll = 10 },
+  { url = "https://rss.nytimes.com/services/xml/rss/nyt/World.xml", section = "world", poll = 15 },
+  { url = "https://rss.nytimes.com/services/xml/rss/nyt/Politics.xml", section = "politics", poll = 15 },
+  { url = "https://rss.nytimes.com/services/xml/rss/nyt/Business.xml", section = "business", poll = 30 },
+]
+
+[[source]]
+slug = "wsj"
+name = "The Wall Street Journal"
+homepage = "https://www.wsj.com"
+country = "US"
+kind = "newspaper"
+tier = 2
+lean = "center"
+basis = "US paper of record for business; news desk generally rated reliable and centre (its opinion pages lean right and are excluded)."
+status = "paused"
+note = "Paused Nov 2026: its public RSS feeds return no items. Kept for a future licensed or API source."
+feeds = [ # kept for reference; not fetched while paused
+  { url = "https://feeds.a.dj.com/rss/RSSWorldNews.xml", section = "world", poll = 15 },
+  { url = "https://feeds.a.dj.com/rss/WSJcomUSBusiness.xml", section = "business", poll = 30 },
+  { url = "https://feeds.a.dj.com/rss/RSSMarketsMain.xml", section = "markets", poll = 30 },
+]
+
+[[source]]
+slug = "washington-post"
+name = "The Washington Post"
+homepage = "https://www.washingtonpost.com"
+country = "US"
+kind = "newspaper"
+tier = 2
+lean = "lean_left"
+basis = "Major US newspaper; news desk generally rated reliable; commonly rated lean left."
+feeds = [
+  { url = "https://feeds.washingtonpost.com/rss/world", section = "world", poll = 15 },
+  { url = "https://feeds.washingtonpost.com/rss/politics", section = "politics", poll = 15 },
+  { url = "https://feeds.washingtonpost.com/rss/business", section = "business", poll = 30 },
+]
+
+[[source]]
+slug = "guardian"
+name = "The Guardian"
+homepage = "https://www.theguardian.com"
+country = "GB"
+kind = "newspaper"
+tier = 2
+lean = "lean_left"
+basis = "Major UK newspaper; news generally rated reliable; ratings place it lean left to left."
+feeds = [
+  { url = "https://www.theguardian.com/world/rss", section = "world", poll = 10 },
+  { url = "https://www.theguardian.com/uk-news/rss", section = "national", poll = 15 },
+  { url = "https://www.theguardian.com/us-news/rss", section = "us", poll = 15 },
+  { url = "https://www.theguardian.com/australia-news/rss", section = "australia", poll = 30 },
+  { url = "https://www.theguardian.com/business/rss", section = "business", poll = 30 },
+  { url = "https://www.theguardian.com/science/rss", section = "science", poll = 60 },
+]
+
+[[source]]
+slug = "financial-times"
+name = "Financial Times"
+homepage = "https://www.ft.com"
+country = "GB"
+kind = "newspaper"
+tier = 2
+lean = "center"
+basis = "International business paper; generally rated highly reliable and centre."
+feeds = [
+  { url = "https://www.ft.com/world?format=rss", section = "world", poll = 15 },
+  { url = "https://www.ft.com/companies?format=rss", section = "business", poll = 30 },
+]
+
+[[source]]
+slug = "economist"
+name = "The Economist"
+homepage = "https://www.economist.com"
+country = "GB"
+kind = "magazine"
+tier = 2
+lean = "center"
+basis = "Weekly news magazine; generally rated highly reliable; ratings place it centre to lean left."
+feeds = [
+  { url = "https://www.economist.com/international/rss.xml", section = "world", poll = 60 },
+  { url = "https://www.economist.com/business/rss.xml", section = "business", poll = 60 },
+]
+
+[[source]]
+slug = "bloomberg"
+name = "Bloomberg"
+homepage = "https://www.bloomberg.com"
+country = "US"
+kind = "digital"
+tier = 2
+lean = "center"
+basis = "Financial news service; generally rated reliable; ratings place it centre to lean left."
+feeds = [
+  { url = "https://feeds.bloomberg.com/politics/news.rss", section = "politics", poll = 15 },
+  { url = "https://feeds.bloomberg.com/markets/news.rss", section = "markets", poll = 30 },
+]
+
+[[source]]
+slug = "the-times"
+name = "The Times"
+homepage = "https://www.thetimes.com"
+country = "GB"
+kind = "newspaper"
+tier = 2
+lean = "lean_right"
+basis = "UK paper of record; generally rated reliable; commonly rated lean right."
+status = "paused"
+note = "Paused Nov 2026: robots.txt disallows all crawlers (User-agent: * / Disallow: /)."
+feeds = [ # kept for reference; not fetched while paused
+  { url = "https://www.thetimes.com/uk/rss", section = "national", poll = 15 },
+  { url = "https://www.thetimes.com/world/rss", section = "world", poll = 15 },
+]
+
+[[source]]
+slug = "telegraph"
+name = "The Telegraph"
+homepage = "https://www.telegraph.co.uk"
+country = "GB"
+kind = "newspaper"
+tier = 2
+lean = "lean_right"
+basis = "Major UK newspaper; news generally rated mostly reliable; commonly rated lean right."
+feeds = [
+  { url = "https://www.telegraph.co.uk/rss.xml", section = "top", poll = 15 },
+]
+
+[[source]]
+slug = "independent"
+name = "The Independent"
+homepage = "https://www.independent.co.uk"
+country = "GB"
+kind = "digital"
+tier = 2
+lean = "lean_left"
+basis = "UK digital newspaper; generally rated mostly reliable; commonly rated lean left."
+feeds = [
+  { url = "https://www.independent.co.uk/news/uk/rss", section = "national", poll = 15 },
+  { url = "https://www.independent.co.uk/news/world/rss", section = "world", poll = 15 },
+]
+
+[[source]]
+slug = "sky-news"
+name = "Sky News"
+homepage = "https://news.sky.com"
+country = "GB"
+kind = "broadcaster"
+tier = 2
+lean = "center"
+basis = "UK broadcaster bound by Ofcom impartiality rules; generally rated reliable and centre."
+feeds = [
+  { url = "https://feeds.skynews.com/feeds/rss/home.xml", section = "top", poll = 10 },
+  { url = "https://feeds.skynews.com/feeds/rss/world.xml", section = "world", poll = 15 },
+]
+
+[[source]]
+slug = "politico"
+name = "Politico"
+homepage = "https://www.politico.com"
+country = "US"
+kind = "digital"
+tier = 2
+lean = "lean_left"
+basis = "US political news outlet; generally rated reliable; ratings place it centre to lean left."
+feeds = [
+  { url = "https://rss.politico.com/politics-news.xml", section = "politics", poll = 15 },
+]
+
+[[source]]
+slug = "the-hill"
+name = "The Hill"
+homepage = "https://thehill.com"
+country = "US"
+kind = "digital"
+tier = 2
+lean = "center"
+basis = "US political news outlet; generally rated mostly reliable and centre."
+feeds = [
+  { url = "https://thehill.com/news/feed/", section = "politics", poll = 15 },
+]
+
+[[source]]
+slug = "axios"
+name = "Axios"
+homepage = "https://www.axios.com"
+country = "US"
+kind = "digital"
+tier = 2
+lean = "lean_left"
+basis = "US digital news outlet; generally rated reliable; ratings place it centre to lean left."
+status = "paused"
+note = "Paused Nov 2026: robots.txt disallows its feed for crawlers."
+feeds = [ # kept for reference; not fetched while paused
+  { url = "https://api.axios.com/feed/", section = "top", poll = 15 },
+]
+
+[[source]]
+slug = "cbs-news"
+name = "CBS News"
+homepage = "https://www.cbsnews.com"
+country = "US"
+kind = "broadcaster"
+tier = 2
+lean = "lean_left"
+basis = "US network news; generally rated reliable; commonly rated lean left."
+feeds = [
+  { url = "https://www.cbsnews.com/latest/rss/main", section = "top", poll = 15 },
+  { url = "https://www.cbsnews.com/latest/rss/world", section = "world", poll = 15 },
+]
+
+[[source]]
+slug = "nbc-news"
+name = "NBC News"
+homepage = "https://www.nbcnews.com"
+country = "US"
+kind = "broadcaster"
+tier = 2
+lean = "lean_left"
+basis = "US network news; generally rated reliable; commonly rated lean left."
+feeds = [
+  { url = "https://feeds.nbcnews.com/nbcnews/public/news", section = "top", poll = 15 },
+]
+
+[[source]]
+slug = "abc-news-us"
+name = "ABC News (US)"
+homepage = "https://abcnews.go.com"
+country = "US"
+kind = "broadcaster"
+tier = 2
+lean = "lean_left"
+basis = "US network news; generally rated reliable; commonly rated lean left."
+feeds = [
+  { url = "https://abcnews.go.com/abcnews/topstories", section = "top", poll = 15 },
+  { url = "https://abcnews.go.com/abcnews/internationalheadlines", section = "world", poll = 15 },
+]
+
+[[source]]
+slug = "cnn"
+name = "CNN"
+homepage = "https://www.cnn.com"
+country = "US"
+kind = "broadcaster"
+tier = 2
+lean = "lean_left"
+basis = "US cable news; news reporting generally rated mostly reliable; ratings place it lean left to left."
+status = "paused"
+note = "Paused Nov 2026: CNN's public RSS feeds stopped updating in August 2024 and still serve 2023 stories, some undated."
+feeds = [ # kept for reference; not fetched while paused
+  { url = "http://rss.cnn.com/rss/cnn_topstories.rss", section = "top", poll = 15 },
+  { url = "http://rss.cnn.com/rss/edition_world.rss", section = "world", poll = 15 },
+]
+
+[[source]]
+slug = "fox-news"
+name = "Fox News"
+homepage = "https://www.foxnews.com"
+country = "US"
+kind = "broadcaster"
+tier = 2
+lean = "right"
+basis = "US cable news; website news reporting rated mixed to mostly reliable; commonly rated right. Tier 2 is a provisional call for the owner's review."
+feeds = [
+  { url = "https://moxie.foxnews.com/google-publisher/latest.xml", section = "top", poll = 15 },
+  { url = "https://moxie.foxnews.com/google-publisher/world.xml", section = "world", poll = 15 },
+  { url = "https://moxie.foxnews.com/google-publisher/politics.xml", section = "politics", poll = 15 },
+]
+
+[[source]]
+slug = "washington-examiner"
+name = "Washington Examiner"
+homepage = "https://www.washingtonexaminer.com"
+country = "US"
+kind = "digital"
+tier = 2
+lean = "lean_right"
+basis = "US political news outlet; news rated mostly reliable; commonly rated lean right to right."
+feeds = [
+  { url = "https://www.washingtonexaminer.com/section/news/feed/", section = "politics", poll = 30 },
+]
+
+[[source]]
+slug = "ny-post"
+name = "New York Post"
+homepage = "https://nypost.com"
+country = "US"
+kind = "newspaper"
+tier = 3
+lean = "lean_right"
+basis = "US tabloid; reliability rated mixed; commonly rated lean right. Tier 3: shown with a label, never used for summaries."
+feeds = [
+  { url = "https://nypost.com/news/feed/", section = "top", poll = 30 },
+]
+
+[[source]]
+slug = "globe-and-mail"
+name = "The Globe and Mail"
+homepage = "https://www.theglobeandmail.com"
+country = "CA"
+kind = "newspaper"
+tier = 2
+lean = "center"
+basis = "Canadian paper of record; generally rated reliable and centre."
+feeds = [
+  { url = "https://www.theglobeandmail.com/arc/outboundfeeds/rss/category/canada/", section = "national", poll = 30 },
+  { url = "https://www.theglobeandmail.com/arc/outboundfeeds/rss/category/world/", section = "world", poll = 30 },
+]
+
+[[source]]
+slug = "national-post"
+name = "National Post"
+homepage = "https://nationalpost.com"
+country = "CA"
+kind = "newspaper"
+tier = 2
+lean = "lean_right"
+basis = "Canadian national newspaper; generally rated mostly reliable; commonly rated lean right."
+status = "paused"
+note = "Paused Nov 2026: robots.txt disallows its feeds for crawlers."
+feeds = [ # kept for reference; not fetched while paused
+  { url = "https://nationalpost.com/category/news/feed/", section = "top", poll = 30 },
+]
+
+[[source]]
+slug = "ctv-news"
+name = "CTV News"
+homepage = "https://www.ctvnews.ca"
+country = "CA"
+kind = "broadcaster"
+tier = 2
+lean = "center"
+basis = "Canadian network news; generally rated reliable and centre."
+status = "paused"
+note = "Paused Nov 2026: robots.txt disallows its feed for crawlers."
+feeds = [ # kept for reference; not fetched while paused
+  { url = "https://www.ctvnews.ca/rss/ctvnews-ca-top-stories-public-rss-1.822009", section = "top", poll = 15 },
+]
+
+[[source]]
+slug = "global-news"
+name = "Global News"
+homepage = "https://globalnews.ca"
+country = "CA"
+kind = "broadcaster"
+tier = 2
+lean = "center"
+basis = "Canadian network news; generally rated reliable and centre."
+feeds = [
+  { url = "https://globalnews.ca/feed/", section = "top", poll = 15 },
+]
+
+[[source]]
+slug = "irish-times"
+name = "The Irish Times"
+homepage = "https://www.irishtimes.com"
+country = "IE"
+kind = "newspaper"
+tier = 2
+lean = "center"
+basis = "Irish paper of record; generally rated reliable; ratings place it centre to lean left."
+feeds = [
+  { url = "https://www.irishtimes.com/arc/outboundfeeds/feed-irish-news/?from=0&size=50", section = "national", poll = 30 },
+  { url = "https://www.irishtimes.com/arc/outboundfeeds/feed-world/?from=0&size=50", section = "world", poll = 30 },
+]
+
+[[source]]
+slug = "irish-independent"
+name = "Irish Independent"
+homepage = "https://www.independent.ie"
+country = "IE"
+kind = "newspaper"
+tier = 2
+lean = "center"
+basis = "Ireland's largest daily; generally rated mostly reliable; ratings place it centre to lean right."
+feeds = [
+  { url = "https://www.independent.ie/irish-news/rss", section = "national", poll = 30 },
+]
+
+[[source]]
+slug = "the-journal-ie"
+name = "TheJournal.ie"
+homepage = "https://www.thejournal.ie"
+country = "IE"
+kind = "digital"
+tier = 2
+lean = "center"
+basis = "Irish digital news outlet with a fact-check unit; generally rated reliable and centre."
+status = "paused"
+note = "Paused Nov 2026: robots.txt disallows its feed for crawlers."
+feeds = [ # kept for reference; not fetched while paused
+  { url = "https://www.thejournal.ie/feed/", section = "top", poll = 30 },
+]
+
+[[source]]
+slug = "sydney-morning-herald"
+name = "The Sydney Morning Herald"
+homepage = "https://www.smh.com.au"
+country = "AU"
+kind = "newspaper"
+tier = 2
+lean = "lean_left"
+basis = "Major Australian newspaper; generally rated reliable; commonly rated centre to lean left."
+feeds = [
+  { url = "https://www.smh.com.au/rss/feed.xml", section = "top", poll = 15 },
+  { url = "https://www.smh.com.au/rss/world.xml", section = "world", poll = 30 },
+]
+
+[[source]]
+slug = "the-australian"
+name = "The Australian"
+homepage = "https://www.theaustralian.com.au"
+country = "AU"
+kind = "newspaper"
+tier = 2
+lean = "lean_right"
+basis = "Australian national newspaper; generally rated mostly reliable; commonly rated lean right."
+status = "paused"
+note = "Paused Nov 2026: robots.txt disallows its feed for crawlers."
+feeds = [ # kept for reference; not fetched while paused
+  { url = "https://www.theaustralian.com.au/feed", section = "top", poll = 30 },
+]
+
+[[source]]
+slug = "sbs-news"
+name = "SBS News"
+homepage = "https://www.sbs.com.au/news"
+country = "AU"
+kind = "public_broadcaster"
+tier = 1
+lean = "center"
+basis = "Australian public broadcaster with a statutory charter; generally rated reliable and centre."
+feeds = [
+  { url = "https://www.sbs.com.au/news/topic/latest/feed", section = "top", poll = 15 },
+]
+
+[[source]]
+slug = "the-hindu"
+name = "The Hindu"
+homepage = "https://www.thehindu.com"
+country = "IN"
+kind = "newspaper"
+tier = 2
+lean = "lean_left"
+basis = "Major Indian newspaper; generally rated reliable; commonly rated centre to lean left."
+feeds = [
+  { url = "https://www.thehindu.com/news/national/feeder/default.rss", section = "national", poll = 15 },
+  { url = "https://www.thehindu.com/news/international/feeder/default.rss", section = "world", poll = 30 },
+]
+
+[[source]]
+slug = "indian-express"
+name = "The Indian Express"
+homepage = "https://indianexpress.com"
+country = "IN"
+kind = "newspaper"
+tier = 2
+lean = "center"
+basis = "Major Indian newspaper known for investigative work; generally rated reliable and centre."
+feeds = [
+  { url = "https://indianexpress.com/section/india/feed/", section = "national", poll = 15 },
+  { url = "https://indianexpress.com/section/world/feed/", section = "world", poll = 30 },
+]
+
+[[source]]
+slug = "hindustan-times"
+name = "Hindustan Times"
+homepage = "https://www.hindustantimes.com"
+country = "IN"
+kind = "newspaper"
+tier = 2
+lean = "center"
+basis = "Major Indian newspaper; generally rated mostly reliable and centre."
+feeds = [
+  { url = "https://www.hindustantimes.com/feeds/rss/india-news/rssfeed.xml", section = "national", poll = 15 },
+  { url = "https://www.hindustantimes.com/feeds/rss/world-news/rssfeed.xml", section = "world", poll = 30 },
+]
+
+[[source]]
+slug = "times-of-india"
+name = "The Times of India"
+homepage = "https://timesofindia.indiatimes.com"
+country = "IN"
+kind = "newspaper"
+tier = 2
+lean = "lean_right"
+basis = "India's largest English daily; reliability rated mixed to mostly reliable; ratings place it centre to lean right."
+feeds = [
+  { url = "https://timesofindia.indiatimes.com/rssfeedstopstories.cms", section = "top", poll = 15 },
+]
+
+[[source]]
+slug = "ndtv"
+name = "NDTV"
+homepage = "https://www.ndtv.com"
+country = "IN"
+kind = "broadcaster"
+tier = 2
+lean = "center"
+basis = "Indian broadcaster; generally rated mostly reliable and centre."
+feeds = [
+  { url = "https://feeds.feedburner.com/ndtvnews-top-stories", section = "top", poll = 15 },
+]
