@@ -10,8 +10,29 @@ REGISTRY = Path(__file__).resolve().parents[2] / "data" / "sources.toml"
 TIERS = (1, 2, 3)
 LEANS = ("left", "lean_left", "center", "lean_right", "right")
 KINDS = ("wire", "public_broadcaster", "newspaper", "broadcaster", "digital", "magazine")
-COUNTRIES = ("US", "GB", "CA", "AU", "IE", "IN", "INT")
 STATUSES = ("active", "paused", "excluded")
+
+# Where each outlet is based (ISO country codes; INT for outlets with no single home) and the
+# region readers choose in "Places". The one list both are checked against: the database's
+# constraints and the web app's labels (apps/web/lib/regions.ts) must match it.
+REGION_OF = {
+    "US": "north-america", "CA": "north-america",
+    "GB": "uk-ireland", "IE": "uk-ireland",
+    "DE": "europe", "FR": "europe", "BE": "europe", "UA": "europe", "NL": "europe",
+    "IT": "europe", "ES": "europe", "PL": "europe",
+    "QA": "middle-east", "AE": "middle-east", "SA": "middle-east", "IL": "middle-east",
+    "TR": "middle-east",
+    "ZA": "africa", "KE": "africa", "NG": "africa", "GH": "africa",
+    "IN": "south-asia", "PK": "south-asia", "BD": "south-asia", "LK": "south-asia",
+    "JP": "east-asia", "KR": "east-asia", "HK": "east-asia", "TW": "east-asia",
+    "SG": "southeast-asia", "PH": "southeast-asia", "MY": "southeast-asia",
+    "ID": "southeast-asia", "TH": "southeast-asia",
+    "AU": "oceania", "NZ": "oceania",
+    "MX": "latin-america", "BR": "latin-america", "AR": "latin-america", "CO": "latin-america",
+    "INT": "international",
+}  # fmt: skip
+COUNTRIES = tuple(REGION_OF)
+REGIONS = tuple(dict.fromkeys(REGION_OF.values()))
 SLUG = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 
 
@@ -39,6 +60,7 @@ class Source:
     status: str = "active"
     reviewed: str | None = None  # ISO date the owner checked tier and lean
     note: str | None = None  # anything the owner should know (why paused, feed problems)
+    region: str = ""  # the region it counts for; from the country unless set in the registry
     feeds: tuple[Feed, ...] = field(default_factory=tuple)
 
 
@@ -61,6 +83,8 @@ def parse(data: dict) -> list[Source]:
             _require(bool(str(raw.get(key, "")).strip()), where, f"{key} is required")
         _require(raw["homepage"].startswith("https://"), where, "homepage must be https://")
         _require(raw.get("country") in COUNTRIES, where, f"country must be one of {COUNTRIES}")
+        region = raw.get("region") or REGION_OF[raw["country"]]
+        _require(region in REGIONS, where, f"region must be one of {REGIONS}")
         _require(raw.get("kind") in KINDS, where, f"kind must be one of {KINDS}")
         _require(raw.get("tier") in TIERS, where, f"tier must be one of {TIERS}")
         _require(raw.get("lean") in LEANS, where, f"lean must be one of {LEANS}")
@@ -99,6 +123,7 @@ def parse(data: dict) -> list[Source]:
                 status=status,
                 reviewed=reviewed,
                 note=(str(raw["note"]).strip() or None) if raw.get("note") else None,
+                region=region,
                 feeds=tuple(feeds),
             )
         )

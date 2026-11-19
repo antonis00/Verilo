@@ -49,7 +49,7 @@ def test_a_good_entry_parses():
         ({"slug": "Example News"}, "slug"),
         ({"tier": 4}, "tier"),
         ({"lean": "far_left"}, "lean"),
-        ({"country": "FR"}, "country"),
+        ({"country": "ZZ"}, "country"),
         ({"kind": "blog"}, "kind"),
         ({"homepage": "http://example.com"}, "https"),
         ({"basis": " "}, "basis"),
@@ -74,3 +74,24 @@ def test_duplicates_are_refused():
     data["source"].append(dict(data["source"][0]))
     with pytest.raises(RegistryError, match="slug is used twice"):
         parse(data)
+
+
+def test_every_source_has_a_known_region_and_overrides_work():
+    from verilo_workers.ingest.registry import REGION_OF, REGIONS
+
+    sources = registry.load()
+    assert all(s.region in REGIONS for s in sources)
+    by_slug = {s.slug: s for s in sources}
+    # Based in Washington, counted for the region it covers.
+    assert by_slug["al-monitor"].country == "US"
+    assert by_slug["al-monitor"].region == "middle-east"
+    assert by_slug["bbc-news"].region == REGION_OF["GB"] == "uk-ireland"
+    # Every region readers can choose has reputable outlets behind it.
+    active = registry.active(sources)
+    for region in set(REGIONS) - {"international"}:
+        assert any(s.region == region and s.tier <= 2 for s in active), region
+
+
+def test_a_bad_region_is_refused():
+    with pytest.raises(RegistryError, match="region"):
+        parse(good(region="atlantis"))

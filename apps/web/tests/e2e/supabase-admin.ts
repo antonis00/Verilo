@@ -39,6 +39,9 @@ export async function makeEditor(email: string) {
 
 const hash = (c: string) => Array.from({ length: 64 }, () => c).join("");
 
+// The region each test country counts for (the full list is in lib/regions.ts and the registry).
+const TEST_REGION: Record<string, string> = { GB: "uk-ireland", IE: "uk-ireland", DE: "europe" };
+
 async function seedSource(slug: string, tier: number, lean: string, country = "GB") {
   const [source] = await rest("sources", {
     method: "POST",
@@ -47,6 +50,7 @@ async function seedSource(slug: string, tier: number, lean: string, country = "G
       name: `Test Outlet ${slug}`,
       homepage: "https://test-outlet.example",
       country,
+      region: TEST_REGION[country],
       kind: "newspaper",
       tier,
       lean,

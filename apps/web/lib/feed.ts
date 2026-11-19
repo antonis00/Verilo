@@ -16,6 +16,7 @@ export type CardArticle = {
   tier: Tier;
   lean: Lean;
   country: string;
+  region: string;
   kind: Kind;
   title: string;
   snippet: string;
@@ -39,7 +40,7 @@ export type Preferences = {
   muteTopics: number[];
   followSources: number[];
   hideSources: number[];
-  countries: string[];
+  regions: string[];
   showOpinion: boolean;
   showTier3: boolean;
 };
@@ -49,7 +50,7 @@ export const NO_PREFERENCES: Preferences = {
   muteTopics: [],
   followSources: [],
   hideSources: [],
-  countries: [],
+  regions: [],
   showOpinion: true,
   showTier3: true,
 };
@@ -123,10 +124,10 @@ export function score(
   const freshness = 0.5 ** (ageHours / FRESH_HALF_LIFE_HOURS);
   const topicHit = card.topic_ids.slice(0, 3).find((t) => p.followTopics.includes(t));
   const sourceHit = visible.find((a) => followedSources.has(a.source_id));
-  const countries = new Set(p.countries);
+  const regions = new Set(p.regions);
   const bySource = new Map(visible.map((a) => [a.source_id, a]));
-  const placesShare = countries.size
-    ? [...bySource.values()].filter((a) => countries.has(a.country)).length / bySource.size
+  const placesShare = regions.size
+    ? [...bySource.values()].filter((a) => regions.has(a.region)).length / bySource.size
     : 0;
   const reliability =
     [...bySource.values()].reduce((sum, a) => sum + TIER_WEIGHT[a.tier], 0) / bySource.size;

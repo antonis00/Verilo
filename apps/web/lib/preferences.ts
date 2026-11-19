@@ -2,25 +2,16 @@
 // to the ranking's Preferences. Pure apart from the types, so the checks are unit-tested.
 
 import type { Preferences } from "@/lib/feed";
+import { REGION_CODES } from "@/lib/regions";
 
-export const PLACES = [
-  { code: "US", label: "United States" },
-  { code: "GB", label: "United Kingdom" },
-  { code: "CA", label: "Canada" },
-  { code: "AU", label: "Australia" },
-  { code: "IE", label: "Ireland" },
-  { code: "IN", label: "India" },
-  { code: "INT", label: "International outlets" },
-] as const;
-
-const PLACE_CODES = new Set<string>(PLACES.map((p) => p.code));
+export { REGIONS } from "@/lib/regions";
 
 export type PreferencesInput = {
   followTopics: number[];
   muteTopics: number[];
   followSources: number[];
   hideSources: number[];
-  countries: string[];
+  regions: string[];
   showOpinion: boolean;
   showTier3: boolean;
 };
@@ -30,7 +21,7 @@ export const EMPTY_INPUT: PreferencesInput = {
   muteTopics: [],
   followSources: [],
   hideSources: [],
-  countries: [],
+  regions: [],
   showOpinion: true,
   showTier3: true,
 };
@@ -43,7 +34,7 @@ const ids = (v: unknown): number[] | null =>
     : null;
 
 // Checks what a browser sent before it reaches the database: only known topics and outlets,
-// known places, real booleans; a topic or outlet can't be both followed and muted/hidden.
+// known regions, real booleans; a topic or outlet can't be both followed and muted/hidden.
 export function checkPreferences(
   raw: unknown,
   known: { topics: Set<number>; sources: Set<number> },
@@ -63,8 +54,8 @@ export function checkPreferences(
   if ([...followSources, ...hideSources].some((s) => !known.sources.has(s))) {
     return { ok: false, message: "An outlet you chose is no longer available. Reload the page." };
   }
-  const countries = Array.isArray(r.countries) ? [...new Set(r.countries as unknown[])] : null;
-  if (!countries || countries.some((c) => typeof c !== "string" || !PLACE_CODES.has(c))) {
+  const regions = Array.isArray(r.regions) ? [...new Set(r.regions as unknown[])] : null;
+  if (!regions || regions.some((c) => typeof c !== "string" || !REGION_CODES.has(c))) {
     return { ok: false, message: "A place you chose isn't one we cover." };
   }
   if (typeof r.showOpinion !== "boolean" || typeof r.showTier3 !== "boolean") {
@@ -79,7 +70,7 @@ export function checkPreferences(
       muteTopics: muteTopics.filter((t) => !followedTopics.has(t)),
       followSources,
       hideSources: hideSources.filter((s) => !followedSources.has(s)),
-      countries: countries as string[],
+      regions: regions as string[],
       showOpinion: r.showOpinion,
       showTier3: r.showTier3,
     },

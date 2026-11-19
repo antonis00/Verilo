@@ -67,7 +67,7 @@ test("the welcome wizard saves choices that shape the front page and settings", 
   let topicId = 0;
   try {
     topicId = await seedTopic(slug, topicName);
-    await seedStory(slug, headline, { country: "IE", topicId });
+    await seedStory(slug, headline, { country: "DE", topicId });
     await refreshCaches(page.request);
 
     await signIn(page, `${slug}@example.com`);
@@ -81,12 +81,14 @@ test("the welcome wizard saves choices that shape the front page and settings", 
     await expect(topicChip).toHaveAttribute("aria-pressed", "true");
     await page.getByRole("button", { name: "Next" }).click();
 
-    // Step 2: places. Focus moves to the new question.
-    await expect(page.getByRole("heading", { name: "Which places matter to you?" })).toBeFocused();
-    await page.getByRole("button", { name: "Ireland" }).click();
+    // Step 2: places (regions). Focus moves to the new question.
+    await expect(
+      page.getByRole("heading", { name: "Which parts of the world matter to you?" }),
+    ).toBeFocused();
+    await page.getByRole("button", { name: "Europe", exact: true }).click();
     await page.getByRole("button", { name: "Next" }).click();
 
-    // Step 3: outlets, grouped by country; Ireland is open because it was chosen.
+    // Step 3: outlets, grouped by region; Europe is open because it was chosen.
     await page.getByRole("button", { name: `Follow Test Outlet ${slug}-a` }).click();
     await page.getByRole("button", { name: `Hide Test Outlet ${slug}-b` }).click();
     await expect(page.getByRole("button", { name: `Hide Test Outlet ${slug}-b` })).toHaveAttribute(
@@ -117,7 +119,7 @@ test("the welcome wizard saves choices that shape the front page and settings", 
       "aria-pressed",
       "true",
     );
-    await expect(page.getByRole("button", { name: "Ireland" })).toHaveAttribute(
+    await expect(page.getByRole("button", { name: "Europe", exact: true })).toHaveAttribute(
       "aria-pressed",
       "true",
     );

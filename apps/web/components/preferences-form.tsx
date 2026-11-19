@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { savePreferences } from "@/app/preferences/actions";
 import type { Outlet, Topic } from "@/lib/news";
-import { PLACES, type PreferencesInput } from "@/lib/preferences";
+import { type PreferencesInput } from "@/lib/preferences";
+import { REGION_LABEL, REGIONS } from "@/lib/regions";
 import { COUNTRY_LABEL, LEAN_LABEL, TIER_LABEL } from "@/lib/sources";
 
 type Props = {
@@ -20,8 +21,8 @@ const STEPS = [
     hint: "Pick five or more for a good start. Everything here can be changed later in My News.",
   },
   {
-    title: "Which places matter to you?",
-    hint: "Stories covered by outlets from these countries are lifted on your front page.",
+    title: "Which parts of the world matter to you?",
+    hint: "Stories covered by outlets from these regions are lifted on your front page.",
   },
   {
     title: "Any outlets you prefer, or want to skip?",
@@ -253,18 +254,18 @@ function TopicsStep({
 function PlacesStep({ prefs, setPrefs }: StepProps) {
   return (
     <div role="group" aria-label="Places" className="flex flex-wrap gap-2">
-      {PLACES.map((p) => (
+      {REGIONS.map((p) => (
         <button
           key={p.code}
           type="button"
           className="chip"
-          aria-pressed={prefs.countries.includes(p.code)}
+          aria-pressed={prefs.regions.includes(p.code)}
           onClick={() =>
             setPrefs((s) => ({
               ...s,
-              countries: s.countries.includes(p.code)
-                ? s.countries.filter((c) => c !== p.code)
-                : [...s.countries, p.code],
+              regions: s.regions.includes(p.code)
+                ? s.regions.filter((c) => c !== p.code)
+                : [...s.regions, p.code],
             }))
           }
         >
@@ -277,12 +278,12 @@ function PlacesStep({ prefs, setPrefs }: StepProps) {
 }
 
 function OutletsStep({ outlets, prefs, setPrefs }: StepProps & { outlets: Outlet[] }) {
-  const byCountry = useMemo(() => {
+  // Grouped by region, in the order regions are offered.
+  const byRegion = useMemo(() => {
+    const order: string[] = [...REGIONS.map((r) => r.code), "international"];
     const groups = new Map<string, Outlet[]>();
-    for (const o of outlets) groups.set(o.country, [...(groups.get(o.country) ?? []), o]);
-    return [...groups.entries()].sort(([a], [b]) =>
-      (COUNTRY_LABEL[a] ?? a).localeCompare(COUNTRY_LABEL[b] ?? b),
-    );
+    for (const o of outlets) groups.set(o.region, [...(groups.get(o.region) ?? []), o]);
+    return [...groups.entries()].sort(([a], [b]) => order.indexOf(a) - order.indexOf(b));
   }, [outlets]);
   if (!outlets.length) return <p className="text-ink-muted">Outlets aren’t available yet.</p>;
   const set = (id: number, choice: "follow" | "hide") =>
@@ -299,14 +300,14 @@ function OutletsStep({ outlets, prefs, setPrefs }: StepProps & { outlets: Outlet
         Each outlet shows how much we rely on it (fact base, reputable, labelled) and where it
         leans. Those labels are the same for every reader.
       </p>
-      {byCountry.map(([country, list]) => (
+      {byRegion.map(([region, list]) => (
         <details
-          key={country}
-          open={prefs.countries.length === 0 || prefs.countries.includes(country)}
+          key={region}
+          open={prefs.regions.length === 0 || prefs.regions.includes(region)}
           className="border-t border-rule py-3"
         >
           <summary className="cursor-pointer font-semibold">
-            {COUNTRY_LABEL[country] ?? country}{" "}
+            {REGION_LABEL[region] ?? region}{" "}
             <span className="meta font-normal">({list.length})</span>
           </summary>
           <ul className="mt-2">
@@ -318,7 +319,8 @@ function OutletsStep({ outlets, prefs, setPrefs }: StepProps & { outlets: Outlet
                 <span>
                   <span className="text-sm font-semibold">{o.name}</span>
                   <span className="meta ml-2">
-                    {TIER_LABEL[o.tier]} · {LEAN_LABEL[o.lean]}
+                    {COUNTRY_LABEL[o.country] ?? o.country} · {TIER_LABEL[o.tier]} ·{" "}
+                    {LEAN_LABEL[o.lean]}
                   </span>
                 </span>
                 <span className="flex gap-2">

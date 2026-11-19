@@ -24,7 +24,7 @@ export async function savePreferences(raw: unknown): Promise<SaveResult> {
   const v = checked.value;
   const supabase = await createClient();
   const { error } = await supabase.rpc("save_reader_preferences", {
-    p_countries: v.countries,
+    p_regions: v.regions,
     p_show_opinion: v.showOpinion,
     p_show_tier3: v.showTier3,
     p_follow_topics: v.followTopics,

@@ -29,6 +29,11 @@ feeds = [
   { url = "https://feeds.bbci.co.uk/news/business/rss.xml", section = "business", poll = 30 },
   { url = "https://feeds.bbci.co.uk/news/science_and_environment/rss.xml", section = "science", poll = 60 },
   { url = "https://feeds.bbci.co.uk/news/technology/rss.xml", section = "technology", poll = 60 },
+  { url = "https://feeds.bbci.co.uk/news/world/europe/rss.xml", section = "europe", poll = 30 },
+  { url = "https://feeds.bbci.co.uk/news/world/middle_east/rss.xml", section = "middle-east", poll = 30 },
+  { url = "https://feeds.bbci.co.uk/news/world/africa/rss.xml", section = "africa", poll = 30 },
+  { url = "https://feeds.bbci.co.uk/news/world/asia/rss.xml", section = "asia", poll = 30 },
+  { url = "https://feeds.bbci.co.uk/news/world/latin_america/rss.xml", section = "latin-america", poll = 60 },
 ]
 
 [[source]]
@@ -697,4 +702,408 @@ lean = "center"
 basis = "Large architecture platform; most posts are project descriptions supplied by the architects, so tier 3: shown, never summarised. Lean nominal."
 feeds = [
   { url = "https://www.archdaily.com/feed", section = "architecture", poll = 120 },
+]
+
+# Outlets from more regions (Nov 2026). Leans are on the US/UK scale and only nominal for most
+# of these; tiers note state ownership or funding where it applies. Not yet reviewed by the owner.
+# Not added, with the reason: Times of Israel and CNA (robots.txt disallows crawlers), Haaretz
+# and Arab News (feeds refuse with 403), NHK World (no English news feed found), News24
+# (robots.txt didn't answer).
+
+[[source]]
+slug = "dw"
+name = "DW (Deutsche Welle)"
+homepage = "https://www.dw.com/en"
+country = "DE"
+kind = "public_broadcaster"
+tier = 1
+lean = "center"
+basis = "Germany's international public broadcaster, editorially independent by law; generally rated reliable and centre."
+feeds = [
+  { url = "https://rss.dw.com/rdf/rss-en-all", section = "top", poll = 15 },
+]
+
+[[source]]
+slug = "france-24"
+name = "France 24"
+homepage = "https://www.france24.com/en"
+country = "FR"
+kind = "public_broadcaster"
+tier = 1
+lean = "center"
+basis = "French public international broadcaster (France Médias Monde); generally rated reliable and centre."
+feeds = [
+  { url = "https://www.france24.com/en/rss", section = "top", poll = 15 },
+  { url = "https://www.france24.com/en/europe/rss", section = "europe", poll = 30 },
+]
+
+[[source]]
+slug = "euronews"
+name = "Euronews"
+homepage = "https://www.euronews.com"
+country = "FR"
+kind = "broadcaster"
+tier = 2
+lean = "center"
+basis = "Pan-European news channel; generally rated mostly reliable and centre. Lean is nominal outside the US/UK scale."
+feeds = [
+  { url = "https://www.euronews.com/rss?level=theme&name=news", section = "top", poll = 30 },
+]
+
+[[source]]
+slug = "politico-europe"
+name = "Politico Europe"
+homepage = "https://www.politico.eu"
+country = "BE"
+kind = "digital"
+tier = 2
+lean = "center"
+basis = "Brussels-based European politics and policy outlet; generally rated reliable and centre."
+feeds = [
+  { url = "https://www.politico.eu/feed/", section = "politics", poll = 30 },
+]
+
+[[source]]
+slug = "kyiv-independent"
+name = "The Kyiv Independent"
+homepage = "https://kyivindependent.com"
+country = "UA"
+kind = "digital"
+tier = 2
+lean = "center"
+basis = "Independent Ukrainian English-language outlet, reader-funded; reliable on events in Ukraine, reports from Ukraine's side of the war. Lean nominal."
+feeds = [
+  { url = "https://kyivindependent.com/news-archive/rss/", section = "top", poll = 30 },
+]
+
+[[source]]
+slug = "al-jazeera"
+name = "Al Jazeera English"
+homepage = "https://www.aljazeera.com"
+country = "QA"
+kind = "broadcaster"
+tier = 2
+lean = "lean_left"
+basis = "International broadcaster funded by the State of Qatar; news rated mostly reliable, commonly rated lean left; less independent on Qatar and Gulf politics. Tier 2 is a provisional call for the owner's review."
+feeds = [
+  { url = "https://www.aljazeera.com/xml/rss/all.xml", section = "top", poll = 15 },
+]
+
+[[source]]
+slug = "al-monitor"
+name = "Al-Monitor"
+homepage = "https://www.al-monitor.com"
+country = "US"
+region = "middle-east"
+kind = "digital"
+tier = 2
+lean = "center"
+basis = "Washington-based outlet covering the Middle East with reporters across the region; generally rated reliable and centre."
+feeds = [
+  { url = "https://www.al-monitor.com/rss", section = "top", poll = 60 },
+]
+
+[[source]]
+slug = "jerusalem-post"
+name = "The Jerusalem Post"
+homepage = "https://www.jpost.com"
+country = "IL"
+kind = "newspaper"
+tier = 2
+lean = "lean_right"
+basis = "Israeli English-language daily; generally rated mostly reliable; commonly rated lean right."
+feeds = [
+  { url = "https://www.jpost.com/rss/rssfeedsfrontpage.aspx", section = "top", poll = 30 },
+]
+
+[[source]]
+slug = "the-national"
+name = "The National"
+homepage = "https://www.thenationalnews.com"
+country = "AE"
+kind = "newspaper"
+tier = 3
+lean = "center"
+basis = "UAE English-language daily owned by an Abu Dhabi state-linked company; tier 3 (shown with a label, never summarised) because of limited independence on Gulf politics. Lean nominal."
+feeds = [
+  { url = "https://www.thenationalnews.com/arc/outboundfeeds/rss/?outputType=xml", section = "top", poll = 30 },
+]
+
+[[source]]
+slug = "gulf-news"
+name = "Gulf News"
+homepage = "https://gulfnews.com"
+country = "AE"
+kind = "newspaper"
+tier = 3
+lean = "center"
+basis = "Dubai English-language daily, close to the UAE government line; tier 3 (shown with a label, never summarised). Lean nominal."
+feeds = [
+  { url = "https://gulfnews.com/feed", section = "top", poll = 30 },
+]
+
+[[source]]
+slug = "doha-news"
+name = "Doha News"
+homepage = "https://dohanews.co"
+country = "QA"
+kind = "digital"
+tier = 3
+lean = "center"
+basis = "Small Qatar-based English-language outlet; tier 3 (shown with a label, never summarised) for its limited record. Lean nominal."
+feeds = [
+  { url = "https://dohanews.co/feed/", section = "top", poll = 60 },
+]
+
+[[source]]
+slug = "middle-east-eye"
+name = "Middle East Eye"
+homepage = "https://www.middleeasteye.net"
+country = "GB"
+region = "middle-east"
+kind = "digital"
+tier = 3
+lean = "lean_left"
+basis = "London-based outlet covering the Middle East; reliability rated mixed and ownership questioned; tier 3 (shown with a label, never summarised)."
+feeds = [
+  { url = "https://www.middleeasteye.net/rss", section = "top", poll = 30 },
+]
+
+[[source]]
+slug = "the-new-arab"
+name = "The New Arab"
+homepage = "https://www.newarab.com"
+country = "GB"
+region = "middle-east"
+kind = "digital"
+tier = 3
+lean = "lean_left"
+basis = "London-based outlet with Qatari owners, covering the Arab world; tier 3 (shown with a label, never summarised)."
+feeds = [
+  { url = "https://www.newarab.com/rss", section = "top", poll = 30 },
+]
+
+[[source]]
+slug = "daily-maverick"
+name = "Daily Maverick"
+homepage = "https://www.dailymaverick.co.za"
+country = "ZA"
+kind = "digital"
+tier = 2
+lean = "lean_left"
+basis = "South African outlet known for investigative journalism; generally rated reliable; commonly rated lean left on the local scale."
+feeds = [
+  { url = "https://www.dailymaverick.co.za/dmrss/", section = "top", poll = 30 },
+]
+
+[[source]]
+slug = "mail-and-guardian"
+name = "Mail & Guardian"
+homepage = "https://mg.co.za"
+country = "ZA"
+kind = "newspaper"
+tier = 2
+lean = "lean_left"
+basis = "South African weekly and website with a long investigative record; generally rated reliable; commonly rated lean left."
+feeds = [
+  { url = "https://mg.co.za/rss/", section = "top", poll = 30 },
+]
+
+[[source]]
+slug = "nation-africa"
+name = "Nation (Kenya)"
+homepage = "https://nation.africa/kenya"
+country = "KE"
+kind = "newspaper"
+tier = 2
+lean = "center"
+basis = "Kenya's largest daily (Nation Media Group); generally rated reliable. Lean nominal."
+feeds = [
+  { url = "https://nation.africa/kenya/rss.xml", section = "top", poll = 30 },
+]
+
+[[source]]
+slug = "premium-times"
+name = "Premium Times"
+homepage = "https://www.premiumtimesng.com"
+country = "NG"
+kind = "digital"
+tier = 2
+lean = "center"
+basis = "Nigerian outlet known for investigative work; generally rated reliable. Lean nominal."
+feeds = [
+  { url = "https://www.premiumtimesng.com/feed", section = "top", poll = 30 },
+]
+
+[[source]]
+slug = "dawn"
+name = "Dawn"
+homepage = "https://www.dawn.com"
+country = "PK"
+kind = "newspaper"
+tier = 2
+lean = "center"
+basis = "Pakistan's oldest English-language daily; generally rated reliable. Lean nominal."
+feeds = [
+  { url = "https://www.dawn.com/feeds/home", section = "top", poll = 30 },
+]
+
+[[source]]
+slug = "yonhap"
+name = "Yonhap News Agency"
+homepage = "https://en.yna.co.kr"
+country = "KR"
+kind = "wire"
+tier = 1
+lean = "center"
+basis = "South Korea's national news agency, publicly funded; generally rated reliable; a wire service, so part of the fact base."
+feeds = [
+  { url = "https://en.yna.co.kr/RSS/news.xml", section = "top", poll = 15 },
+]
+
+[[source]]
+slug = "korea-herald"
+name = "The Korea Herald"
+homepage = "https://www.koreaherald.com"
+country = "KR"
+kind = "newspaper"
+tier = 2
+lean = "center"
+basis = "South Korea's largest English-language daily; generally rated reliable. Lean nominal."
+feeds = [
+  { url = "https://www.koreaherald.com/rss/newsAll", section = "top", poll = 30 },
+]
+
+[[source]]
+slug = "japan-times"
+name = "The Japan Times"
+homepage = "https://www.japantimes.co.jp"
+country = "JP"
+kind = "newspaper"
+tier = 2
+lean = "center"
+basis = "Japan's oldest English-language daily; generally rated reliable. Lean nominal."
+feeds = [
+  { url = "https://www.japantimes.co.jp/feed/", section = "top", poll = 30 },
+]
+
+[[source]]
+slug = "scmp"
+name = "South China Morning Post"
+homepage = "https://www.scmp.com"
+country = "HK"
+kind = "newspaper"
+tier = 2
+lean = "center"
+basis = "Hong Kong English-language daily owned by Alibaba since 2016; generally rated mostly reliable; questions over independence on mainland China."
+feeds = [
+  { url = "https://www.scmp.com/rss/91/feed", section = "world", poll = 30 },
+  { url = "https://www.scmp.com/rss/2/feed", section = "hong-kong", poll = 60 },
+]
+
+[[source]]
+slug = "straits-times"
+name = "The Straits Times"
+homepage = "https://www.straitstimes.com"
+country = "SG"
+kind = "newspaper"
+tier = 2
+lean = "center"
+basis = "Singapore's main English-language daily (SPH Media Trust, publicly funded since 2022); generally rated reliable; limited on Singapore politics. Lean nominal."
+feeds = [
+  { url = "https://www.straitstimes.com/news/world/rss.xml", section = "world", poll = 30 },
+  { url = "https://www.straitstimes.com/news/singapore/rss.xml", section = "national", poll = 60 },
+]
+
+[[source]]
+slug = "rappler"
+name = "Rappler"
+homepage = "https://www.rappler.com"
+country = "PH"
+kind = "digital"
+tier = 2
+lean = "lean_left"
+basis = "Philippine digital outlet (Nobel laureate Maria Ressa); generally rated reliable; commonly rated lean left on the local scale."
+feeds = [
+  { url = "https://www.rappler.com/feed/", section = "top", poll = 30 },
+]
+
+[[source]]
+slug = "rnz"
+name = "RNZ"
+homepage = "https://www.rnz.co.nz"
+country = "NZ"
+kind = "public_broadcaster"
+tier = 1
+lean = "center"
+basis = "New Zealand's public broadcaster with a statutory charter; generally rated reliable and centre."
+feeds = [
+  { url = "https://www.rnz.co.nz/rss/national.xml", section = "national", poll = 30 },
+  { url = "https://www.rnz.co.nz/rss/world.xml", section = "world", poll = 60 },
+]
+
+[[source]]
+slug = "nz-herald"
+name = "The New Zealand Herald"
+homepage = "https://www.nzherald.co.nz"
+country = "NZ"
+kind = "newspaper"
+tier = 2
+lean = "center"
+basis = "New Zealand's largest daily; generally rated reliable and centre."
+feeds = [
+  { url = "https://www.nzherald.co.nz/arc/outboundfeeds/rss/curated/78/?outputType=xml", section = "top", poll = 30 },
+]
+
+[[source]]
+slug = "stuff"
+name = "Stuff"
+homepage = "https://www.stuff.co.nz"
+country = "NZ"
+kind = "digital"
+tier = 2
+lean = "center"
+basis = "New Zealand's largest news website; generally rated reliable and centre."
+feeds = [
+  { url = "https://www.stuff.co.nz/rss", section = "top", poll = 30 },
+]
+
+[[source]]
+slug = "buenos-aires-times"
+name = "Buenos Aires Times"
+homepage = "https://www.batimes.com.ar"
+country = "AR"
+kind = "newspaper"
+tier = 2
+lean = "center"
+basis = "Argentina's English-language newspaper (Editorial Perfil); generally rated reliable. Lean nominal."
+feeds = [
+  { url = "https://www.batimes.com.ar/feed", section = "top", poll = 60 },
+]
+
+[[source]]
+slug = "mexico-news-daily"
+name = "Mexico News Daily"
+homepage = "https://mexiconewsdaily.com"
+country = "MX"
+kind = "digital"
+tier = 2
+lean = "center"
+basis = "English-language news on Mexico; generally rated reliable. Lean nominal."
+feeds = [
+  { url = "https://mexiconewsdaily.com/feed/", section = "top", poll = 60 },
+]
+
+[[source]]
+slug = "mercopress"
+name = "MercoPress"
+homepage = "https://en.mercopress.com"
+country = "INT"
+region = "latin-america"
+kind = "digital"
+tier = 3
+lean = "center"
+basis = "Small news agency covering South America and the South Atlantic; tier 3 (shown with a label, never summarised) for its limited record. Lean nominal."
+feeds = [
+  { url = "https://en.mercopress.com/rss", section = "top", poll = 120 },
 ]
