@@ -285,6 +285,16 @@ function OutletsStep({ outlets, prefs, setPrefs }: StepProps & { outlets: Outlet
     for (const o of outlets) groups.set(o.region, [...(groups.get(o.region) ?? []), o]);
     return [...groups.entries()].sort(([a], [b]) => order.indexOf(a) - order.indexOf(b));
   }, [outlets]);
+  // Which regions are unfolded: the reader's chosen regions to start with, or all of them.
+  const [open, setOpen] = useState<Set<string>>(
+    () =>
+      new Set(
+        byRegion
+          .map(([region]) => region)
+          .filter((r) => prefs.regions.length === 0 || prefs.regions.includes(r)),
+      ),
+  );
+  const allOpen = byRegion.length > 0 && byRegion.every(([region]) => open.has(region));
   if (!outlets.length) return <p className="text-ink-muted">Outlets aren’t available yet.</p>;
   const set = (id: number, choice: "follow" | "hide") =>
     setPrefs((p) => {
@@ -296,14 +306,41 @@ function OutletsStep({ outlets, prefs, setPrefs }: StepProps & { outlets: Outlet
     });
   return (
     <>
-      <p className="meta mb-4">
-        Each outlet shows how much we rely on it (fact base, reputable, labelled) and where it
-        leans. Those labels are the same for every reader.
-      </p>
+      <div className="mb-4 flex items-start justify-between gap-4">
+        <p className="meta">
+          Each outlet shows how much we rely on it (fact base, reputable, labelled) and where it
+          leans. Those labels are the same for every reader.
+        </p>
+        <button
+          type="button"
+          onClick={() => setOpen(allOpen ? new Set() : new Set(byRegion.map(([region]) => region)))}
+          className="meta inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-1.5 hover:text-ink"
+        >
+          <svg
+            viewBox="0 0 12 12"
+            aria-hidden="true"
+            focusable="false"
+            className={`size-2.5 transition-transform ${allOpen ? "" : "-rotate-90"}`}
+          >
+            <path d="M1.5 3.5h9L6 9z" fill="currentColor" />
+          </svg>
+          {allOpen ? "Collapse all" : "Expand all"}
+        </button>
+      </div>
       {byRegion.map(([region, list]) => (
         <details
           key={region}
-          open={prefs.regions.length === 0 || prefs.regions.includes(region)}
+          open={open.has(region)}
+          onToggle={(e) => {
+            const isOpen = e.currentTarget.open;
+            setOpen((current) => {
+              if (current.has(region) === isOpen) return current;
+              const next = new Set(current);
+              if (isOpen) next.add(region);
+              else next.delete(region);
+              return next;
+            });
+          }}
           className="border-t border-rule py-3"
         >
           <summary className="cursor-pointer font-semibold">
