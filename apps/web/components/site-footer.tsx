@@ -11,9 +11,9 @@ export function SiteFooter() {
           </span>
           AI summaries are labelled and link to every source they use.
         </p>
-        <nav aria-label="Footer">
-          <Link href="/sign-in" className="quiet-link">
-            Sign in
+        <nav aria-label="Footer" className="flex gap-5">
+          <Link href="/about" className="quiet-link">
+            How Verilo works
           </Link>
         </nav>
       </div>

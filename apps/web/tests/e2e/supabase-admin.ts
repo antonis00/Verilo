@@ -1,3 +1,4 @@
+import { TEST_REVALIDATE_SECRET } from "./constants";
 // Test setup through the local Supabase's REST API with the secret key (bypasses row-level
 // security). Only for arranging data in tests; the app itself never uses this key.
 const API = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "http://127.0.0.1:54321";
@@ -38,14 +39,14 @@ export async function makeEditor(email: string) {
 
 const hash = (c: string) => Array.from({ length: 64 }, () => c).join("");
 
-async function seedSource(slug: string, tier: number, lean: string) {
+async function seedSource(slug: string, tier: number, lean: string, country = "GB") {
   const [source] = await rest("sources", {
     method: "POST",
     body: JSON.stringify({
       slug,
       name: `Test Outlet ${slug}`,
       homepage: "https://test-outlet.example",
-      country: "GB",
+      country,
       kind: "newspaper",
       tier,
       lean,
@@ -57,9 +58,13 @@ async function seedSource(slug: string, tier: number, lean: string) {
 
 // Two outlets reporting one story: a tier 1 news report and a tier 2 opinion piece. The story's
 // outlet count is set high so it leads the desk's list, ahead of the real stories.
-export async function seedStory(slug: string, headline: string) {
-  const wire = await seedSource(`${slug}-a`, 1, "center");
-  const paper = await seedSource(`${slug}-b`, 2, "lean_right");
+export async function seedStory(
+  slug: string,
+  headline: string,
+  options: { country?: string; topicId?: number } = {},
+) {
+  const wire = await seedSource(`${slug}-a`, 1, "center", options.country);
+  const paper = await seedSource(`${slug}-b`, 2, "lean_right", options.country);
   const now = new Date().toISOString();
   const [story] = await rest("stories", {
     method: "POST",
@@ -72,7 +77,7 @@ export async function seedStory(slug: string, headline: string) {
       outlet_count: 999,
     }),
   });
-  await rest("articles", {
+  const articles = await rest("articles", {
     method: "POST",
     body: JSON.stringify([
       {
@@ -97,7 +102,35 @@ export async function seedStory(slug: string, headline: string) {
       },
     ]),
   });
-  return story.id as number;
+  if (options.topicId) {
+    await rest("article_topics", {
+      method: "POST",
+      body: JSON.stringify({
+        article_id: articles[0].id,
+        topic_id: options.topicId,
+        score: 1,
+        method: "section",
+      }),
+    });
+  }
+  return { storyId: story.id as number, outletIds: [wire.id, paper.id] };
+}
+
+export async function seedTopic(slug: string, name: string) {
+  const [topic] = await rest("topics", {
+    method: "POST",
+    body: JSON.stringify({
+      slug,
+      name,
+      description: "A topic created by an end-to-end test.",
+      position: 999,
+    }),
+  });
+  return topic.id as number;
+}
+
+export async function removeTopic(slug: string) {
+  await rest(`topics?slug=eq.${slug}`, { method: "DELETE", prefer: "return=minimal" });
 }
 
 // Removes whatever seedStory created, even if seeding stopped half-way.
@@ -110,4 +143,13 @@ export async function removeStory(slug: string, headline: string) {
     method: "DELETE",
     prefer: "return=minimal",
   });
+}
+
+// Tells the test server its cached stories, topics and outlets changed, as the pipeline does.
+export async function refreshCaches(request: import("@playwright/test").APIRequestContext) {
+  const res = await request.post("/api/revalidate", {
+    headers: { Authorization: `Bearer ${TEST_REVALIDATE_SECRET}` },
+    data: { tags: ["stories", "reference"] },
+  });
+  if (!res.ok()) throw new Error(`refreshing caches failed: ${res.status()}`);
 }

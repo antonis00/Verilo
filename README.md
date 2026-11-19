@@ -27,7 +27,8 @@ cp .env.example .env.local               # paste the publishable key from `npx s
 npm run dev                              # http://localhost:3001
 ```
 
-Sign-in emails go to the local mail catcher at http://127.0.0.1:54324.
+Sign-in emails go to the local mail catcher at http://127.0.0.1:54324. New readers land on a
+short welcome wizard (topics, places, outlets, what to show); settings are under My News.
 
 ## News ingestion
 

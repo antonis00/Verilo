@@ -32,7 +32,9 @@ test("sign in with an emailed link, then sign out", async ({ page }, info) => {
   const { pathname, search } = new URL(link);
   await page.goto(pathname + search);
 
-  await expect(page).toHaveURL(/\/my-news$/);
+  // A new reader lands on the welcome wizard; their account is in My News.
+  await expect(page).toHaveURL(/\/welcome$/);
+  await page.goto("/my-news");
   await expect(page.getByText(`Signed in as ${email}`)).toBeVisible();
   await expect(page.getByRole("navigation", { name: "Account" })).toContainText("My News");
 

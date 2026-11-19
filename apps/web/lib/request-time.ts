@@ -7,3 +7,9 @@ export async function requestTime(): Promise<number> {
   await connection();
   return Date.now();
 }
+
+// The current time inside a "use cache" scope: cached with the result, so a cached page says
+// "5 min ago" as of when it was made (it refreshes every minute or so).
+export function cachedTime(): number {
+  return Date.now();
+}
