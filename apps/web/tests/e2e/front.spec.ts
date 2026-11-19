@@ -23,9 +23,13 @@ test("visitors get the front page with an invitation to make it theirs", async (
     "href",
     "/welcome",
   );
-  // Either stories or the empty state, and always an end: the page is finite.
+  // Either stories or the empty state, and always an end: the page is finite. Only the visible
+  // one counts: while React streams in a replacement, a hidden copy can briefly be in the page.
   await expect(
-    page.getByText("You’re caught up.").or(page.getByRole("heading", { name: "No stories yet" })),
+    page
+      .getByText("You’re caught up.")
+      .or(page.getByRole("heading", { name: "No stories yet" }))
+      .filter({ visible: true }),
   ).toBeVisible();
   expect(await axe(page)).toEqual([]);
 });
