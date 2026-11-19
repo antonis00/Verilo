@@ -125,10 +125,12 @@ test("the welcome wizard saves choices that shape the front page and settings", 
     );
     await expect(page.getByRole("switch", { name: /Opinion pieces/ })).not.toBeChecked();
 
-    // The outlets list folds: all regions at once, or one at a time.
+    // The outlets list folds: all regions at once, or one at a time. Which way the control
+    // starts depends on the data (with outlets in one region only, it opens all of them).
     const regions = page.locator("details");
     const openCount = () => page.locator("details[open]").count();
-    await page.getByRole("button", { name: "Expand all" }).click();
+    const fold = page.getByRole("button", { name: /^(Expand|Collapse) all$/ });
+    if ((await fold.textContent())?.includes("Expand")) await fold.click();
     await expect.poll(openCount).toBe(await regions.count());
     await page.getByRole("button", { name: "Collapse all" }).click();
     await expect.poll(openCount).toBe(0);
