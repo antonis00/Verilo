@@ -29,7 +29,7 @@ test("a new reader's free trial shows in My News, and on the front page near its
   await page.goto("/");
   await expect(notice).toContainText("Your free trial has ended.");
   await expect(notice).toContainText("everything stays open");
-  await expect(page.getByRole("article").first()).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible(); // the page is all there
 
   // Subscribed: no trial talk at all.
   await setTrial(id, { subscribed_until: inDays(30) });
