@@ -61,6 +61,7 @@ export type Outlet = {
   id: number;
   name: string;
   country: string;
+  region: string;
   tier: Tier;
   lean: Lean;
   kind: string;
@@ -71,7 +72,7 @@ export async function outlets(): Promise<Outlet[]> {
   cacheReference();
   const { data, error } = await publicClient()
     .from("sources")
-    .select("id, name, country, tier, lean, kind")
+    .select("id, name, country, region, tier, lean, kind")
     .eq("status", "active")
     .order("name");
   if (error) console.error("outlets failed", error.message);

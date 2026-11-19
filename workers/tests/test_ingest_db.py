@@ -207,3 +207,18 @@ def test_readers_cannot_write_or_see_internal_tables(conn):
     with pytest.raises(psycopg.errors.InsufficientPrivilege), conn.transaction():
         conn.execute("set local role authenticated")
         conn.execute("update public.profiles set is_editor = true")
+
+
+def test_the_database_accepts_every_country_and_region_the_registry_knows(conn):
+    from verilo_workers.ingest.registry import REGION_OF
+
+    for country, region in REGION_OF.items():
+        with conn.transaction():
+            conn.execute(
+                """insert into public.sources
+                     (slug, name, homepage, country, region, kind, tier, lean, rating_basis)
+                   values ('test-fake-news', 'x', 'https://x.example', %s, %s, 'digital', 3,
+                           'center', 'test')""",
+                (country, region),
+            )
+            conn.execute("delete from public.sources where slug = 'test-fake-news'")

@@ -20,7 +20,7 @@ const hoursAgo = (h: number) => new Date(NOW - h * 3_600_000).toISOString();
 let nextId = 1;
 function article(
   source_id: number,
-  opts: { tier?: Tier; kind?: Kind; lean?: Lean; country?: string; title?: string } = {},
+  opts: { tier?: Tier; kind?: Kind; lean?: Lean; region?: string; title?: string } = {},
 ): CardArticle {
   const id = nextId++;
   return {
@@ -29,7 +29,8 @@ function article(
     source: `Outlet ${source_id}`,
     tier: opts.tier ?? 2,
     lean: opts.lean ?? "center",
-    country: opts.country ?? "GB",
+    country: "GB",
+    region: opts.region ?? "uk-ireland",
     kind: opts.kind ?? "news",
     title: opts.title ?? `Headline ${id}`,
     snippet: "",
@@ -200,5 +201,17 @@ describe("rankTopic", () => {
   it("shows a muted topic on its own page, since the reader opened it", () => {
     const c = card(1, outlets(3), { topics: [3] });
     expect(ids(rankTopic([c], 3, prefs({ muteTopics: [3] }), NOW).top)).toEqual([1]);
+  });
+});
+
+describe("places", () => {
+  it("lifts a story covered by outlets from the reader's regions", () => {
+    const local = card(1, [article(1, { region: "europe" }), article(2, { region: "europe" })]);
+    const elsewhere = card(2, [article(3), article(4)]);
+    const asked = prefs({ regions: ["europe"] });
+    expect(score(local, asked, NOW)!.score).toBeGreaterThan(score(elsewhere, asked, NOW)!.score);
+    expect(score(local, NO_PREFERENCES, NOW)!.score).toBeCloseTo(
+      score(elsewhere, NO_PREFERENCES, NOW)!.score,
+    );
   });
 });

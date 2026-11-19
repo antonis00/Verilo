@@ -40,12 +40,13 @@ def sync_sources(
                 row = conn.execute(
                     """
                     insert into public.sources
-                      (slug, name, homepage, country, kind, tier, lean, status,
+                      (slug, name, homepage, country, region, kind, tier, lean, status,
                        rating_basis, reviewed_on, note)
-                    values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     on conflict (slug) do update set
                       name = excluded.name, homepage = excluded.homepage,
-                      country = excluded.country, kind = excluded.kind, tier = excluded.tier,
+                      country = excluded.country, region = excluded.region,
+                      kind = excluded.kind, tier = excluded.tier,
                       lean = excluded.lean, status = excluded.status,
                       rating_basis = excluded.rating_basis, reviewed_on = excluded.reviewed_on,
                       note = excluded.note
@@ -56,6 +57,7 @@ def sync_sources(
                         s.name,
                         s.homepage,
                         s.country,
+                        s.region,
                         s.kind,
                         s.tier,
                         s.lean,

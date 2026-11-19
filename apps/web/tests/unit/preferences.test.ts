@@ -7,12 +7,21 @@ const input = (over: Record<string, unknown> = {}) => ({ ...EMPTY_INPUT, ...over
 describe("checkPreferences", () => {
   it("accepts a good set and removes duplicates", () => {
     const r = checkPreferences(
-      input({ followTopics: [1, 1, 2], followSources: [10], countries: ["GB", "GB", "IN"] }),
+      input({
+        followTopics: [1, 1, 2],
+        followSources: [10],
+        regions: ["europe", "europe", "africa"],
+      }),
       known,
     );
     expect(r).toEqual({
       ok: true,
-      value: { ...EMPTY_INPUT, followTopics: [1, 2], followSources: [10], countries: ["GB", "IN"] },
+      value: {
+        ...EMPTY_INPUT,
+        followTopics: [1, 2],
+        followSources: [10],
+        regions: ["europe", "africa"],
+      },
     });
   });
 
@@ -28,7 +37,9 @@ describe("checkPreferences", () => {
   it.each([
     ["an unknown topic", { followTopics: [99] }, "topic"],
     ["an unknown outlet", { hideSources: [99] }, "outlet"],
-    ["an unknown place", { countries: ["FR"] }, "place"],
+    ["an unknown place", { regions: ["atlantis"] }, "place"],
+    ["a country instead of a region", { regions: ["FR"] }, "place"],
+    ["international, which is not offered", { regions: ["international"] }, "place"],
     ["a non-number id", { followTopics: ["1"] }, "couldn't be read"],
     ["a negative id", { followSources: [-1] }, "couldn't be read"],
     ["a string for a switch", { showOpinion: "yes" }, "couldn't be read"],

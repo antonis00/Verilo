@@ -17,15 +17,7 @@ export const TIER_LABEL: Record<Tier, string> = {
   3: "Labelled",
 };
 
-export const COUNTRY_LABEL: Record<string, string> = {
-  US: "US",
-  GB: "UK",
-  CA: "Canada",
-  AU: "Australia",
-  IE: "Ireland",
-  IN: "India",
-  INT: "International",
-};
+export { COUNTRY_LABEL } from "@/lib/regions";
 
 // "5 min ago", "3 h ago", "2 days ago"; exact time in the title attribute.
 export function ago(iso: string | null, now: number): string {
