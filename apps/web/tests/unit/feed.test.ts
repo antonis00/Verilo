@@ -5,6 +5,7 @@ import {
   MAX_PER_TOPIC,
   NO_PREFERENCES,
   rank,
+  rankTopic,
   score,
   TOP_WINDOW,
   type Card,
@@ -170,5 +171,34 @@ describe("rank", () => {
   it("stops at the limit: the page ends", () => {
     const many = Array.from({ length: 40 }, (_, i) => card(i + 1, outlets(3, 1000 + i * 5)));
     expect(rank(many, NO_PREFERENCES, NOW, { limit: 24 }).top).toHaveLength(24);
+  });
+});
+
+describe("rankTopic", () => {
+  it("lists only the topic's stories, single-outlet ones included, best first", () => {
+    const big = card(1, outlets(8, 100), { topics: [3] });
+    const single = card(2, [article(200)], { topics: [3, 4] });
+    const other = card(3, outlets(10, 300), { topics: [5] });
+    const page = rankTopic([big, single, other], 3, NO_PREFERENCES, NOW);
+    expect(ids(page.top)).toEqual([1, 2]);
+    expect(page.alsoImportant).toEqual([]);
+  });
+
+  it("still applies hidden outlets and the show choices", () => {
+    const c = card(1, [article(1), article(2, { kind: "opinion" })], { topics: [3] });
+    const onlyHidden = card(2, [article(9)], { topics: [3] });
+    const page = rankTopic(
+      [c, onlyHidden],
+      3,
+      prefs({ hideSources: [9], showOpinion: false }),
+      NOW,
+    );
+    expect(ids(page.top)).toEqual([1]);
+    expect(page.top[0].visible.map((a) => a.source_id)).toEqual([1]);
+  });
+
+  it("shows a muted topic on its own page, since the reader opened it", () => {
+    const c = card(1, outlets(3), { topics: [3] });
+    expect(ids(rankTopic([c], 3, prefs({ muteTopics: [3] }), NOW).top)).toEqual([1]);
   });
 });

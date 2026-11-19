@@ -103,14 +103,17 @@ export async function seedStory(
     ]),
   });
   if (options.topicId) {
+    // Both articles: a story's topic needs at least two of its articles behind it.
     await rest("article_topics", {
       method: "POST",
-      body: JSON.stringify({
-        article_id: articles[0].id,
-        topic_id: options.topicId,
-        score: 1,
-        method: "section",
-      }),
+      body: JSON.stringify(
+        articles.map((a: { id: number }) => ({
+          article_id: a.id,
+          topic_id: options.topicId,
+          score: 1,
+          method: "section",
+        })),
+      ),
     });
   }
   return { storyId: story.id as number, outletIds: [wire.id, paper.id] };

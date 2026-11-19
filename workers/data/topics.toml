@@ -34,8 +34,8 @@ description = "The economy: inflation, interest rates, central banks, unemployme
 
 [[topic]]
 slug = "business"
-name = "Business"
-description = "Companies and markets: corporate results and profits, mergers and takeovers, stock markets and shares, chief executives, industries, start-ups and investors."
+name = "Business and finance"
+description = "Companies, markets and finance: corporate results and profits, mergers and takeovers, stock markets and shares, banks and investors, chief executives, industries and start-ups."
 sections = ["business", "markets"]
 
 [[topic]]

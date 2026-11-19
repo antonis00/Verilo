@@ -147,3 +147,41 @@ test("a reader can skip the wizard and still gets a front page", async ({ page }
   await expect(page).toHaveURL(/\/$/);
   await signIn(page, `${slug}@example.com`, /\/$/);
 });
+
+test("the section menu opens a topic's own page", async ({ page }, info) => {
+  const slug = uniqueName("section", info.project.name);
+  const topicName = `Section ${slug}`;
+  const headline = `Section story ${slug}`;
+  try {
+    const topicId = await seedTopic(slug, topicName);
+    await seedStory(slug, headline, { topicId });
+    await refreshCaches(page.request);
+
+    await page.goto("/");
+    const sections = page.getByRole("navigation", { name: "Sections" });
+    await expect(sections.getByRole("link", { name: "Top stories" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    await sections.getByRole("link", { name: topicName }).click();
+
+    await expect(page).toHaveURL(new RegExp(`/topic/${slug}$`));
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(topicName);
+    await expect(sections.getByRole("link", { name: topicName })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    await expect(page.getByRole("article").filter({ hasText: headline })).toBeVisible();
+    expect(await axe(page)).toEqual([]);
+  } finally {
+    await removeStory(slug, headline);
+    await removeTopic(slug);
+  }
+});
+
+test("an unknown section is not found", async ({ page }) => {
+  await page.goto("/topic/no-such-topic");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    "There’s no page at this address",
+  );
+});

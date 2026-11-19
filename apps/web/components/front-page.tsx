@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import type { FrontPage as Page, Ranked } from "@/lib/feed";
 import { ago, LEAN_LABEL } from "@/lib/sources";
 
@@ -7,21 +8,28 @@ type Props = {
   topicNames: Map<number, string>;
   now: number;
   personal: boolean;
+  // For section pages: the hidden heading over the stories, and what to say when there are none.
+  label?: string;
+  empty?: { title: string; body: ReactNode };
 };
 
 // The newspaper layout: a lead story across eight columns, three down the side, then rows of
 // three, "Also important today", and an end. Every card links to its story page.
-export function FrontPage({ page, topicNames, now, personal }: Props) {
+export function FrontPage({ page, topicNames, now, personal, label, empty }: Props) {
   const [lead, ...rest] = page.top;
   if (!lead) {
     return (
       <section aria-labelledby="empty-title" className="border-t border-rule py-10">
         <h2 id="empty-title" className="text-2xl">
-          No stories yet
+          {empty?.title ?? "No stories yet"}
         </h2>
         <p className="mt-3 max-w-prose text-ink-muted">
-          Stories appear here once outlets have reported them. If you run Verilo yourself, start the
-          pipeline with <code>python -m verilo_workers pipeline --loop</code>.
+          {empty?.body ?? (
+            <>
+              Stories appear here once outlets have reported them. If you run Verilo yourself, start
+              the pipeline with <code>python -m verilo_workers pipeline --loop</code>.
+            </>
+          )}
         </p>
       </section>
     );
@@ -37,7 +45,7 @@ export function FrontPage({ page, topicNames, now, personal }: Props) {
       >
         {/* For the page outline (h1, h2, then each story's h3); the layout says it visually. */}
         <h2 id="top-title" className="sr-only">
-          {personal ? "Top stories for you" : "Top stories"}
+          {label ?? (personal ? "Top stories for you" : "Top stories")}
         </h2>
         <Story story={lead} size="lead" className="md:col-span-8" {...card} />
         <ol className="md:col-span-4 md:border-l md:border-rule md:pl-8">

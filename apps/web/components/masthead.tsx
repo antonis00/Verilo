@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { ThemeSwitch } from "@/components/theme-switch";
+import { NavList, TopicNav, type NavItem } from "@/components/topic-nav";
 import { getReader } from "@/lib/auth";
+import { topics } from "@/lib/news";
 
 export function Masthead() {
   return (
@@ -25,7 +27,23 @@ export function Masthead() {
         </Link>
         <p className="meta mt-1 tracking-wide">Your front page, from sources you trust</p>
       </div>
+      <Sections />
     </header>
+  );
+}
+
+// The topic list is cached (it changes rarely), so the menu is part of the static shell. Marking
+// the current section needs the address, which streams in; the fallback is the same menu
+// unmarked, so nothing moves.
+async function Sections() {
+  const items: NavItem[] = [
+    { href: "/", label: "Top stories" },
+    ...(await topics()).map((t) => ({ href: `/topic/${t.slug}`, label: t.name })),
+  ];
+  return (
+    <Suspense fallback={<NavList items={items} active={null} />}>
+      <TopicNav items={items} />
+    </Suspense>
   );
 }
 
