@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { BriefingForm } from "@/components/briefing-form";
 import { PreferencesForm } from "@/components/preferences-form";
 import { requireReader } from "@/lib/auth";
 import { outlets, topics } from "@/lib/news";
+import { settingsFrom, type SettingsRow } from "@/lib/briefing";
 import { loadPreferences } from "@/lib/reader-preferences";
+import { createClient } from "@/lib/supabase/server";
 import { signOut } from "./actions";
 
 export const metadata: Metadata = {
@@ -11,7 +14,8 @@ export const metadata: Metadata = {
   robots: { index: false },
 };
 
-// Settings: the same choices as the welcome wizard, all on one page, plus the account.
+// Settings: the same choices as the welcome wizard, all on one page, then the daily briefing and
+// the account.
 export default function MyNewsPage() {
   return (
     <div className="mx-auto max-w-prose py-6 md:py-10">
@@ -26,10 +30,16 @@ export default function MyNewsPage() {
 
 async function Settings() {
   const reader = await requireReader("/my-news");
-  const [saved, topicList, outletList] = await Promise.all([
+  const supabase = await createClient();
+  const [saved, topicList, outletList, briefing] = await Promise.all([
     loadPreferences(reader.id),
     topics(),
     outlets(),
+    supabase
+      .from("digest_settings")
+      .select("user_id, enabled, send_hour, length, time_zone")
+      .eq("user_id", reader.id)
+      .maybeSingle<SettingsRow>(),
   ]);
   return (
     <>
@@ -43,6 +53,9 @@ async function Settings() {
           outlets={outletList}
           initial={saved.input}
         />
+      </div>
+      <div className="mt-12">
+        <BriefingForm initial={settingsFrom(briefing.data)} />
       </div>
       <form action={signOut} className="mt-12 border-t border-rule pt-6">
         <button type="submit" className="button button-secondary">

@@ -190,3 +190,15 @@ export async function refreshCaches(request: import("@playwright/test").APIReque
   });
   if (!res.ok()) throw new Error(`refreshing caches failed: ${res.status()}`);
 }
+
+// A reader's id from their email (the auth admin API, filtered by email).
+export async function userIdFor(email: string): Promise<string> {
+  const res = await fetch(
+    `${API}/auth/v1/admin/users?filter=${encodeURIComponent(email)}&per_page=5`,
+    { headers: { apikey: key(), Authorization: `Bearer ${key()}` } },
+  );
+  const { users } = (await res.json()) as { users: { id: string; email: string }[] };
+  const user = users.find((u) => u.email === email);
+  if (!user) throw new Error(`no account for ${email}`);
+  return user.id;
+}

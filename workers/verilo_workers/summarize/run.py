@@ -329,6 +329,8 @@ def summarize_due(
             continue
         if not _due(row, articles, now):
             continue
+        # No transaction stays open while the models work (see llm_topics.tag_pending).
+        conn.commit()
         try:
             points, record, facts = summarise(articles, complete_fn)
         except RateLimited as exc:
@@ -336,6 +338,7 @@ def summarize_due(
             counts["waiting"] += 1
             break
         _store(conn, row["id"], points, record, facts)
+        conn.commit()
         counts["published" if points else "failed"] += 1
         budget -= 1
     return counts

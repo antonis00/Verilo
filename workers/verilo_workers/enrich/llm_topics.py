@@ -123,6 +123,9 @@ def tag_pending(
            order by coalesce(a.published_at, a.fetched_at) desc limit %s""",
         (now - WINDOW, sources, sources, limit),
     ).fetchall()
+    # Commit as we go: no transaction (and no row lock) may stay open while the model works, or
+    # anything else writing those articles waits for it (the pipeline holds one connection).
+    conn.commit()
     for start in range(0, len(rows), BATCH):
         batch = rows[start : start + BATCH]
         try:
@@ -148,5 +151,6 @@ def tag_pending(
                     "update public.articles set topics_llm_at = %s where id = %s", (now, row["id"])
                 )
                 counts["tagged"] += bool(tags)
+        conn.commit()
         counts["looked at"] += len(batch)
     return counts

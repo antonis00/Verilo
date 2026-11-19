@@ -57,11 +57,22 @@ describe("design rules", () => {
   it("colours come only from the tokens in globals.css", () => {
     // A hex colour anywhere else (a style prop, an arbitrary class like text-[#333]) bypasses
     // the palette and its contrast checks. layout.tsx may repeat the paper colours for the
-    // browser's theme-color, which can't read CSS variables.
-    const allowed = new Set(["app/globals.css", "app/layout.tsx"]);
+    // browser's theme-color, which can't read CSS variables, and the briefing email inlines the
+    // light theme's colours (email clients ignore stylesheets); the next test keeps them in step.
+    const allowed = new Set(["app/globals.css", "app/layout.tsx", "lib/briefing.ts"]);
     const offenders = SOURCES.filter(
       (f) => !allowed.has(f.path) && /#[0-9a-f]{3,8}\b/i.test(f.text),
     ).map((f) => f.path);
     expect(offenders).toEqual([]);
+  });
+
+  it("the briefing email uses the light theme's colours exactly", () => {
+    const css = SOURCES.find((f) => f.path === "app/globals.css")!.text;
+    const email = SOURCES.find((f) => f.path === "lib/briefing.ts")!.text;
+    const palette = email.match(/const C = {([^}]*)}/)![1];
+    for (const [, name, hex] of palette.matchAll(/(w+): "(#[0-9a-f]{6})"/gi)) {
+      const token = name === "muted" ? "ink-muted" : name;
+      expect(css, `--${token}`).toMatch(new RegExp(`--${token}: ${hex};`, "i"));
+    }
   });
 });
