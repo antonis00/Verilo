@@ -1,6 +1,7 @@
 from unittest import mock
 
 import numpy as np
+import pytest
 
 from verilo_workers.enrich import topics
 from verilo_workers.enrich.topics import MATCH_FLOOR, Topic, assign
@@ -53,3 +54,61 @@ def test_the_real_topic_list_loads():
     assert all(len(t.description) > 40 for t in loaded)
     # Broad sections are relative to the outlet, so they never map to a topic.
     assert not {"world", "politics", "top"} & {s for t in loaded for s in t.sections}
+
+
+PARENTED = [
+    Topic("sport", "Sport", "sport", ("sport",), featured=True),
+    Topic("football", "Football", "football", parent="sport"),
+    Topic("economy", "Economy", "economy", featured=True),
+]
+
+
+def with_parents(rows, sections):
+    vectors = np.eye(len(rows), dtype=np.float32)
+    descriptions = np.array(rows, dtype=np.float32).T
+    with mock.patch.object(topics, "_descriptions", return_value=descriptions):
+        return assign(vectors, sections, PARENTED)
+
+
+def test_a_narrow_topic_brings_its_parent():
+    [found] = with_parents([[0.40, 0.70, 0.30]], [None])
+    assert found == [("football", 0.7, "embedding"), ("sport", 0.7, "parent")]
+
+
+def test_a_narrow_topic_needs_the_higher_floor():
+    from verilo_workers.enrich.topics import NARROW_FLOOR
+
+    [found] = with_parents([[0.30, NARROW_FLOOR - 0.01, 0.30]], [None])
+    assert found == []
+
+
+def test_the_parent_is_not_repeated_when_already_matched():
+    [found] = with_parents([[0.70, 0.69, 0.10]], [None])
+    assert [slug for slug, _, _ in found] == ["sport", "football"]
+
+
+def test_the_catalog_is_consistent():
+    loaded = topics.load()
+    slugs = {t.slug for t in loaded}
+    featured = [t for t in loaded if t.featured]
+    assert 8 <= len(featured) <= 16
+    assert len(loaded) >= 60
+    # The original 18 topics keep their slugs, so readers' choices and links still work.
+    assert {
+        "world", "geopolitics", "war-and-security", "politics", "economy", "business",
+        "technology", "artificial-intelligence", "science", "climate-and-environment", "health",
+        "architecture-and-cities", "culture", "sport", "law-and-justice", "education",
+        "migration", "energy",
+    } <= slugs  # fmt: skip
+    assert all(t.parent in slugs for t in loaded if t.parent)
+    assert all(t.aliases == tuple(a.lower() for a in t.aliases) for t in loaded)
+
+
+def test_a_parent_must_exist(tmp_path):
+    bad = tmp_path / "topics.toml"
+    bad.write_text(
+        '[[topic]]\nslug = "a"\nname = "A"\ndescription = "x"\nparent = "missing"\n',
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="parent"):
+        topics.load(bad)

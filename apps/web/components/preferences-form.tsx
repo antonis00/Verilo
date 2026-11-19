@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { savePreferences } from "@/app/preferences/actions";
+import { TopicPicker } from "@/components/topic-picker";
 import type { Outlet, Topic } from "@/lib/news";
 import { type PreferencesInput } from "@/lib/preferences";
 import { REGION_LABEL, REGIONS } from "@/lib/regions";
@@ -18,7 +19,7 @@ type Props = {
 const STEPS = [
   {
     title: "What do you want to follow?",
-    hint: "Pick five or more for a good start. Everything here can be changed later in My News.",
+    hint: "Pick five or more for a good start, or search for anything more specific. Everything here can be changed later in My News.",
   },
   {
     title: "Which parts of the world matter to you?",
@@ -200,51 +201,31 @@ function TopicsStep({
   if (!topics.length) return <p className="text-ink-muted">Topics aren’t available yet.</p>;
   return (
     <>
-      <div role="group" aria-label="Topics to follow" className="flex flex-wrap gap-2">
-        {topics.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            className="chip"
-            aria-pressed={prefs.followTopics.includes(t.id)}
-            onClick={() =>
-              setPrefs((p) => ({
-                ...p,
-                followTopics: toggle(p.followTopics, t.id),
-                muteTopics: p.muteTopics.filter((x) => x !== t.id),
-              }))
-            }
-          >
-            <Check />
-            {t.name}
-          </button>
-        ))}
-      </div>
-      <p className="meta mt-3" aria-live="polite">
-        {prefs.followTopics.length} chosen
-      </p>
+      <TopicPicker
+        topics={topics}
+        chosen={prefs.followTopics}
+        label="Topics to follow"
+        onToggle={(id) =>
+          setPrefs((p) => ({
+            ...p,
+            followTopics: toggle(p.followTopics, id),
+            muteTopics: p.muteTopics.filter((x) => x !== id),
+          }))
+        }
+      />
       {mode === "settings" ? (
-        <div className="mt-6">
+        <div className="mt-8">
           <h3 className="font-sans text-sm font-semibold">Topics to leave out</h3>
-          <p className="meta mt-1">Stories mainly about these won’t appear on your front page.</p>
-          <div role="group" aria-label="Topics to leave out" className="mt-3 flex flex-wrap gap-2">
-            {topics
-              .filter((t) => !prefs.followTopics.includes(t.id))
-              .map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  className="chip chip-small"
-                  aria-pressed={prefs.muteTopics.includes(t.id)}
-                  onClick={() =>
-                    setPrefs((p) => ({ ...p, muteTopics: toggle(p.muteTopics, t.id) }))
-                  }
-                >
-                  <Check />
-                  {t.name}
-                </button>
-              ))}
-          </div>
+          <p className="meta mt-1 mb-3">
+            Stories mainly about these won’t appear on your front page.
+          </p>
+          <TopicPicker
+            topics={topics.filter((t) => !prefs.followTopics.includes(t.id))}
+            chosen={prefs.muteTopics}
+            label="Topics to leave out"
+            small
+            onToggle={(id) => setPrefs((p) => ({ ...p, muteTopics: toggle(p.muteTopics, id) }))}
+          />
         </div>
       ) : null}
     </>

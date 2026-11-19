@@ -123,7 +123,11 @@ export async function seedStory(
   return { storyId: story.id as number, outletIds: [wire.id, paper.id] };
 }
 
-export async function seedTopic(slug: string, name: string) {
+export async function seedTopic(
+  slug: string,
+  name: string,
+  options: { featured?: boolean; aliases?: string[] } = {},
+) {
   const [topic] = await rest("topics", {
     method: "POST",
     body: JSON.stringify({
@@ -131,6 +135,8 @@ export async function seedTopic(slug: string, name: string) {
       name,
       description: "A topic created by an end-to-end test.",
       position: 999,
+      featured: options.featured ?? false,
+      aliases: options.aliases ?? [],
     }),
   });
   return topic.id as number;

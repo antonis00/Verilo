@@ -5,6 +5,22 @@ import { refreshCaches, removeTopic, seedTopic } from "./supabase-admin";
 // Enough sections that the menu overflows at any width, whatever the database holds.
 const COUNT = 14;
 
+// Tests run in parallel and all refresh the app's caches, so a page another test requested just
+// before this one seeded its sections can put the older topic list back. Refresh and reload
+// until this test's sections are there.
+async function openWithSections(page: Page, first: string) {
+  await expect(async () => {
+    await refreshCaches(page.request);
+    await page.goto("/");
+    await expect(
+      page.getByRole("navigation", { name: "Sections" }).getByRole("link", {
+        name: first,
+        exact: true,
+      }),
+    ).toBeAttached({ timeout: 1000 });
+  }).toPass({ timeout: 20_000 });
+}
+
 const scrollLeft = (page: Page) =>
   page
     .getByRole("navigation", { name: "Sections" })
@@ -21,7 +37,7 @@ test.describe("the section menu scrolls sideways", () => {
     for (let i = 0; i < COUNT; i++) {
       const slug = `${base}-${i}`;
       slugs.push(slug);
-      await seedTopic(slug, `Long section name ${i} ${base.slice(-5)}`);
+      await seedTopic(slug, `Long section name ${i} ${base.slice(-5)}`, { featured: true });
     }
     first = `Long section name 0 ${base.slice(-5)}`;
     await refreshCaches(page.request);
@@ -35,9 +51,8 @@ test.describe("the section menu scrolls sideways", () => {
     page,
   }, info) => {
     test.skip(info.project.name === "phone", "mouse wheel is a desktop check");
-    await page.goto("/");
+    await openWithSections(page, first);
     const menu = page.getByRole("navigation", { name: "Sections" });
-    await expect(menu.getByRole("link", { name: first, exact: true })).toBeVisible();
     expect(await scrollLeft(page)).toBe(0);
 
     await menu.hover();
@@ -51,9 +66,8 @@ test.describe("the section menu scrolls sideways", () => {
 
   test("a finger swipe slides it on a phone", async ({ page }, info) => {
     test.skip(info.project.name !== "phone", "touch is a phone check");
-    await page.goto("/");
+    await openWithSections(page, first);
     const list = page.getByRole("navigation", { name: "Sections" }).getByRole("list");
-    await expect(list.getByRole("link", { name: first, exact: true })).toBeVisible();
     const box = (await list.boundingBox())!;
 
     // A finger dragged from right to left across the menu, as raw touch events (Chrome's
