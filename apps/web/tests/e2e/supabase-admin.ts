@@ -138,7 +138,7 @@ export async function seedSummary(
     body: JSON.stringify({
       story_id: storyId,
       status: failure ? "failed" : "published",
-      bullets: failure ? [] : bullets,
+      bullets,
       article_ids: [...new Set(bullets.flatMap((b) => b.article_ids))],
       failure: failure ?? null,
       writer: "groq:openai/gpt-oss-120b",

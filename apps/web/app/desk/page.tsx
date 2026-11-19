@@ -74,6 +74,8 @@ type SummaryRow = {
   attempts: number;
   failure: string | null;
   created_at: string;
+  // Published: the points; failed: the last draft, kept so the failure can be judged.
+  bullets: { text: string }[];
 };
 
 type StoryRow = {
@@ -120,7 +122,7 @@ async function Desk() {
     storyIds.length
       ? supabase
           .from("story_summaries")
-          .select("story_id, status, writer, checker, attempts, failure, created_at")
+          .select("story_id, status, writer, checker, attempts, failure, created_at, bullets")
           .in("story_id", storyIds)
           .neq("status", "superseded")
           .order("created_at", { ascending: false })
@@ -281,6 +283,18 @@ function StoryItem({
         <p className="mt-1 border-l-2 border-accent pl-3 text-sm text-ink-muted">
           {summary.failure}
         </p>
+      ) : null}
+      {summary?.status === "failed" && summary.bullets.length ? (
+        <details className="mt-2 text-sm">
+          <summary className="cursor-pointer text-ink-muted hover:text-ink">
+            The draft that failed
+          </summary>
+          <ul className="mt-2 space-y-1 border-l border-rule pl-4">
+            {summary.bullets.map((b, i) => (
+              <li key={i}>{b.text}</li>
+            ))}
+          </ul>
+        </details>
       ) : null}
       <details className="mt-2 text-sm">
         <summary className="cursor-pointer text-ink-muted hover:text-ink">

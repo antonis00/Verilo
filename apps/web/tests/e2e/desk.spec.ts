@@ -28,7 +28,7 @@ test("an editor sees stories with their outlets, leans, opinion labels and summa
     const { storyId, articleIds } = await seedStory(slug, headline);
     await seedSummary(
       storyId,
-      [{ text: "x", article_ids: articleIds }],
+      [{ text: "Officials said 45 ministers attended.", article_ids: articleIds }],
       "point 1: the number 45 is not in its cited excerpts",
     );
     await page.goto("/desk");
@@ -43,6 +43,8 @@ test("an editor sees stories with their outlets, leans, opinion labels and summa
     await expect(story).toContainText("Leans: Centre");
     await expect(story).toContainText("summary failed");
     await expect(story).toContainText("point 1: the number 45 is not in its cited excerpts");
+    await story.getByText("The draft that failed").click();
+    await expect(story).toContainText("Officials said 45 ministers attended.");
 
     await story.getByText("The 2 articles").click();
     const opinion = story.getByRole("listitem").filter({ hasText: `Our view on ${headline}` });

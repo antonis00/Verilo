@@ -36,6 +36,10 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="recompute every article's topics (after topics.toml changes)",
     )
+    tag = commands.add_parser(
+        "tag", help="AI-tag recent news articles the embeddings left without a topic"
+    )
+    tag.add_argument("--limit", type=int, default=10, help="at most this many articles")
     commands.add_parser("cluster", help="group enriched articles into stories")
     summarize = commands.add_parser(
         "summarize", help="write and check AI summaries for the stories that are due"
@@ -56,6 +60,14 @@ def main(argv: list[str] | None = None) -> int:
             pipe.loop()
         else:
             print(pipe.run_round())
+        return 0
+
+    if args.command == "tag":
+        from verilo_workers.enrich.llm_topics import tag_pending
+        from verilo_workers.ingest import store
+
+        with store.connect() as conn:
+            print(tag_pending(conn, limit=args.limit))
         return 0
 
     if args.command == "summarize":

@@ -9,6 +9,7 @@ headlines and links only and the failure is stored with every check.
 """
 
 import os
+import re
 from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 
@@ -83,16 +84,32 @@ def _due(row, articles: list[Article], now: datetime) -> bool:
     return row["last_status"] == "failed" or now - row["last_at"] > RESUMMARISE_AFTER
 
 
+_INLINE_IDS = re.compile(r"\s*[\[(]\s*(A\d+(?:\s*[,;]\s*A\d+)*)\s*[\])]")
+
+
 def _points(data: dict | None) -> list[dict]:
+    """The draft's points. Excerpt ids a writer put in the text ("... (A1, A4).") move to the
+    point's sources, so readers never see them and they aren't read as names."""
     points = (data or {}).get("points")
     if not isinstance(points, list):
         return []
     out = []
     for p in points:
         if isinstance(p, dict):
-            sources = p.get("sources") if isinstance(p.get("sources"), list) else []
-            out.append({"text": str(p.get("text", "")).strip(), "sources": sources})
+            sources = list(p["sources"]) if isinstance(p.get("sources"), list) else []
+            text = str(p.get("text", ""))
+            for found in _INLINE_IDS.findall(text):
+                sources += [s for s in re.split(r"\s*[,;]\s*", found) if s not in sources]
+            text = re.sub(r"\s+([.,;])", r"\1", _INLINE_IDS.sub("", text)).strip()
+            out.append({"text": text, "sources": sources})
     return out
+
+
+def _with_articles(points: list[dict], by_id: dict) -> list[dict]:
+    return [
+        {"text": p["text"], "article_ids": [by_id[s].id for s in p["sources"] if s in by_id]}
+        for p in points
+    ]
 
 
 def _model_check(data: dict | None, points: list[dict]) -> checks.Check:
@@ -184,7 +201,13 @@ def summarise(
     by_id = prompts.passage_ids(chosen)
     texts = {pid: prompts.passage_text(a) for pid, a in by_id.items()}
     record: list[tuple[int, checks.Check]] = []
-    facts = {"article_ids": [a.id for a in chosen], "writer": None, "checker": None, "attempts": 0}
+    facts = {
+        "article_ids": [a.id for a in chosen],
+        "writer": None,
+        "checker": None,
+        "attempts": 0,
+        "draft": [],  # the last draft, kept with a failure so it can be looked at
+    }
     notes: list[str] = []
     for attempt in range(1, ATTEMPTS + 1):
         facts["attempts"] = attempt
@@ -202,6 +225,7 @@ def summarise(
             break
         facts["writer"] = draft.label
         points = _points(draft.data)
+        facts["draft"] = _with_articles(points, by_id)
         results = checks.run(points, texts)
         if all(c.passed for c in results):
             try:
@@ -231,17 +255,16 @@ def summarise(
         record += [(attempt, c) for c in results]
         failed = [c for c in results if not c.passed]
         if not failed:
-            for p in points:
-                p["article_ids"] = [by_id[s].id for s in p.pop("sources")]
-            return points, record, facts
+            return _with_articles(points, by_id), record, facts
         notes = feedback(failed)
     return [], record, facts
 
 
 def _store(conn, story_id: int, points, record, facts) -> int:
-    failed = [c for _, c in record if not c.passed]
+    last = max((attempt for attempt, _ in record), default=0)
+    failed = [c for attempt, c in record if attempt == last and not c.passed]
     status = "published" if points else "failed"
-    failure = None if points else "; ".join(feedback(failed[-6:]))[:2000] or "no usable draft"
+    failure = None if points else "; ".join(feedback(failed))[:2000] or "no usable draft"
     with conn.transaction():
         if points:
             conn.execute(
@@ -256,7 +279,7 @@ def _store(conn, story_id: int, points, record, facts) -> int:
             (
                 story_id,
                 status,
-                Jsonb(points),
+                Jsonb(points or facts["draft"]),
                 facts["article_ids"],
                 facts["writer"] or ai_config.describe("writer"),
                 facts["checker"],

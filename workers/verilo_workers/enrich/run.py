@@ -60,6 +60,8 @@ def retag_all(conn: psycopg.Connection) -> int:
     tags = topic_tags.assign(vectors, [r["section"] for r in rows], topics)
     with conn.transaction():
         conn.execute("delete from public.article_topics")
+        # The catalog changed: the AI tagger looks again at what embeddings leave untagged.
+        conn.execute("update public.articles set topics_llm_at = null")
         for row, found in zip(rows, tags, strict=True):
             _save_topics(conn, row["id"], found, ids)
     return len(rows)
