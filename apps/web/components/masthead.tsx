@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { ThemeSwitch } from "@/components/theme-switch";
-import { NavList, TopicNav, type NavItem } from "@/components/topic-nav";
+import { NavList, SectionsFrame, TopicNav, type NavItem } from "@/components/topic-nav";
 import { getReader } from "@/lib/auth";
 import { topics } from "@/lib/news";
 
@@ -41,7 +41,13 @@ async function Sections() {
     ...(await topics()).map((t) => ({ href: `/topic/${t.slug}`, label: t.name })),
   ];
   return (
-    <Suspense fallback={<NavList items={items} active={null} />}>
+    <Suspense
+      fallback={
+        <SectionsFrame>
+          <NavList items={items} active={null} />
+        </SectionsFrame>
+      }
+    >
       <TopicNav items={items} />
     </Suspense>
   );
