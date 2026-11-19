@@ -222,3 +222,41 @@ def test_readers_cannot_read_embeddings(conn):
     with conn.transaction():
         conn.execute("set local role anon")
         conn.execute("select id, title, kind, story_id from public.articles limit 1")
+
+
+def test_a_story_s_topics_need_a_share_of_its_articles(conn):
+    # The front page's view (story_cards) counts a topic for a story only when at least 20% of
+    # its articles, and at least two, carry it; a one-article story keeps its article's topic.
+    topic_ids = [
+        r["id"]
+        for r in conn.execute(
+            "select id from public.topics where active order by position limit 2"
+        ).fetchall()
+    ]
+    if len(topic_ids) < 2:
+        pytest.skip("needs topics: run sync-topics")
+    main, stray = topic_ids
+    base = unit(RNG.normal(size=384))
+    ids_ = [add(conn, "test-story-wire", f"Big story {i}", near(base, 0.95), 5) for i in range(10)]
+    single = add(conn, "test-story-paper", "Lonely story", unit(RNG.normal(size=384)), 5)
+    conn.commit()
+    cluster_pending(conn, NOW, sources=list(ids(conn).values()))
+    with conn.transaction():
+        for a in ids_[:3]:  # 3 of 10: counts
+            conn.execute(
+                "insert into public.article_topics values (%s, %s, 0.9, 'embedding')", (a, main)
+            )
+        conn.execute(  # 1 of 10: doesn't
+            "insert into public.article_topics values (%s, %s, 0.9, 'embedding')", (ids_[5], stray)
+        )
+        conn.execute(  # the only article of its story: counts
+            "insert into public.article_topics values (%s, %s, 0.9, 'embedding')", (single, stray)
+        )
+
+    def topics_of(article_id):
+        return conn.execute(
+            "select topic_ids from public.story_cards where id = %s", (story_of(conn, article_id),)
+        ).fetchone()["topic_ids"]
+
+    assert topics_of(ids_[0]) == [main]
+    assert topics_of(single) == [stray]

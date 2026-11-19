@@ -104,5 +104,9 @@ jobs:
           path: workers/.cache
           key: fastembed-bge-small-en-v1.5
 
+      # Some database tests use the real topic list.
+      - name: Load topics
+        run: python -m verilo_workers sync-topics
+
       - name: Tests
         run: pytest -v

@@ -210,3 +210,26 @@ export function rank(
   if (top.length < limit) top.push(...deferred.slice(0, limit - top.length));
   return { top: top.slice(0, limit), alsoImportant };
 }
+
+// One topic's page: its stories only, best first. Unlike the front page, a story one outlet covers
+// is kept (the reader asked for this topic), and there are no per-topic caps or "also important".
+// Hidden outlets, muted-topic and opinion / tier 3 choices still apply.
+export const TOPIC_PAGE_LIMIT = 30;
+
+export function rankTopic(
+  cards: Card[],
+  topicId: number,
+  p: Preferences,
+  now: number,
+  topicNames: Map<number, string> = new Map(),
+): FrontPage {
+  // Muting is for the front page; on the topic's own page the reader chose to look.
+  const prefs = { ...p, muteTopics: p.muteTopics.filter((t) => t !== topicId) };
+  const top = cards
+    .filter((c) => c.topic_ids.includes(topicId))
+    .map((c) => score(c, prefs, now, topicNames))
+    .filter((r): r is Ranked => r !== null)
+    .sort((a, b) => b.score - a.score || b.outlets - a.outlets)
+    .slice(0, TOPIC_PAGE_LIMIT);
+  return { top, alsoImportant: [] };
+}
