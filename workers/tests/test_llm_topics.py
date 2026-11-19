@@ -118,14 +118,11 @@ def tags_of(conn, article):
     return [(r["slug"], r["method"]) for r in rows]
 
 
-def only_ours(conn):
-    """Limit each run to this test's articles: everything else is marked as already looked at."""
-    conn.execute(
-        """update public.articles set topics_llm_at = now() where topics_llm_at is null and
-             source_id <> (select id from public.sources where slug = %s)""",
-        (SOURCE,),
-    )
-    conn.commit()
+def ours(conn):
+    """Only this test's outlet: the tagger never touches other articles in the database."""
+    return [
+        conn.execute("select id from public.sources where slug = %s", (SOURCE,)).fetchone()["id"]
+    ]
 
 
 @needs_db
@@ -135,14 +132,13 @@ def test_untagged_news_gets_the_models_topic_and_is_never_asked_twice(conn):
     tagged = add(conn, "Rates held", hours_ago=3, topic="economy")
     opinion = add(conn, "Our view", hours_ago=4, kind="opinion")
     old = add(conn, "Last week", hours_ago=100)
-    only_ours(conn)
     asked = []
 
     def fake(role, system, user, **_):
         asked.append(user)
         return Completion("", {"articles": [{"n": 1, "topics": ["football"]}]}, "fake", "m")
 
-    counts = llm_topics.tag_pending(conn, NOW, limit=10, complete_fn=fake)
+    counts = llm_topics.tag_pending(conn, NOW, limit=10, complete_fn=fake, sources=ours(conn))
     assert counts == {"looked at": 2, "tagged": 1}
     assert "Arsenal" in asked[0] and "A quiet day" in asked[0]
     assert all(t not in asked[0] for t in ("Rates held", "Our view", "Last week"))
@@ -151,7 +147,7 @@ def test_untagged_news_gets_the_models_topic_and_is_never_asked_twice(conn):
     assert tags_of(conn, tagged) == [("economy", "embedding")]
     assert tags_of(conn, opinion) == tags_of(conn, old) == []
     # Both were looked at: neither is sent again.
-    assert llm_topics.tag_pending(conn, NOW, limit=10, complete_fn=fake) == {
+    assert llm_topics.tag_pending(conn, NOW, limit=10, complete_fn=fake, sources=ours(conn)) == {
         "looked at": 0,
         "tagged": 0,
     }
@@ -160,12 +156,16 @@ def test_untagged_news_gets_the_models_topic_and_is_never_asked_twice(conn):
 @needs_db
 def test_a_failed_call_leaves_the_articles_for_the_next_round(conn):
     article = add(conn, "Storm hits coast")
-    only_ours(conn)
 
     def broken(role, system, user, **_):
         raise AIError("tagger unreachable")
 
-    assert llm_topics.tag_pending(conn, NOW, limit=10, complete_fn=broken)["looked at"] == 0
+    assert (
+        llm_topics.tag_pending(conn, NOW, limit=10, complete_fn=broken, sources=ours(conn))[
+            "looked at"
+        ]
+        == 0
+    )
     row = conn.execute(
         "select topics_llm_at from public.articles where id = %s", (article,)
     ).fetchone()
