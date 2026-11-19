@@ -66,6 +66,22 @@ function Chevron({ direction }: { direction: "left" | "right" }) {
   );
 }
 
+// A mouse wheel over the menu slides it sideways. Only while the menu can still move that way:
+// at either end the wheel scrolls the page as usual, so the menu never traps it. Sideways
+// gestures (trackpads, touch) are left to the browser.
+function wheel(event: WheelEvent) {
+  const el = event.currentTarget as HTMLElement;
+  if (event.ctrlKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
+  const max = el.scrollWidth - el.clientWidth;
+  if (max <= 0) return;
+  const canMove = event.deltaY > 0 ? el.scrollLeft < max - 1 : el.scrollLeft > 1;
+  if (!canMove) return;
+  event.preventDefault();
+  // Lines (some mice) are about 40px each; pages are the menu's width.
+  const unit = event.deltaMode === 1 ? 40 : event.deltaMode === 2 ? el.clientWidth : 1;
+  el.scrollLeft += event.deltaY * unit;
+}
+
 export function TopicNav({ items }: { items: NavItem[] }) {
   const pathname = usePathname();
   const active = items.find((i) => i.href === pathname)?.href ?? null;
@@ -92,10 +108,12 @@ export function TopicNav({ items }: { items: NavItem[] }) {
     }
     measure();
     el.addEventListener("scroll", measure, { passive: true });
+    el.addEventListener("wheel", wheel, { passive: false });
     const resize = new ResizeObserver(measure);
     resize.observe(el);
     return () => {
       el.removeEventListener("scroll", measure);
+      el.removeEventListener("wheel", wheel);
       resize.disconnect();
     };
   }, [measure, active]);
