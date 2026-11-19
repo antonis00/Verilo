@@ -17,12 +17,21 @@ def sync_topics(conn: psycopg.Connection, topics: list[topic_tags.Topic]) -> int
     with conn.transaction():
         for position, t in enumerate(topics):
             conn.execute(
-                """insert into public.topics (slug, name, description, position, active)
-                   values (%s, %s, %s, %s, true)
+                """insert into public.topics
+                     (slug, name, description, position, active, featured, aliases)
+                   values (%s, %s, %s, %s, true, %s, %s)
                    on conflict (slug) do update set name = excluded.name,
                      description = excluded.description, position = excluded.position,
-                     active = true""",
-                (t.slug, t.name, t.description, position),
+                     active = true, featured = excluded.featured, aliases = excluded.aliases""",
+                (t.slug, t.name, t.description, position, t.featured, list(t.aliases)),
+            )
+        # Parents once every topic exists.
+        for t in topics:
+            conn.execute(
+                """update public.topics set parent_id =
+                     (select id from public.topics where slug = %s)
+                   where slug = %s""",
+                (t.parent, t.slug),
             )
         conn.execute(
             "update public.topics set active = false where slug <> all(%s)",

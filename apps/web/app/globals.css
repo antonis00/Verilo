@@ -367,6 +367,11 @@
     font: inherit;
   }
 
+  /* Search fields use our own clear button, not the browser's coloured one. */
+  .no-native-clear::-webkit-search-cancel-button {
+    appearance: none;
+  }
+
   .field::placeholder {
     color: var(--ink-muted);
   }

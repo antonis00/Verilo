@@ -66,7 +66,8 @@ test("the welcome wizard saves choices that shape the front page and settings", 
   const headline = `Followed story ${slug}`;
   let topicId = 0;
   try {
-    topicId = await seedTopic(slug, topicName);
+    // Not featured: the reader finds it by searching, here by its alias.
+    topicId = await seedTopic(slug, topicName, { aliases: [`alias-${slug}`] });
     await seedStory(slug, headline, { country: "DE", topicId });
     await refreshCaches(page.request);
 
@@ -74,9 +75,12 @@ test("the welcome wizard saves choices that shape the front page and settings", 
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Make the front page yours");
     expect(await axe(page)).toEqual([]);
 
-    // Step 1: topics.
+    // Step 1: topics. Featured ones are chips; others are found by searching.
     await expect(page.getByText("Step 1 of 4")).toBeVisible();
     const topicChip = page.getByRole("button", { name: topicName });
+    await expect(topicChip).toHaveCount(0);
+    await page.getByRole("searchbox", { name: "Search topics to follow" }).fill(`alias-${slug}`);
+    await expect(page.getByText(`1 match for “alias-${slug}”`)).toBeVisible();
     await topicChip.click();
     await expect(topicChip).toHaveAttribute("aria-pressed", "true");
     await page.getByRole("button", { name: "Next" }).click();
@@ -168,12 +172,17 @@ test("the section menu opens a topic's own page", async ({ page }, info) => {
   const topicName = `Section ${slug}`;
   const headline = `Section story ${slug}`;
   try {
-    const topicId = await seedTopic(slug, topicName);
+    const topicId = await seedTopic(slug, topicName, { featured: true });
     await seedStory(slug, headline, { topicId });
-    await refreshCaches(page.request);
-
-    await page.goto("/");
     const sections = page.getByRole("navigation", { name: "Sections" });
+    // Parallel tests refresh caches too; reload until this test's section is in the menu.
+    await expect(async () => {
+      await refreshCaches(page.request);
+      await page.goto("/");
+      await expect(sections.getByRole("link", { name: topicName })).toBeAttached({
+        timeout: 1000,
+      });
+    }).toPass({ timeout: 20_000 });
     await expect(sections.getByRole("link", { name: "Top stories" })).toHaveAttribute(
       "aria-current",
       "page",

@@ -43,14 +43,21 @@ export async function candidateCards(): Promise<Card[]> {
   return (data ?? []) as Card[];
 }
 
-export type Topic = { id: number; slug: string; name: string };
+export type Topic = {
+  id: number;
+  slug: string;
+  name: string;
+  featured: boolean;
+  aliases: string[];
+  parent_id: number | null;
+};
 
 export async function topics(): Promise<Topic[]> {
   "use cache";
   cacheReference();
   const { data, error } = await publicClient()
     .from("topics")
-    .select("id, slug, name")
+    .select("id, slug, name, featured, aliases, parent_id")
     .eq("active", true)
     .order("position");
   if (error) console.error("topics failed", error.message);

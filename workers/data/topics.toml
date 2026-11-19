@@ -1,103 +1,476 @@
-# Topics readers can follow. Edit here, then run `python -m verilo_workers sync-topics`.
+# Topics readers can follow. Edit here, then run `python -m verilo_workers sync-topics` and
+# `python -m verilo_workers enrich --retag`.
 #
 # Each article is matched to topics by meaning: its headline and snippet are compared with the
-# `description` below (both turned into embeddings), so the description should read like the news
-# it covers. `sections` are feed sections (from sources.toml) that count as this topic outright;
-# only precise ones: "world" and "politics" sections are relative to the outlet (to an Indian paper,
-# a US election is world news) and carry other subjects, so they are not mapped.
+# `description` (both turned into embeddings), so the description should read like the news it
+# covers. `sections` are feed sections (from sources.toml) that count as this topic outright; only
+# precise ones: "world" and "politics" sections are relative to the outlet (to an Indian paper, a US
+# election is world news) and carry other subjects, so they are not mapped.
+#
+# featured  shown as a chip in the wizard and settings, and in the section menu; the rest are
+#           found by searching (by name or `aliases`).
+# parent    a narrower topic also counts for its parent (Football for Sport), so broad pages
+#           never lose stories to narrow topics.
 # Order is the order shown to readers.
+
+# --- Featured ---------------------------------------------------------------------------------
 
 [[topic]]
 slug = "world"
 name = "World"
+featured = true
 description = "International news from countries around the world: foreign governments, crises abroad, events in other nations."
 
 [[topic]]
 slug = "geopolitics"
 name = "Geopolitics"
+featured = true
+aliases = ["international relations", "diplomacy", "foreign policy"]
 description = "Relations between countries and great powers: diplomacy, summits between leaders, alliances such as NATO, sanctions, trade wars, territorial disputes, the balance of power between the United States, China and Russia."
 
 [[topic]]
 slug = "war-and-security"
 name = "War and security"
+featured = true
+aliases = ["conflict", "military", "defence", "defense", "terrorism"]
 description = "Wars and armed conflict, military operations, missile and drone strikes, ceasefires, defence spending, armed forces, terrorism and attacks."
 
 [[topic]]
 slug = "politics"
 name = "Politics"
+featured = true
+aliases = ["government", "parliament", "congress"]
 description = "Domestic politics: elections, parliaments and congress, governments and ministers, political parties, votes on legislation, campaigns and polls."
 
 [[topic]]
 slug = "economy"
 name = "Economy"
+featured = true
+aliases = ["inflation", "interest rates", "central banks", "recession"]
 description = "The economy: inflation, interest rates, central banks, unemployment and jobs, wages, GDP growth, recession, government budgets, taxes, the cost of living."
 
 [[topic]]
 slug = "business"
 name = "Business and finance"
+featured = true
+aliases = ["finance", "companies", "corporate"]
 description = "Companies, markets and finance: corporate results and profits, mergers and takeovers, stock markets and shares, banks and investors, chief executives, industries and start-ups."
 sections = ["business", "markets"]
 
 [[topic]]
 slug = "technology"
 name = "Technology"
+featured = true
+aliases = ["tech"]
 description = "Technology: tech companies, software, smartphones and devices, the internet, social media platforms, cybersecurity and hacking, semiconductors and chips."
 sections = ["technology"]
 
 [[topic]]
 slug = "artificial-intelligence"
 name = "Artificial intelligence"
+featured = true
+aliases = ["ai", "machine learning", "chatbots", "llm"]
+parent = "technology"
 description = "Artificial intelligence: AI models and chatbots, machine learning, AI companies such as OpenAI, Anthropic and Google DeepMind, data centres, AI regulation and AI's effect on work."
 
 [[topic]]
 slug = "science"
 name = "Science"
+featured = true
+aliases = ["research", "scientists"]
 description = "Scientific research and discoveries: space exploration and astronomy, physics, biology, archaeology, new studies published by scientists."
 sections = ["science"]
 
 [[topic]]
 slug = "climate-and-environment"
 name = "Climate and environment"
+featured = true
+aliases = ["climate change", "global warming", "environment", "nature"]
 description = "Climate change and the environment: global warming, emissions, extreme weather, floods, wildfires, climate summits such as COP, renewable energy, pollution, wildlife and nature."
 
 [[topic]]
 slug = "health"
 name = "Health"
+featured = true
+aliases = ["medicine", "healthcare", "nhs"]
 description = "Health and medicine: diseases and outbreaks, hospitals and health services, new drugs and treatments, public health, mental health, doctors and patients."
 
 [[topic]]
 slug = "architecture-and-cities"
 name = "Architecture and cities"
+featured = true
+aliases = ["architecture", "buildings", "architects", "urbanism"]
 description = "Architecture and the built environment: architects and new buildings, skyscrapers and landmark designs, urban planning, housing developments, city infrastructure, heritage and interior design."
 sections = ["architecture", "interiors"]
 
 [[topic]]
-slug = "law-and-justice"
-name = "Law and justice"
-description = "Courts and the law: trials and verdicts, judges and supreme courts, lawsuits, police investigations, crime and arrests, prisons."
-
-[[topic]]
 slug = "culture"
 name = "Culture"
+featured = true
+aliases = ["arts", "entertainment"]
 description = "Arts and culture: films and cinema, television, music and musicians, books and authors, theatre, museums and art exhibitions, video games, celebrities."
 
 [[topic]]
 slug = "sport"
 name = "Sport"
+featured = true
+aliases = ["sports"]
 description = "Sport: football, cricket, rugby, tennis, basketball, the Olympics, matches, tournaments, results, athletes and teams."
 sections = ["sport"]
 
+# --- Found by searching ----------------------------------------------------------------------
+
 [[topic]]
-slug = "education"
-name = "Education"
-description = "Education: schools, teachers and pupils, universities and students, exams, tuition fees, education policy."
+slug = "law-and-justice"
+name = "Law and justice"
+aliases = ["courts", "trials", "law"]
+description = "Courts and the law: trials and verdicts, judges and supreme courts, lawsuits, prosecutions, legal rulings."
+
+[[topic]]
+slug = "crime"
+name = "Crime"
+aliases = ["police", "murder", "fraud"]
+parent = "law-and-justice"
+description = "Crime and policing: murders, shootings, robberies, fraud and scams, police investigations, arrests and charges."
 
 [[topic]]
 slug = "migration"
 name = "Migration"
+aliases = ["immigration", "refugees", "asylum", "borders"]
 description = "Migration and borders: immigration policy, asylum seekers and refugees, deportations, border crossings, visas."
+
+[[topic]]
+slug = "human-rights"
+name = "Human rights"
+aliases = ["civil rights", "freedom of speech", "discrimination"]
+description = "Human rights: abuses and repression by governments, political prisoners, rights of women and minorities, freedom of speech and the press, genocide and war crimes cases, reports by human rights groups such as Amnesty."
+
+[[topic]]
+slug = "elections"
+name = "Elections"
+aliases = ["voting", "polls", "campaigns"]
+parent = "politics"
+description = "Elections and voting: election campaigns, candidates, opinion polls, results and recounts, turnout, referendums."
+
+[[topic]]
+slug = "us-politics"
+name = "US politics"
+aliases = ["white house", "congress", "american politics", "trump", "democrats", "republicans"]
+parent = "politics"
+description = "United States politics: the White House and the US president, the US Congress and Senate, Democrats and Republicans, American federal agencies and the Justice Department, US state governors and American elections."
+
+[[topic]]
+slug = "uk-politics"
+name = "UK politics"
+aliases = ["westminster", "british politics", "labour", "conservatives", "downing street"]
+parent = "politics"
+description = "British politics: the UK prime minister at Downing Street, the House of Commons and Westminster, the Labour, Conservative, Liberal Democrat and Reform UK parties, British ministers, the UK budget and policies of the British government."
+
+[[topic]]
+slug = "european-union"
+name = "European Union"
+aliases = ["eu", "brussels", "european commission", "europe"]
+parent = "politics"
+description = "The European Union: the European Commission and Parliament, EU leaders and summits, EU laws and regulations, member states' disputes, Brexit relations, enlargement."
+
+[[topic]]
+slug = "markets-and-investing"
+name = "Markets and investing"
+aliases = ["stocks", "shares", "stock market", "investing", "bonds", "wall street"]
+parent = "business"
+description = "Financial markets and investing: stock market rises and falls, share prices and stock indexes such as the S&P 500 and FTSE 100, bond yields, currency exchange rates, gold and commodity prices, investors and fund managers, IPOs."
+
+[[topic]]
+slug = "banking"
+name = "Banking"
+aliases = ["banks", "lenders"]
+parent = "business"
+description = "Banks and banking: big banks' results and strategy, lending and mortgages, bank regulation and fines, bank failures and rescues, fintech and payments."
+
+[[topic]]
+slug = "cryptocurrency"
+name = "Cryptocurrency"
+aliases = ["crypto", "bitcoin", "ethereum", "blockchain"]
+parent = "business"
+description = "Cryptocurrency: bitcoin and ether prices, crypto exchanges, stablecoins, blockchain companies, crypto regulation, hacks and fraud in crypto."
+
+[[topic]]
+slug = "startups"
+name = "Start-ups and venture capital"
+aliases = ["startups", "venture capital", "vc", "unicorns", "funding rounds"]
+parent = "business"
+description = "Start-ups and venture capital: new companies, funding rounds, venture capital investors, valuations of young companies, founders, unicorns."
+
+[[topic]]
+slug = "housing-and-property"
+name = "Housing and property"
+aliases = ["real estate", "house prices", "rent", "mortgages", "property"]
+parent = "economy"
+description = "Housing and property: house prices, rents and renters, mortgages, home building, the property market, homelessness and housing policy."
+
+[[topic]]
+slug = "trade"
+name = "Trade and tariffs"
+aliases = ["tariffs", "trade war", "exports", "imports", "wto"]
+parent = "economy"
+description = "International trade: tariffs and trade wars, trade deals, exports and imports, supply chains, customs and the World Trade Organization."
+
+[[topic]]
+slug = "jobs-and-work"
+name = "Jobs and work"
+aliases = ["employment", "workers", "unions", "strikes", "labour market"]
+parent = "economy"
+description = "Jobs and work: hiring and layoffs, unemployment, wages, strikes and trade unions, working conditions, remote work, the labour market."
+
+[[topic]]
+slug = "personal-finance"
+name = "Personal finance"
+aliases = ["money", "savings", "pensions", "taxes", "household bills"]
+parent = "economy"
+description = "Personal finance: household bills, energy and food prices for families, savings and pensions, personal taxes, benefits, consumer money advice."
+
+[[topic]]
+slug = "cybersecurity"
+name = "Cybersecurity"
+aliases = ["hacking", "cyber attacks", "data breaches", "ransomware"]
+parent = "technology"
+description = "Cybersecurity: cyber attacks and hackers, data breaches, ransomware, security flaws in software, state-sponsored hacking, online privacy."
+
+[[topic]]
+slug = "gadgets"
+name = "Smartphones and gadgets"
+aliases = ["phones", "iphone", "android", "devices", "apple", "samsung"]
+parent = "technology"
+description = "Consumer technology: smartphones and new iPhones and Android phones, laptops, wearables, headphones, product launches and reviews of devices."
+
+[[topic]]
+slug = "social-media"
+name = "Social media"
+aliases = ["tiktok", "instagram", "x", "twitter", "facebook", "meta", "youtube"]
+parent = "technology"
+description = "Social media platforms: TikTok, Instagram, X, Facebook, YouTube; content moderation, influencers, online safety and the effect of social media on society."
+
+[[topic]]
+slug = "semiconductors"
+name = "Semiconductors"
+aliases = ["chips", "nvidia", "tsmc", "chipmakers"]
+parent = "technology"
+description = "Semiconductors and computer chips: chipmakers such as Nvidia, TSMC, Intel, Samsung and SK Hynix, chip factories and fabs, export controls on chips, the chip supply chain."
+
+[[topic]]
+slug = "electric-vehicles"
+name = "Electric vehicles"
+aliases = ["ev", "evs", "tesla", "electric cars", "batteries"]
+parent = "technology"
+description = "Electric vehicles: electric cars and their makers such as Tesla and BYD, batteries, charging networks, EV sales and subsidies."
+
+[[topic]]
+slug = "space"
+name = "Space"
+aliases = ["nasa", "spacex", "astronomy", "rockets", "moon", "mars"]
+parent = "science"
+description = "Space and astronomy: NASA and SpaceX missions, rocket launches, the Moon and Mars, satellites, telescopes, planets and discoveries in deep space."
+
+[[topic]]
+slug = "medicine"
+name = "Medicine and drugs"
+aliases = ["drugs", "pharmaceuticals", "vaccines", "treatments", "cancer"]
+parent = "health"
+description = "Medicine: new drugs and vaccines, clinical trials, cancer and other treatments, pharmaceutical companies, drug approvals and medical breakthroughs."
+
+[[topic]]
+slug = "mental-health"
+name = "Mental health"
+aliases = ["wellbeing", "depression", "anxiety"]
+parent = "health"
+description = "Mental health: depression and anxiety, mental health services, suicide prevention, addiction, wellbeing and stress."
+
+[[topic]]
+slug = "outbreaks"
+name = "Disease outbreaks"
+aliases = ["pandemics", "epidemics", "viruses", "measles", "flu", "covid"]
+parent = "health"
+description = "Disease outbreaks: epidemics and pandemics, measles, flu and new viruses, infection numbers, public health responses and vaccination campaigns."
 
 [[topic]]
 slug = "energy"
 name = "Energy"
+aliases = ["oil", "gas", "electricity", "nuclear power", "opec"]
 description = "Energy: oil and gas, OPEC, energy prices, electricity grids, nuclear power, solar and wind power, energy companies."
+
+[[topic]]
+slug = "renewable-energy"
+name = "Renewable energy"
+aliases = ["solar", "wind power", "clean energy", "green energy"]
+parent = "energy"
+description = "Renewable energy: solar and wind farms, hydrogen, energy storage, the transition away from fossil fuels, clean energy investment."
+
+[[topic]]
+slug = "weather-and-disasters"
+name = "Weather and natural disasters"
+aliases = ["storms", "hurricanes", "earthquakes", "floods", "wildfires", "cyclones"]
+parent = "climate-and-environment"
+description = "Weather and natural disasters: storms, hurricanes and cyclones, floods, earthquakes, wildfires, heatwaves, droughts, rescue and relief efforts."
+
+[[topic]]
+slug = "wildlife-and-nature"
+name = "Wildlife and nature"
+aliases = ["animals", "biodiversity", "conservation", "oceans"]
+parent = "climate-and-environment"
+description = "Wildlife and nature: animals and endangered species, conservation, biodiversity, forests and oceans, national parks."
+
+[[topic]]
+slug = "education"
+name = "Education"
+aliases = ["schools", "universities", "students", "teachers"]
+description = "Education: schools, teachers and pupils, universities and students, exams, tuition fees, education policy."
+
+[[topic]]
+slug = "religion"
+name = "Religion"
+aliases = ["faith", "church", "pope", "islam", "christianity"]
+description = "Religion and faith: churches, mosques, temples and synagogues, the Pope and religious leaders, religious communities, faith in public life."
+
+[[topic]]
+slug = "media"
+name = "Media and journalism"
+aliases = ["journalism", "newspapers", "press", "broadcasting", "bbc"]
+description = "The media: news organisations and journalists, press freedom, broadcasters, newspapers and their owners, media business and regulation."
+
+[[topic]]
+slug = "royal-family"
+name = "Royal family"
+aliases = ["royals", "king charles", "monarchy", "prince william", "kate"]
+description = "The British royal family and other monarchies: the King, the Prince and Princess of Wales, royal visits and ceremonies, royal finances."
+
+[[topic]]
+slug = "transport"
+name = "Transport and travel"
+aliases = ["airlines", "aviation", "flights", "trains", "railways", "travel"]
+description = "Transport and travel: airlines and flights, airports, trains and railways, roads and traffic, public transport, tourism and travel disruption."
+
+[[topic]]
+slug = "film"
+name = "Film"
+aliases = ["movies", "cinema", "hollywood", "oscars"]
+parent = "culture"
+description = "Film and cinema: new films and box office, actors and directors, Hollywood studios, film festivals, the Oscars and awards."
+
+[[topic]]
+slug = "television"
+name = "Television and streaming"
+aliases = ["tv", "netflix", "streaming", "series"]
+parent = "culture"
+description = "Television and streaming: TV series and shows, Netflix, Disney and other streaming services, TV presenters, ratings and awards."
+
+[[topic]]
+slug = "music"
+name = "Music"
+aliases = ["songs", "albums", "concerts", "bands", "singers"]
+parent = "culture"
+description = "Music: singers, bands and musicians, new albums and songs, concerts and tours, charts, music festivals and the music industry."
+
+[[topic]]
+slug = "books"
+name = "Books"
+aliases = ["literature", "novels", "authors", "publishing"]
+parent = "culture"
+description = "Books and literature: novels and authors, new books, literary prizes, publishing, poetry."
+
+[[topic]]
+slug = "art-and-design"
+name = "Art and design"
+aliases = ["art", "museums", "exhibitions", "painting", "design"]
+parent = "culture"
+description = "Art and design: artists and exhibitions, museums and galleries, art auctions, painting and sculpture, graphic and product design."
+
+[[topic]]
+slug = "video-games"
+name = "Video games"
+aliases = ["gaming", "games", "playstation", "xbox", "nintendo", "gta"]
+parent = "culture"
+description = "Video games: new game releases, consoles such as PlayStation, Xbox and Nintendo, game studios, gaming culture and esports."
+
+[[topic]]
+slug = "celebrities"
+name = "Celebrities"
+aliases = ["celebrity", "famous people", "showbiz"]
+parent = "culture"
+description = "Celebrities: famous actors, singers and stars, their lives and relationships, red-carpet events, celebrity news."
+
+[[topic]]
+slug = "food-and-drink"
+name = "Food and drink"
+aliases = ["food", "restaurants", "cooking", "chefs", "wine"]
+parent = "culture"
+description = "Food and drink: restaurants and chefs, cooking and recipes, food trends, wine and beer, food prices and the food industry."
+
+[[topic]]
+slug = "fashion"
+name = "Fashion"
+aliases = ["style", "designers", "fashion week", "luxury"]
+parent = "culture"
+description = "Fashion: designers and fashion houses, fashion weeks and shows, luxury brands, clothing trends and retail."
+
+[[topic]]
+slug = "football"
+name = "Football"
+aliases = ["soccer", "premier league", "champions league", "world cup"]
+parent = "sport"
+description = "Football (soccer): the Premier League, Champions League and World Cup, clubs, players and managers, transfers, matches and results."
+
+[[topic]]
+slug = "cricket"
+name = "Cricket"
+aliases = ["test cricket", "ipl", "the ashes", "t20"]
+parent = "sport"
+description = "Cricket: Test matches, the Ashes, the IPL and T20, one-day internationals, cricketers and captains, series results."
+
+[[topic]]
+slug = "rugby"
+name = "Rugby"
+aliases = ["rugby union", "rugby league", "six nations"]
+parent = "sport"
+description = "Rugby union and rugby league: the Six Nations, the Rugby World Cup and the Rugby Championship, tries, scrums and line-outs, rugby clubs, the All Blacks, the Springboks and other rugby national teams."
+
+[[topic]]
+slug = "tennis"
+name = "Tennis"
+aliases = ["wimbledon", "us open", "grand slam", "atp", "wta"]
+parent = "sport"
+description = "Tennis: Grand Slams such as Wimbledon and the US Open, ATP and WTA tournaments, tennis players and rankings."
+
+[[topic]]
+slug = "basketball"
+name = "Basketball"
+aliases = ["nba", "wnba"]
+parent = "sport"
+description = "Basketball: the NBA and WNBA, teams and players, games, trades and the playoffs."
+
+[[topic]]
+slug = "american-football"
+name = "American football"
+aliases = ["nfl", "super bowl"]
+parent = "sport"
+description = "American football: the NFL and the Super Bowl, teams, quarterbacks and players, games and the draft."
+
+[[topic]]
+slug = "formula-1"
+name = "Formula 1"
+aliases = ["f1", "motor racing", "grand prix", "motorsport"]
+parent = "sport"
+description = "Formula 1 and motor racing: Grand Prix races, drivers and teams such as Red Bull, Ferrari and Mercedes, qualifying and the championship."
+
+[[topic]]
+slug = "golf"
+name = "Golf"
+aliases = ["pga", "the masters", "ryder cup"]
+parent = "sport"
+description = "Golf: tournaments such as the Masters and the Open, the PGA and LIV tours, the Ryder Cup, golfers."
+
+[[topic]]
+slug = "olympics"
+name = "Olympics"
+aliases = ["olympic games", "paralympics", "athletics"]
+parent = "sport"
+description = "The Olympic and Paralympic Games, athletics and Olympic sports, athletes, medals and host cities."

@@ -38,7 +38,9 @@ export function Masthead() {
 async function Sections() {
   const items: NavItem[] = [
     { href: "/", label: "Top stories" },
-    ...(await topics()).map((t) => ({ href: `/topic/${t.slug}`, label: t.name })),
+    ...(await topics())
+      .filter((t) => t.featured)
+      .map((t) => ({ href: `/topic/${t.slug}`, label: t.name })),
   ];
   return (
     <Suspense
