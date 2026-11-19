@@ -201,7 +201,9 @@ def merge_close(
     conn: psycopg.Connection, now: datetime | None = None, sources: list[int] | None = None
 ) -> int:
     """Join running stories that are the same event: centres at least MERGE_CENTRE alike and an
-    article pair at least JOIN_MEMBER alike. The smaller story joins the larger. Returns merges."""
+    article pair at least JOIN_MEMBER alike. The smaller story joins the larger; between equals,
+    the newer joins the older, so the story that was there first keeps its id (and its links).
+    Returns how many merges were made."""
     now = now or datetime.now(UTC)
     register_vector(conn)
     rows = conn.execute(
@@ -215,7 +217,7 @@ def merge_close(
     stories: dict[int, Story] = {}
     for r in rows:
         stories.setdefault(r["story_id"], Story(r["story_id"])).members.append(_member(r))
-    alive = sorted(stories.values(), key=lambda s: -len(s.members))
+    alive = sorted(stories.values(), key=lambda s: (-len(s.members), s.first, s.id))
     if len(alive) < 2:
         return 0
     merges = 0
