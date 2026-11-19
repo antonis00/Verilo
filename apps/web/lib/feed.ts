@@ -33,6 +33,15 @@ export type Card = {
   outlet_count: number;
   articles: CardArticle[];
   topic_ids: number[];
+  summary: Summary | null;
+};
+
+// A checked AI summary (Phase 4): points, each citing the articles it was drawn from.
+export type Summary = {
+  bullets: { text: string; article_ids: number[] }[];
+  writer: string;
+  checker: string | null;
+  created_at: string;
 };
 
 export type Preferences = {

@@ -4,12 +4,14 @@ version = "0.1.0"
 description = "Verilo's news pipeline: ingest feeds, enrich, group into stories, summarise and check."
 requires-python = ">=3.12"
 dependencies = [
+  "anthropic==2.10.0",
   "fastembed==0.9.1",
   "feedparser==6.0.14",
   "httpx==0.28.1",
   "numpy==2.5.5",
   "pgvector==0.5.1",
   "psycopg[binary]==3.3.9",
+  "python-dotenv==1.2.4",
   "truststore==0.10.5",
 ]
 

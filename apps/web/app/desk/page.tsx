@@ -66,6 +66,16 @@ type StoryArticle = {
   sources: { id: number; name: string; tier: Tier; lean: Lean } | null;
 };
 
+type SummaryRow = {
+  story_id: number;
+  status: "published" | "failed" | "superseded";
+  writer: string;
+  checker: string | null;
+  attempts: number;
+  failure: string | null;
+  created_at: string;
+};
+
 type StoryRow = {
   id: number;
   title: string;
@@ -106,6 +116,22 @@ async function Desk() {
   ]);
 
   const storyIds = (stories.data ?? []).map((s) => s.id);
+  const [summaries, recentSummaries] = await Promise.all([
+    storyIds.length
+      ? supabase
+          .from("story_summaries")
+          .select("story_id, status, writer, checker, attempts, failure, created_at")
+          .in("story_id", storyIds)
+          .neq("status", "superseded")
+          .order("created_at", { ascending: false })
+          .returns<SummaryRow[]>()
+      : { data: [] as SummaryRow[], error: null },
+    supabase
+      .from("story_summaries")
+      .select("status")
+      .gte("created_at", new Date((await requestTime()) - 86_400_000).toISOString())
+      .returns<{ status: string }[]>(),
+  ]);
   const storyTopics = storyIds.length
     ? await supabase
         .from("story_topics")
@@ -114,7 +140,14 @@ async function Desk() {
         .order("articles", { ascending: false })
     : { data: [], error: null };
 
-  if (sources.error || stories.error || topics.error || storyTopics.error) {
+  if (
+    sources.error ||
+    stories.error ||
+    topics.error ||
+    storyTopics.error ||
+    summaries.error ||
+    recentSummaries.error
+  ) {
     return (
       <p role="alert" className="mt-6 border-l-2 border-accent pl-4">
         The desk couldn’t load from the database. Is it running?
@@ -130,6 +163,10 @@ async function Desk() {
   ).length;
   const unreviewed = rows.filter((s) => !s.reviewed_on).length;
   const topicName = new Map((topics.data ?? []).map((t) => [t.id, t.name]));
+  const summaryOf = new Map<number, SummaryRow>();
+  for (const row of summaries.data ?? [])
+    if (!summaryOf.has(row.story_id)) summaryOf.set(row.story_id, row);
+  const lastDay = recentSummaries.data ?? [];
   const topicsOf = new Map<number, string[]>();
   for (const st of storyTopics.data ?? []) {
     const list = topicsOf.get(st.story_id) ?? [];
@@ -140,11 +177,19 @@ async function Desk() {
 
   return (
     <>
-      <dl className="mt-6 grid grid-cols-2 gap-x-8 gap-y-4 border-y border-rule py-5 sm:grid-cols-4">
+      <dl className="mt-6 grid grid-cols-2 gap-x-8 gap-y-4 border-y border-rule py-5 sm:grid-cols-3 lg:grid-cols-6">
         <Figure label="Active sources" value={active.length} />
         <Figure label="Stories" value={allStories.count ?? 0} />
         <Figure label="With a failing feed" value={failing} />
         <Figure label="Tier and lean not yet reviewed" value={unreviewed} />
+        <Figure
+          label="Summaries published, last 24 h"
+          value={lastDay.filter((r) => r.status !== "failed").length}
+        />
+        <Figure
+          label="Summaries failed, last 24 h"
+          value={lastDay.filter((r) => r.status === "failed").length}
+        />
       </dl>
 
       <div className="mt-10 grid gap-12 lg:grid-cols-12">
@@ -158,7 +203,13 @@ async function Desk() {
           </p>
           <ol className="mt-4">
             {(stories.data ?? []).map((s) => (
-              <StoryItem key={s.id} story={s} topics={topicsOf.get(s.id) ?? []} now={now} />
+              <StoryItem
+                key={s.id}
+                story={s}
+                topics={topicsOf.get(s.id) ?? []}
+                summary={summaryOf.get(s.id)}
+                now={now}
+              />
             ))}
           </ol>
         </section>
@@ -181,7 +232,17 @@ async function Desk() {
   );
 }
 
-function StoryItem({ story: s, topics, now }: { story: StoryRow; topics: string[]; now: number }) {
+function StoryItem({
+  story: s,
+  topics,
+  summary,
+  now,
+}: {
+  story: StoryRow;
+  topics: string[];
+  summary: SummaryRow | undefined;
+  now: number;
+}) {
   const articles = [...s.articles].sort((a, b) =>
     (b.published_at ?? "").localeCompare(a.published_at ?? ""),
   );
@@ -199,12 +260,28 @@ function StoryItem({ story: s, topics, now }: { story: StoryRow; topics: string[
       <h3 className="mt-1 text-lg leading-snug">{s.title}</h3>
       <p className="meta mt-1">
         Leans: {leans.map((l) => LEAN_LABEL[l]).join(", ") || "none"} ·{" "}
-        {readiness.ready ? (
+        {summary?.status === "published" ? (
+          <span className="text-ink">
+            summary published{" "}
+            <time dateTime={summary.created_at}>{ago(summary.created_at, now)}</time> after{" "}
+            {summary.attempts} {summary.attempts === 1 ? "draft" : "drafts"}
+          </span>
+        ) : summary?.status === "failed" ? (
+          <span className="text-accent">
+            summary failed <time dateTime={summary.created_at}>{ago(summary.created_at, now)}</time>
+            , headlines shown instead
+          </span>
+        ) : readiness.ready ? (
           <span className="text-ink">meets the summary rule</span>
         ) : (
           <>no summary yet: needs {readiness.missing.join(", ")}</>
         )}
       </p>
+      {summary?.status === "failed" && summary.failure ? (
+        <p className="mt-1 border-l-2 border-accent pl-3 text-sm text-ink-muted">
+          {summary.failure}
+        </p>
+      ) : null}
       <details className="mt-2 text-sm">
         <summary className="cursor-pointer text-ink-muted hover:text-ink">
           The {articles.length} articles

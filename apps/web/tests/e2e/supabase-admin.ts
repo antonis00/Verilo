@@ -120,7 +120,31 @@ export async function seedStory(
       ),
     });
   }
-  return { storyId: story.id as number, outletIds: [wire.id, paper.id] };
+  return {
+    storyId: story.id as number,
+    outletIds: [wire.id, paper.id],
+    articleIds: articles.map((a: { id: number }) => a.id) as number[],
+  };
+}
+
+// A summary as the workers store it: published after every check passed, or failed with why.
+export async function seedSummary(
+  storyId: number,
+  bullets: { text: string; article_ids: number[] }[],
+  failure?: string,
+) {
+  await rest("story_summaries", {
+    method: "POST",
+    body: JSON.stringify({
+      story_id: storyId,
+      status: failure ? "failed" : "published",
+      bullets: failure ? [] : bullets,
+      article_ids: [...new Set(bullets.flatMap((b) => b.article_ids))],
+      failure: failure ?? null,
+      writer: "groq:openai/gpt-oss-120b",
+      checker: "groq:qwen/qwen3.8-27b",
+    }),
+  });
 }
 
 export async function seedTopic(

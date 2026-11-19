@@ -1,7 +1,14 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { signIn, uniqueName } from "./sign-in";
-import { refreshCaches, removeStory, removeTopic, seedStory, seedTopic } from "./supabase-admin";
+import {
+  refreshCaches,
+  removeStory,
+  removeTopic,
+  seedStory,
+  seedSummary,
+  seedTopic,
+} from "./supabase-admin";
 
 const axe = async (page: import("@playwright/test").Page) =>
   (
@@ -44,6 +51,34 @@ test("a story page shows every outlet's version with its lean and labels", async
     await expect(opinion).toContainText("Lean right · Opinion");
     // Leans in the summary line count news reports only.
     await expect(page.getByText(/leans: Centre$/)).toBeVisible();
+    expect(await axe(page)).toEqual([]);
+  } finally {
+    await removeStory(slug, headline);
+  }
+});
+
+test("a checked summary leads the story page, each point linking to its outlets", async ({
+  page,
+}, info) => {
+  const slug = uniqueName("summary", info.project.name);
+  const headline = `Summarised story ${slug}`;
+  try {
+    const { storyId, articleIds } = await seedStory(slug, headline);
+    await seedSummary(storyId, [
+      { text: "Ministers met in Lisbon on Thursday.", article_ids: [articleIds[0]] },
+      { text: "They agreed a shared statement.", article_ids: articleIds },
+    ]);
+    await refreshCaches(page.request);
+    await page.goto(`/story/${storyId}`);
+    const brief = page.getByRole("region", { name: "In brief" });
+    const first = brief.getByRole("listitem").filter({ hasText: "Ministers met in Lisbon" });
+    await expect(first.getByRole("link", { name: `Test Outlet ${slug}-a` })).toHaveAttribute(
+      "href",
+      `https://test-outlet.example/${slug}/report`,
+    );
+    await expect(brief.getByRole("listitem")).toHaveCount(2);
+    await expect(brief).toContainText("Summarised by an AI model (gpt-oss-120b)");
+    await expect(brief).toContainText("by a different model (qwen3.8-27b)");
     expect(await axe(page)).toEqual([]);
   } finally {
     await removeStory(slug, headline);

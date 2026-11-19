@@ -13,6 +13,7 @@ from verilo_workers.config import REVALIDATE_SECRET, REVALIDATE_URL
 from verilo_workers.enrich.run import enrich_pending
 from verilo_workers.ingest import store
 from verilo_workers.ingest.run import ingest_due
+from verilo_workers.summarize.run import summarize_due
 
 LOOP_SECONDS = 60
 
@@ -40,11 +41,13 @@ def run_round(database_url: str | None = None) -> str:
         enriched = enrich_pending(conn)
         placed = cluster_pending(conn)
         merged = merge_close(conn)
-    changed = placed["placed"] or merged
+        summaries = summarize_due(conn)
+    changed = placed["placed"] or merged or summaries["published"]
     note = notify_app() if changed else "no changes"
     return (
         f"{fetched.describe()}; enriched {enriched}; placed {placed['placed']} "
-        f"({placed['new stories']} new stories); merged {merged}; {note}"
+        f"({placed['new stories']} new stories); merged {merged}; "
+        f"summaries {summaries['published']} published, {summaries['failed']} failed; {note}"
     )
 
 

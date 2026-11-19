@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { signIn, uniqueName } from "./sign-in";
-import { makeEditor, removeStory, seedStory } from "./supabase-admin";
+import { makeEditor, removeStory, seedStory, seedSummary } from "./supabase-admin";
 
 const unique = uniqueName;
 
@@ -25,7 +25,12 @@ test("an editor sees stories with their outlets, leans, opinion labels and summa
   await signIn(page, email);
   await makeEditor(email);
   try {
-    await seedStory(slug, headline);
+    const { storyId, articleIds } = await seedStory(slug, headline);
+    await seedSummary(
+      storyId,
+      [{ text: "x", article_ids: articleIds }],
+      "point 1: the number 45 is not in its cited excerpts",
+    );
     await page.goto("/desk");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("The desk");
     await expect(page.getByRole("navigation", { name: "Account" })).toContainText("Desk");
@@ -36,7 +41,8 @@ test("an editor sees stories with their outlets, leans, opinion labels and summa
       .filter({ has: page.getByRole("heading", { name: headline }) });
     // Only the news report counts for leans and the summary rule; the opinion piece doesn't.
     await expect(story).toContainText("Leans: Centre");
-    await expect(story).toContainText("no summary yet: needs 2 more reputable outlets");
+    await expect(story).toContainText("summary failed");
+    await expect(story).toContainText("point 1: the number 45 is not in its cited excerpts");
 
     await story.getByText("The 2 articles").click();
     const opinion = story.getByRole("listitem").filter({ hasText: `Our view on ${headline}` });

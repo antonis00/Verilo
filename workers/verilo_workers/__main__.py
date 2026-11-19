@@ -37,6 +37,11 @@ def main(argv: list[str] | None = None) -> int:
         help="recompute every article's topics (after topics.toml changes)",
     )
     commands.add_parser("cluster", help="group enriched articles into stories")
+    summarize = commands.add_parser(
+        "summarize", help="write and check AI summaries for the stories that are due"
+    )
+    summarize.add_argument("--story", type=int, action="append", help="only this story id")
+    summarize.add_argument("--limit", type=int, default=3, help="at most this many stories")
     pipeline = commands.add_parser(
         "pipeline", help="one round of everything: ingest, enrich, cluster (the normal way to run)"
     )
@@ -51,6 +56,14 @@ def main(argv: list[str] | None = None) -> int:
             pipe.loop()
         else:
             print(pipe.run_round())
+        return 0
+
+    if args.command == "summarize":
+        from verilo_workers.ingest import store
+        from verilo_workers.summarize.run import summarize_due
+
+        with store.connect() as conn:
+            print(summarize_due(conn, per_round=args.limit, story_ids=args.story))
         return 0
 
     if args.command in ("sync-topics", "enrich", "cluster"):

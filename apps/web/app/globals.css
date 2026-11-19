@@ -169,6 +169,21 @@
   }
 
   /* Secondary metadata: outlet names, ages, counts. */
+  /* A summary point: a small accent square hanging in the margin, as in a printed news brief. */
+  .summary-point {
+    position: relative;
+    padding-left: 1.1rem;
+  }
+  .summary-point::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.62em;
+    width: 0.4rem;
+    height: 0.4rem;
+    background: var(--accent);
+  }
+
   .meta {
     font-size: var(--text-xs);
     color: var(--ink-muted);

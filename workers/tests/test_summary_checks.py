@@ -1,0 +1,109 @@
+"""The code checks and the eligibility rule, offline."""
+
+from datetime import UTC, datetime, timedelta
+
+from verilo_workers.summarize import checks, eligibility
+from verilo_workers.summarize.eligibility import Article
+from verilo_workers.summarize.run import _model_check, feedback
+
+PASSAGES = {
+    "A1": 'Reuters: Quake kills 1,204 in Turkey. Officials said "rescue work will continue" '
+    "in Hatay province.",
+    "A2": "BBC News: Erdogan visits Hatay. The president said 3.5 million people were affected.",
+}
+
+
+def by_name(results):
+    return {c.name: c for c in results}
+
+
+def test_a_faithful_summary_passes_every_check():
+    points = [
+        {"text": "The quake killed 1204 people in Turkey, Reuters reports.", "sources": ["A1"]},
+        {"text": 'Officials said "rescue work will continue" in Hatay.', "sources": ["A1"]},
+        {"text": "Erdogan said 3.5 million people were affected.", "sources": ["A2"]},
+    ]
+    assert all(c.passed for c in checks.run(points, PASSAGES))
+
+
+def test_numbers_names_and_quotes_must_be_in_the_cited_excerpt_not_just_any():
+    points = [
+        {"text": "The quake killed 1,300 people.", "sources": ["A1"]},
+        {"text": "In Hatay, Erdogan met survivors.", "sources": ["A1"]},  # Erdogan is in A2
+        {"text": 'He said "we will rebuild every home".', "sources": ["A2"]},
+    ]
+    r = by_name(checks.run(points, PASSAGES))
+    assert r["numbers"].detail["problems"] == [{"point": 1, "number": "1300"}]
+    assert r["names"].detail["problems"] == [{"point": 2, "name": "Erdogan"}]
+    assert r["quotes"].detail["problems"][0]["quote"] == "we will rebuild every home"
+    lines = feedback([c for c in r.values() if not c.passed])
+    assert any("1300" in line for line in lines)
+    assert any("Erdogan" in line for line in lines)
+
+
+def test_citations_must_be_given_and_known_and_the_shape_sensible():
+    r = by_name(checks.run([{"text": "Something.", "sources": ["A9"]}], PASSAGES))
+    assert not r["citations"].passed
+    assert not r["shape"].passed
+    r = by_name(checks.run([{"text": "x", "sources": []}] * 3, PASSAGES))
+    assert not r["citations"].passed
+
+
+def test_curly_quotes_dashes_and_thousands_separators_are_read_alike():
+    assert checks.numbers("1,204 and 3.5% on 19 Nov.") == {"1204", "3.5", "19"}
+    assert checks.normalise("“rescue — work”") == '"rescue - work"'
+
+
+def test_the_checker_model_must_support_every_point_and_loaded_words_must_be_its_own():
+    points = [{"text": "Officials said aid arrived."}, {"text": "Rescuers searched."}]
+    ok = {
+        "points": [{"point": 1, "verdict": "supported"}, {"point": 2, "verdict": "supported"}],
+        "loaded_words": ["slammed"],  # not in the summary: the checker read it in an excerpt
+        "unattributed_claims": [],
+    }
+    assert _model_check(ok, points).passed
+    ok["loaded_words"] = ["Rescuers"]
+    assert not _model_check(ok, points).passed
+    ok["loaded_words"] = []
+    ok["points"][1]["verdict"] = "not_supported"
+    assert not _model_check(ok, points).passed
+    assert not _model_check({"points": [{"point": 1, "verdict": "supported"}]}, points).passed
+    assert not _model_check(None, points).passed
+
+
+NOW = datetime(2026, 11, 19, 12, tzinfo=UTC)
+
+
+def art(i, source_id, tier, lean, kind="news", snippet="x"):
+    return Article(
+        i, source_id, f"S{source_id}", tier, lean, kind, f"T{i}", snippet, NOW - timedelta(hours=i)
+    )
+
+
+def test_eligibility_needs_three_reputable_outlets_a_tier_one_and_two_leans():
+    good = [art(1, 1, 1, "center"), art(2, 2, 2, "lean_left"), art(3, 3, 2, "lean_right")]
+    assert eligibility.check(good, set()).eligible
+    # Opinion and tier 3 don't count.
+    weak = [*good[:2], art(3, 3, 3, "lean_right"), art(4, 4, 2, "right", kind="opinion")]
+    assert eligibility.check(weak, set()).reason == "1 more reputable outlet(s)"
+    no_wire = [art(1, 1, 2, "center"), art(2, 2, 2, "lean_left"), art(3, 3, 2, "right")]
+    assert "wire service" in eligibility.check(no_wire, set()).reason
+    one_side = [art(1, 1, 1, "lean_left"), art(2, 2, 2, "left"), art(3, 3, 2, "lean_left")]
+    assert "lean group" in eligibility.check(one_side, set()).reason
+    # Sensitive topics need four.
+    assert not eligibility.check(good, {"elections"}).eligible
+
+
+def test_passages_take_one_per_outlet_tier_one_first_and_mix_leans():
+    arts = [
+        art(1, 1, 1, "center", snippet="short"),
+        art(2, 1, 1, "center", snippet="longer one"),
+        art(3, 2, 2, "lean_left"),
+        art(4, 3, 2, "lean_left"),
+        art(5, 4, 2, "right"),
+        art(6, 5, 3, "right"),
+    ]
+    chosen = eligibility.passages(arts)
+    assert chosen[0].id == 2  # the outlet's fuller excerpt
+    assert len({a.source_id for a in chosen}) == len(chosen) == 4  # tier 3 left out
+    assert {eligibility.LEAN_GROUP[a.lean] for a in chosen[:3]} == {"centre", "left", "right"}
