@@ -5,6 +5,7 @@ node_modules/
 
 # Python
 workers/.venv/
+workers/.cache/
 __pycache__/
 *.egg-info/
 .pytest_cache/

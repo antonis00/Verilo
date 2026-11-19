@@ -167,6 +167,7 @@ feeds = [
   { url = "https://www.theguardian.com/australia-news/rss", section = "australia", poll = 30 },
   { url = "https://www.theguardian.com/business/rss", section = "business", poll = 30 },
   { url = "https://www.theguardian.com/science/rss", section = "science", poll = 60 },
+  { url = "https://www.theguardian.com/artanddesign/architecture/rss", section = "architecture", poll = 120 },
 ]
 
 [[source]]
@@ -614,4 +615,86 @@ lean = "center"
 basis = "Indian broadcaster; generally rated mostly reliable and centre."
 feeds = [
   { url = "https://feeds.feedburner.com/ndtvnews-top-stories", section = "top", poll = 15 },
+]
+
+# Specialist sources for topics general news covers rarely. Lean is mostly not meaningful for
+# design press (it seldom covers politics); "center" is nominal and said so in each basis.
+
+[[source]]
+slug = "dezeen"
+name = "Dezeen"
+homepage = "https://www.dezeen.com"
+country = "GB"
+kind = "magazine"
+tier = 2
+lean = "center"
+basis = "Leading architecture and design magazine with its own reporting; specialist press, so lean is nominal."
+feeds = [
+  { url = "https://www.dezeen.com/architecture/feed/", section = "architecture", poll = 60 },
+  { url = "https://www.dezeen.com/interiors/feed/", section = "interiors", poll = 120 },
+]
+
+[[source]]
+slug = "architects-journal"
+name = "The Architects' Journal"
+homepage = "https://www.architectsjournal.co.uk"
+country = "GB"
+kind = "magazine"
+tier = 2
+lean = "center"
+basis = "UK architecture trade magazine; professional news and criticism; specialist press, so lean is nominal."
+feeds = [
+  { url = "https://www.architectsjournal.co.uk/feed", section = "architecture", poll = 120 },
+]
+
+[[source]]
+slug = "architectural-review"
+name = "The Architectural Review"
+homepage = "https://www.architectural-review.com"
+country = "GB"
+kind = "magazine"
+tier = 2
+lean = "center"
+basis = "Long-running architecture journal (since 1896), mostly criticism and essays; specialist press, so lean is nominal."
+feeds = [
+  { url = "https://www.architectural-review.com/feed", section = "architecture", poll = 240 },
+]
+
+[[source]]
+slug = "architects-newspaper"
+name = "The Architect's Newspaper"
+homepage = "https://www.archpaper.com"
+country = "US"
+kind = "newspaper"
+tier = 2
+lean = "center"
+basis = "US architecture and design newspaper with its own reporting; specialist press, so lean is nominal."
+feeds = [
+  { url = "https://www.archpaper.com/feed/", section = "architecture", poll = 120 },
+]
+
+[[source]]
+slug = "archinect"
+name = "Archinect"
+homepage = "https://archinect.com"
+country = "US"
+kind = "digital"
+tier = 2
+lean = "center"
+basis = "Architecture news site covering the profession and industry; specialist press, so lean is nominal."
+feeds = [
+  { url = "https://archinect.com/feed/1/news", section = "architecture", poll = 120 },
+]
+
+[[source]]
+slug = "archdaily"
+name = "ArchDaily"
+homepage = "https://www.archdaily.com"
+country = "INT"
+kind = "digital"
+tier = 3
+lean = "center"
+basis = "Large architecture platform; most posts are project descriptions supplied by the architects, so tier 3: shown, never summarised. Lean nominal."
+feeds = [
+  { url = "https://www.archdaily.com/feed", section = "architecture", poll = 120 },
 ]

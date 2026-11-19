@@ -36,7 +36,9 @@ export async function makeEditor(email: string) {
   });
 }
 
-export async function seedOutlet(slug: string, headline: string) {
+const hash = (c: string) => Array.from({ length: 64 }, () => c).join("");
+
+async function seedSource(slug: string, tier: number, lean: string) {
   const [source] = await rest("sources", {
     method: "POST",
     body: JSON.stringify({
@@ -45,24 +47,67 @@ export async function seedOutlet(slug: string, headline: string) {
       homepage: "https://test-outlet.example",
       country: "GB",
       kind: "newspaper",
-      tier: 2,
-      lean: "lean_right",
+      tier,
+      lean,
       rating_basis: "Created by an end-to-end test.",
+    }),
+  });
+  return source as { id: number };
+}
+
+// Two outlets reporting one story: a tier 1 news report and a tier 2 opinion piece. The story's
+// outlet count is set high so it leads the desk's list, ahead of the real stories.
+export async function seedStory(slug: string, headline: string) {
+  const wire = await seedSource(`${slug}-a`, 1, "center");
+  const paper = await seedSource(`${slug}-b`, 2, "lean_right");
+  const now = new Date().toISOString();
+  const [story] = await rest("stories", {
+    method: "POST",
+    body: JSON.stringify({
+      title: headline,
+      first_published_at: now,
+      last_published_at: now,
+      centroid: `[${Array.from({ length: 384 }, () => 0).join(",")}]`,
+      article_count: 2,
+      outlet_count: 999,
     }),
   });
   await rest("articles", {
     method: "POST",
-    body: JSON.stringify({
-      source_id: source.id,
-      url: `https://test-outlet.example/${slug}`,
-      title: headline,
-      snippet: "A short test snippet.",
-      published_at: new Date().toISOString(),
-      content_hash: Array.from({ length: 64 }, () => "a").join(""),
-    }),
+    body: JSON.stringify([
+      {
+        source_id: wire.id,
+        story_id: story.id,
+        url: `https://test-outlet.example/${slug}/report`,
+        title: headline,
+        published_at: now,
+        content_hash: hash("a"),
+        kind: "news",
+        kind_reason: null, // a bulk insert needs the same fields in every row
+      },
+      {
+        source_id: paper.id,
+        story_id: story.id,
+        url: `https://test-outlet.example/${slug}/view`,
+        title: `Our view on ${headline}`,
+        published_at: now,
+        content_hash: hash("b"),
+        kind: "opinion",
+        kind_reason: "link path /opinion/",
+      },
+    ]),
   });
+  return story.id as number;
 }
 
-export async function removeOutlet(slug: string) {
-  await rest(`sources?slug=eq.${slug}`, { method: "DELETE", prefer: "return=minimal" });
+// Removes whatever seedStory created, even if seeding stopped half-way.
+export async function removeStory(slug: string, headline: string) {
+  await rest(`sources?slug=in.(${slug}-a,${slug}-b)`, {
+    method: "DELETE",
+    prefer: "return=minimal",
+  });
+  await rest(`stories?title=eq.${encodeURIComponent(headline)}`, {
+    method: "DELETE",
+    prefer: "return=minimal",
+  });
 }

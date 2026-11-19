@@ -143,8 +143,9 @@ def insert_articles(
         row = conn.execute(
             """
             insert into public.articles
-              (source_id, feed_id, url, title, snippet, published_at, fetched_at, content_hash)
-            values (%s, %s, %s, %s, %s, %s, %s, %s)
+              (source_id, feed_id, url, title, snippet, published_at, fetched_at, content_hash,
+               kind, kind_reason)
+            values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             on conflict do nothing
             returning id
             """,
@@ -157,6 +158,8 @@ def insert_articles(
                 item.published_at,
                 now,
                 item.content_hash,
+                item.kind,
+                item.kind_reason,
             ),
         ).fetchone()
         new += row is not None

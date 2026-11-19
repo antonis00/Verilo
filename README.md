@@ -38,11 +38,14 @@ each with its trust tier, political lean and the reason for both.
 cd workers && python -m venv .venv && .venv/bin/pip install -e ".[dev]"
 .venv/bin/python -m verilo_workers check-feeds          # try every feed, store nothing
 .venv/bin/python -m verilo_workers sync-sources         # write the registry to the database
-.venv/bin/python -m verilo_workers ingest --loop        # fetch due feeds every minute
+.venv/bin/python -m verilo_workers sync-topics          # write the topic list to the database
+.venv/bin/python -m verilo_workers pipeline --loop      # every minute: fetch, enrich, group into stories
 .venv/bin/python -m verilo_workers make-editor you@example.com   # open /desk for your account
 ```
 
-Verilo stores only the headline, a short snippet, the link and the date of each article.
+Verilo stores only the headline, a short snippet, the link and the date of each article. Articles
+about the same event are grouped into stories; opinion and sponsored pieces are labelled and never
+used for summaries; topics are listed in [workers/data/topics.toml](workers/data/topics.toml).
 
 ## Checks
 

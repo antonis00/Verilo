@@ -5,8 +5,12 @@ import {
   ago,
   COUNTRY_LABEL,
   feedHealth,
+  KIND_LABEL,
   LEAN_LABEL,
+  leanSpread,
+  summaryReadiness,
   TIER_LABEL,
+  type Kind,
   type Lean,
   type Tier,
 } from "@/lib/sources";
@@ -18,7 +22,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-// The internal desk: what the ingester has brought in, and how each source's feeds are doing.
+// The internal desk: the stories the pipeline has grouped, and how each source's feeds are doing.
 // Editors only; everyone else gets "not found".
 export default function DeskPage() {
   return (
@@ -52,19 +56,31 @@ type SourceRow = {
   }[];
 };
 
-type ArticleRow = {
+type StoryArticle = {
   id: number;
   title: string;
-  snippet: string;
   url: string;
+  kind: Kind;
+  kind_reason: string | null;
   published_at: string | null;
-  sources: { name: string; tier: Tier; lean: Lean } | null;
+  sources: { id: number; name: string; tier: Tier; lean: Lean } | null;
 };
+
+type StoryRow = {
+  id: number;
+  title: string;
+  last_published_at: string;
+  article_count: number;
+  outlet_count: number;
+  articles: StoryArticle[];
+};
+
+const STORIES_SHOWN = 40;
 
 async function Desk() {
   await requireEditor();
   const supabase = await createClient();
-  const [sources, articles] = await Promise.all([
+  const [sources, stories, allStories, topics] = await Promise.all([
     supabase
       .from("sources")
       .select(
@@ -73,15 +89,32 @@ async function Desk() {
       .order("tier")
       .order("name")
       .returns<SourceRow[]>(),
+    // The most widely covered stories first: what a front page would lead with.
     supabase
-      .from("articles")
-      .select("id, title, snippet, url, published_at, sources (name, tier, lean)")
-      .order("published_at", { ascending: false, nullsFirst: false })
-      .limit(60)
-      .returns<ArticleRow[]>(),
+      .from("stories")
+      .select(
+        "id, title, last_published_at, article_count, outlet_count, articles (id, title, url, kind, kind_reason, published_at, sources (id, name, tier, lean))",
+      )
+      .is("merged_into", null)
+      .gte("outlet_count", 2)
+      .order("outlet_count", { ascending: false })
+      .order("last_published_at", { ascending: false })
+      .limit(STORIES_SHOWN)
+      .returns<StoryRow[]>(),
+    supabase.from("stories").select("id", { count: "exact", head: true }).is("merged_into", null),
+    supabase.from("topics").select("id, name").eq("active", true),
   ]);
 
-  if (sources.error || articles.error) {
+  const storyIds = (stories.data ?? []).map((s) => s.id);
+  const storyTopics = storyIds.length
+    ? await supabase
+        .from("story_topics")
+        .select("story_id, topic_id, articles")
+        .in("story_id", storyIds)
+        .order("articles", { ascending: false })
+    : { data: [], error: null };
+
+  if (sources.error || stories.error || topics.error || storyTopics.error) {
     return (
       <p role="alert" className="mt-6 border-l-2 border-accent pl-4">
         The desk couldn’t load from the database. Is it running?
@@ -96,47 +129,36 @@ async function Desk() {
     s.source_feeds.some((f) => feedHealth(f) === "failing"),
   ).length;
   const unreviewed = rows.filter((s) => !s.reviewed_on).length;
+  const topicName = new Map((topics.data ?? []).map((t) => [t.id, t.name]));
+  const topicsOf = new Map<number, string[]>();
+  for (const st of storyTopics.data ?? []) {
+    const list = topicsOf.get(st.story_id) ?? [];
+    const name = topicName.get(st.topic_id);
+    if (name && list.length < 3) list.push(name);
+    topicsOf.set(st.story_id, list);
+  }
 
   return (
     <>
       <dl className="mt-6 grid grid-cols-2 gap-x-8 gap-y-4 border-y border-rule py-5 sm:grid-cols-4">
         <Figure label="Active sources" value={active.length} />
-        <Figure label="Paused" value={rows.length - active.length} />
+        <Figure label="Stories" value={allStories.count ?? 0} />
         <Figure label="With a failing feed" value={failing} />
         <Figure label="Tier and lean not yet reviewed" value={unreviewed} />
       </dl>
 
       <div className="mt-10 grid gap-12 lg:grid-cols-12">
-        <section aria-labelledby="latest-title" className="lg:col-span-7">
-          <h2 id="latest-title" className="text-xl">
-            Latest articles
+        <section aria-labelledby="stories-title" className="lg:col-span-7">
+          <h2 id="stories-title" className="text-xl">
+            Stories
           </h2>
           <p className="meta mt-1">
-            Headlines and snippets as stored. Grouping into stories comes in phase 3.
+            The {STORIES_SHOWN} most widely covered stories of the last days, each one event
+            reported by several outlets.
           </p>
           <ol className="mt-4">
-            {(articles.data ?? []).map((a) => (
-              <li key={a.id} className="border-t border-rule py-4">
-                <p className="meta">
-                  <span className="font-semibold text-ink">{a.sources?.name}</span>
-                  {a.sources ? (
-                    <>
-                      {" · "}
-                      {TIER_LABEL[a.sources.tier]} · {LEAN_LABEL[a.sources.lean]}
-                    </>
-                  ) : null}
-                  {" · "}
-                  <time dateTime={a.published_at ?? undefined} title={a.published_at ?? undefined}>
-                    {ago(a.published_at, now)}
-                  </time>
-                </p>
-                <h3 className="mt-1 text-lg leading-snug">
-                  <a href={a.url} rel="noopener noreferrer" className="quiet-link">
-                    {a.title}
-                  </a>
-                </h3>
-                {a.snippet ? <p className="mt-1 text-sm text-ink-muted">{a.snippet}</p> : null}
-              </li>
+            {(stories.data ?? []).map((s) => (
+              <StoryItem key={s.id} story={s} topics={topicsOf.get(s.id) ?? []} now={now} />
             ))}
           </ol>
         </section>
@@ -156,6 +178,61 @@ async function Desk() {
         </section>
       </div>
     </>
+  );
+}
+
+function StoryItem({ story: s, topics, now }: { story: StoryRow; topics: string[]; now: number }) {
+  const articles = [...s.articles].sort((a, b) =>
+    (b.published_at ?? "").localeCompare(a.published_at ?? ""),
+  );
+  const readiness = summaryReadiness(articles.map((a) => ({ kind: a.kind, source: a.sources })));
+  const leans = leanSpread(
+    articles.flatMap((a) => (a.kind === "news" && a.sources ? [a.sources.lean] : [])),
+  );
+  return (
+    <li className="border-t border-rule py-4">
+      <p className="meta">
+        {s.outlet_count} outlets · {s.article_count} articles · updated{" "}
+        <time dateTime={s.last_published_at}>{ago(s.last_published_at, now)}</time>
+        {topics.length ? ` · ${topics.join(", ")}` : ""}
+      </p>
+      <h3 className="mt-1 text-lg leading-snug">{s.title}</h3>
+      <p className="meta mt-1">
+        Leans: {leans.map((l) => LEAN_LABEL[l]).join(", ") || "none"} ·{" "}
+        {readiness.ready ? (
+          <span className="text-ink">meets the summary rule</span>
+        ) : (
+          <>no summary yet: needs {readiness.missing.join(", ")}</>
+        )}
+      </p>
+      <details className="mt-2 text-sm">
+        <summary className="cursor-pointer text-ink-muted hover:text-ink">
+          The {articles.length} articles
+        </summary>
+        <ul className="mt-2 space-y-2 border-l border-rule pl-4">
+          {articles.map((a) => (
+            <li key={a.id}>
+              <span className="meta">
+                {a.sources?.name}
+                {a.sources ? ` · ${LEAN_LABEL[a.sources.lean]}` : ""}
+                {KIND_LABEL[a.kind] ? (
+                  <>
+                    {" · "}
+                    <span className="font-semibold text-accent" title={a.kind_reason ?? undefined}>
+                      {KIND_LABEL[a.kind]}
+                    </span>
+                  </>
+                ) : null}
+              </span>
+              <br />
+              <a href={a.url} rel="noopener noreferrer" className="quiet-link">
+                {a.title}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </details>
+    </li>
   );
 }
 

@@ -14,6 +14,7 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 import feedparser
 
 from verilo_workers.common.snippet import make_snippet
+from verilo_workers.enrich.kind import classify
 
 MAX_TITLE = 400
 MAX_URL = 2048
@@ -33,6 +34,8 @@ class Item:
     snippet: str
     published_at: datetime
     content_hash: str
+    kind: str = "news"  # news | opinion | sponsored (verilo_workers.enrich.kind)
+    kind_reason: str | None = None
 
 
 def canonical_url(url: str) -> str | None:
@@ -96,6 +99,9 @@ def parse_feed(body: bytes, now: datetime | None = None, max_age_days: int = 7) 
         snippet = make_snippet(summary)
         if snippet == title:
             snippet = ""
+        # The feed's categories are read only to tell opinion and paid content from news.
+        tags = [t.get("term") or t.get("label") or "" for t in entry.get("tags", [])]
+        kind, kind_reason = classify(url, title, tags)
         items.append(
             Item(
                 url=url,
@@ -103,6 +109,8 @@ def parse_feed(body: bytes, now: datetime | None = None, max_age_days: int = 7) 
                 snippet=snippet,
                 published_at=published,
                 content_hash=content_hash(title, published),
+                kind=kind,
+                kind_reason=kind_reason,
             )
         )
     return items

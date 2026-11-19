@@ -64,6 +64,10 @@ REGISTRY = {
 def conn():
     with store.connect() as c:
         cleanup(c)
+        # The test's clock starts just ahead of the database's, so feeds synced now are due.
+        global NOW
+        db_now = c.execute("select now() as t").fetchone()["t"]
+        NOW = db_now.replace(microsecond=0) + timedelta(seconds=5)
         yield c
         cleanup(c)
 

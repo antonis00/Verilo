@@ -1,0 +1,103 @@
+# Topics readers can follow. Edit here, then run `python -m verilo_workers sync-topics`.
+#
+# Each article is matched to topics by meaning: its headline and snippet are compared with the
+# `description` below (both turned into embeddings), so the description should read like the news
+# it covers. `sections` are feed sections (from sources.toml) that count as this topic outright;
+# only precise ones: "world" and "politics" sections are relative to the outlet (to an Indian paper,
+# a US election is world news) and carry other subjects, so they are not mapped.
+# Order is the order shown to readers.
+
+[[topic]]
+slug = "world"
+name = "World"
+description = "International news from countries around the world: foreign governments, crises abroad, events in other nations."
+
+[[topic]]
+slug = "geopolitics"
+name = "Geopolitics"
+description = "Relations between countries and great powers: diplomacy, summits between leaders, alliances such as NATO, sanctions, trade wars, territorial disputes, the balance of power between the United States, China and Russia."
+
+[[topic]]
+slug = "war-and-security"
+name = "War and security"
+description = "Wars and armed conflict, military operations, missile and drone strikes, ceasefires, defence spending, armed forces, terrorism and attacks."
+
+[[topic]]
+slug = "politics"
+name = "Politics"
+description = "Domestic politics: elections, parliaments and congress, governments and ministers, political parties, votes on legislation, campaigns and polls."
+
+[[topic]]
+slug = "economy"
+name = "Economy"
+description = "The economy: inflation, interest rates, central banks, unemployment and jobs, wages, GDP growth, recession, government budgets, taxes, the cost of living."
+
+[[topic]]
+slug = "business"
+name = "Business"
+description = "Companies and markets: corporate results and profits, mergers and takeovers, stock markets and shares, chief executives, industries, start-ups and investors."
+sections = ["business", "markets"]
+
+[[topic]]
+slug = "technology"
+name = "Technology"
+description = "Technology: tech companies, software, smartphones and devices, the internet, social media platforms, cybersecurity and hacking, semiconductors and chips."
+sections = ["technology"]
+
+[[topic]]
+slug = "artificial-intelligence"
+name = "Artificial intelligence"
+description = "Artificial intelligence: AI models and chatbots, machine learning, AI companies such as OpenAI, Anthropic and Google DeepMind, data centres, AI regulation and AI's effect on work."
+
+[[topic]]
+slug = "science"
+name = "Science"
+description = "Scientific research and discoveries: space exploration and astronomy, physics, biology, archaeology, new studies published by scientists."
+sections = ["science"]
+
+[[topic]]
+slug = "climate-and-environment"
+name = "Climate and environment"
+description = "Climate change and the environment: global warming, emissions, extreme weather, floods, wildfires, climate summits such as COP, renewable energy, pollution, wildlife and nature."
+
+[[topic]]
+slug = "health"
+name = "Health"
+description = "Health and medicine: diseases and outbreaks, hospitals and health services, new drugs and treatments, public health, mental health, doctors and patients."
+
+[[topic]]
+slug = "architecture-and-cities"
+name = "Architecture and cities"
+description = "Architecture and the built environment: architects and new buildings, skyscrapers and landmark designs, urban planning, housing developments, city infrastructure, heritage and interior design."
+sections = ["architecture", "interiors"]
+
+[[topic]]
+slug = "law-and-justice"
+name = "Law and justice"
+description = "Courts and the law: trials and verdicts, judges and supreme courts, lawsuits, police investigations, crime and arrests, prisons."
+
+[[topic]]
+slug = "culture"
+name = "Culture"
+description = "Arts and culture: films and cinema, television, music and musicians, books and authors, theatre, museums and art exhibitions, video games, celebrities."
+
+[[topic]]
+slug = "sport"
+name = "Sport"
+description = "Sport: football, cricket, rugby, tennis, basketball, the Olympics, matches, tournaments, results, athletes and teams."
+sections = ["sport"]
+
+[[topic]]
+slug = "education"
+name = "Education"
+description = "Education: schools, teachers and pupils, universities and students, exams, tuition fees, education policy."
+
+[[topic]]
+slug = "migration"
+name = "Migration"
+description = "Migration and borders: immigration policy, asylum seekers and refugees, deportations, border crossings, visas."
+
+[[topic]]
+slug = "energy"
+name = "Energy"
+description = "Energy: oil and gas, OPEC, energy prices, electricity grids, nuclear power, solar and wind power, energy companies."

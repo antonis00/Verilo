@@ -29,7 +29,51 @@ def main(argv: list[str] | None = None) -> int:
     editor.add_argument("email")
     editor.add_argument("--remove", action="store_true")
 
+    commands.add_parser("sync-topics", help="write data/topics.toml into the database")
+    enrich = commands.add_parser("enrich", help="embed and tag the articles not yet enriched")
+    enrich.add_argument(
+        "--retag",
+        action="store_true",
+        help="recompute every article's topics (after topics.toml changes)",
+    )
+    commands.add_parser("cluster", help="group enriched articles into stories")
+    pipeline = commands.add_parser(
+        "pipeline", help="one round of everything: ingest, enrich, cluster (the normal way to run)"
+    )
+    pipeline.add_argument("--loop", action="store_true", help="a round every minute")
+
     args = parser.parse_args(argv)
+
+    if args.command == "pipeline":
+        from verilo_workers import pipeline as pipe
+
+        if args.loop:
+            pipe.loop()
+        else:
+            print(pipe.run_round())
+        return 0
+
+    if args.command in ("sync-topics", "enrich", "cluster"):
+        from verilo_workers.cluster.stories import cluster_pending, merge_close
+        from verilo_workers.enrich import run as enrich_run
+        from verilo_workers.enrich import topics
+        from verilo_workers.ingest import store
+
+        with store.connect() as conn:
+            if args.command == "sync-topics":
+                print(f"topics: {enrich_run.sync_topics(conn, topics.load())}")
+            elif args.command == "enrich" and args.retag:
+                enrich_run.sync_topics(conn, topics.load())
+                print(f"retagged {enrich_run.retag_all(conn)} articles")
+            elif args.command == "enrich":
+                print(f"enriched {enrich_run.enrich_pending(conn)} articles")
+            else:
+                placed = cluster_pending(conn)
+                print(
+                    f"placed {placed['placed']} ({placed['new stories']} new stories); "
+                    f"merged {merge_close(conn)}"
+                )
+        return 0
 
     if args.command == "check-feeds":
         from verilo_workers.ingest.check import check, print_report
