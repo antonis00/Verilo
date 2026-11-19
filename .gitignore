@@ -1,0 +1,20 @@
+node_modules/
+.env
+.env.*
+!.env.example
+
+# Python
+workers/.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Supabase local state
+supabase/.branches/
+supabase/.temp/
+
+# OS and editors
+.DS_Store
+Thumbs.db
+.vscode/
