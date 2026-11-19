@@ -91,8 +91,10 @@ def tag_pending(
     *,
     limit: int | None = None,
     complete_fn: Complete = complete,
+    sources: list[int] | None = None,
 ) -> dict[str, int]:
-    """Tag up to `limit` recent untagged news articles. Returns counts."""
+    """Tag up to `limit` recent untagged news articles (only from `sources`, when given: tests
+    use it so they never touch other articles). Returns counts."""
     now = now or datetime.now(UTC)
     limit = _per_round() if limit is None else limit
     counts = {"looked at": 0, "tagged": 0}
@@ -117,8 +119,9 @@ def tag_pending(
            where a.kind = 'news' and a.enriched_at is not null and a.topics_llm_at is null
              and coalesce(a.published_at, a.fetched_at) > %s
              and not exists (select 1 from public.article_topics t where t.article_id = a.id)
+             and (%s::bigint[] is null or a.source_id = any(%s::bigint[]))
            order by coalesce(a.published_at, a.fetched_at) desc limit %s""",
-        (now - WINDOW, limit),
+        (now - WINDOW, sources, sources, limit),
     ).fetchall()
     for start in range(0, len(rows), BATCH):
         batch = rows[start : start + BATCH]
