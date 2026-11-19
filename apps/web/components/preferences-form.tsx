@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { savePreferences } from "@/app/preferences/actions";
+import { rememberTimeZone, savePreferences } from "@/app/preferences/actions";
 import { TopicPicker } from "@/components/topic-picker";
 import type { Outlet, Topic } from "@/lib/news";
 import { type PreferencesInput } from "@/lib/preferences";
@@ -64,7 +64,7 @@ export function PreferencesForm({ mode, topics, outlets, initial }: Props) {
     headingRef.current?.focus();
   }, [step]);
 
-  const save = (then?: () => void) =>
+  const save = (then?: () => Promise<void> | void) =>
     startTransition(async () => {
       setMessage(null);
       const result = await savePreferences(prefs);
@@ -72,12 +72,14 @@ export function PreferencesForm({ mode, topics, outlets, initial }: Props) {
         setMessage({ kind: "error", text: result.message });
         return;
       }
-      if (then) then();
+      if (then) await then();
       else setMessage({ kind: "saved", text: "Saved. Your front page uses these choices now." });
     });
 
   const finish = () =>
-    save(() => {
+    save(async () => {
+      // The first briefing comes the next morning, at 7 in the reader's own time zone.
+      await rememberTimeZone(Intl.DateTimeFormat().resolvedOptions().timeZone);
       router.push("/");
       router.refresh();
     });

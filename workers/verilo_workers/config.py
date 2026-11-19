@@ -21,3 +21,9 @@ CONCURRENCY = int(os.environ.get("VERILO_FETCH_CONCURRENCY", "8"))
 # picks up new stories within about a minute anyway.
 REVALIDATE_URL = os.environ.get("VERILO_REVALIDATE_URL", "http://localhost:3001/api/revalidate")
 REVALIDATE_SECRET = os.environ.get("VERILO_REVALIDATE_SECRET", "")
+
+# The daily briefing: every BRIEFING_EVERY minutes the pipeline asks the app to send the
+# briefings that are due (POST, with the app's BRIEFING_SECRET). Without a secret, none are sent.
+BRIEFING_URL = os.environ.get("VERILO_BRIEFING_URL", "http://localhost:3001/api/briefing/run")
+BRIEFING_SECRET = os.environ.get("VERILO_BRIEFING_SECRET", "")
+BRIEFING_EVERY = 15

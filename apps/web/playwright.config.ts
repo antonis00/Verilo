@@ -1,6 +1,6 @@
 import { execSync } from "node:child_process";
 import { defineConfig, devices } from "@playwright/test";
-import { TEST_REVALIDATE_SECRET } from "./tests/e2e/constants";
+import { TEST_BRIEFING_SECRET, TEST_REVALIDATE_SECRET } from "./tests/e2e/constants";
 
 // End-to-end tests against a production build and the local Supabase (`npm run db:start` at the
 // repo root). The installed Google Chrome is used, so no browser download is needed.
@@ -38,7 +38,14 @@ export default defineConfig({
   webServer: {
     command: `npx next start --port ${PORT}`,
     // Tests refresh the app's cached stories after seeding them (tests/e2e/supabase-admin.ts).
-    env: { ...(process.env as Record<string, string>), REVALIDATE_SECRET: TEST_REVALIDATE_SECRET },
+    // The briefing sends through Mailpit, where the tests read it.
+    env: {
+      ...(process.env as Record<string, string>),
+      REVALIDATE_SECRET: TEST_REVALIDATE_SECRET,
+      BRIEFING_SECRET: TEST_BRIEFING_SECRET,
+      SMTP_HOST: "127.0.0.1",
+      SMTP_PORT: "54325",
+    },
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,
