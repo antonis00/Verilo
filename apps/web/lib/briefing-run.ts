@@ -44,11 +44,13 @@ export async function runBriefings(
   const ids = (readers.data ?? []).map((r) => r.user_id as string);
   if (!ids.length) return result;
 
-  const settings = await db
+  // The whole table (one small row per reader who changed a setting), not filtered by the
+  // readers' ids: a list of every reader's id makes the request address too long.
+  let settingsQuery = db
     .from("digest_settings")
-    .select("user_id, enabled, send_hour, length, time_zone")
-    .in("user_id", ids)
-    .returns<SettingsRow[]>();
+    .select("user_id, enabled, send_hour, length, time_zone");
+  if (options.only) settingsQuery = settingsQuery.in("user_id", options.only);
+  const settings = await settingsQuery.returns<SettingsRow[]>();
   if (settings.error) throw new Error(`settings: ${settings.error.message}`);
   const byUser = new Map((settings.data ?? []).map((s) => [s.user_id, s]));
 
