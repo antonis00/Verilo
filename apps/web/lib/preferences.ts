@@ -33,8 +33,11 @@ const ids = (v: unknown): number[] | null =>
     ? [...new Set(v as number[])]
     : null;
 
-// Checks what a browser sent before it reaches the database: only known topics and outlets,
-// known regions, real booleans; a topic or outlet can't be both followed and muted/hidden.
+// Checks what a browser sent before it reaches the database: well-formed ids, region codes and
+// booleans; a topic or outlet can't be both followed and muted/hidden. Choices that are no
+// longer offered (a topic retired, an outlet paused, a region dropped from Places) are left out
+// quietly: they were valid when the reader made them, and refusing the whole save would leave
+// the reader stuck with a choice they can no longer see.
 export function checkPreferences(
   raw: unknown,
   known: { topics: Set<number>; sources: Set<number> },
@@ -48,29 +51,25 @@ export function checkPreferences(
   if (!followTopics || !muteTopics || !followSources || !hideSources) {
     return { ok: false, message: "Some choices couldn't be read. Reload the page and try again." };
   }
-  if ([...followTopics, ...muteTopics].some((t) => !known.topics.has(t))) {
-    return { ok: false, message: "A topic you chose no longer exists. Reload the page." };
-  }
-  if ([...followSources, ...hideSources].some((s) => !known.sources.has(s))) {
-    return { ok: false, message: "An outlet you chose is no longer available. Reload the page." };
-  }
   const regions = Array.isArray(r.regions) ? [...new Set(r.regions as unknown[])] : null;
-  if (!regions || regions.some((c) => typeof c !== "string" || !REGION_CODES.has(c))) {
-    return { ok: false, message: "A place you chose isn't one we cover." };
+  if (!regions || regions.length > 50 || regions.some((c) => typeof c !== "string")) {
+    return { ok: false, message: "Some choices couldn't be read. Reload the page and try again." };
   }
   if (typeof r.showOpinion !== "boolean" || typeof r.showTier3 !== "boolean") {
     return { ok: false, message: "Some choices couldn't be read. Reload the page and try again." };
   }
-  const followedTopics = new Set(followTopics);
-  const followedSources = new Set(followSources);
+  const topic = (t: number) => known.topics.has(t);
+  const source = (id: number) => known.sources.has(id);
+  const followedTopics = new Set(followTopics.filter(topic));
+  const followedSources = new Set(followSources.filter(source));
   return {
     ok: true,
     value: {
-      followTopics,
-      muteTopics: muteTopics.filter((t) => !followedTopics.has(t)),
-      followSources,
-      hideSources: hideSources.filter((s) => !followedSources.has(s)),
-      regions: regions as string[],
+      followTopics: [...followedTopics],
+      muteTopics: muteTopics.filter((t) => topic(t) && !followedTopics.has(t)),
+      followSources: [...followedSources],
+      hideSources: hideSources.filter((s) => source(s) && !followedSources.has(s)),
+      regions: (regions as string[]).filter((c) => REGION_CODES.has(c)),
       showOpinion: r.showOpinion,
       showTier3: r.showTier3,
     },
