@@ -53,6 +53,7 @@ function card(
     outlet_count: new Set(articles.map((a) => a.source_id)).size,
     articles,
     topic_ids: opts.topics ?? [],
+    summary: null,
   };
 }
 

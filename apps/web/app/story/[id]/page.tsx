@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { StorySummary } from "@/components/story-summary";
 import { storyCard, topicNames } from "@/lib/news";
 import { requestTime } from "@/lib/request-time";
 import {
@@ -17,7 +18,7 @@ import {
 export const metadata: Metadata = { title: "Story" };
 
 // One story: the event's headline and every outlet's version, with how much we rely on each
-// outlet and where it leans. The checked AI summary arrives here in Phase 4.
+// outlet and where it leans, under the checked AI summary when the story has one.
 export default function StoryPage({ params }: PageProps<"/story/[id]">) {
   return (
     <Suspense fallback={<p className="meta py-10">Loading the story…</p>}>
@@ -51,6 +52,18 @@ async function Story({ params }: Pick<PageProps<"/story/[id]">, "params">) {
         <time dateTime={card.last_published_at}>{ago(card.last_published_at, now)}</time>
         {leans.length ? ` · leans: ${leans.map((l) => LEAN_LABEL[l]).join(", ")}` : ""}
       </p>
+
+      {card.summary ? (
+        <section
+          aria-labelledby="summary-title"
+          className="mt-8 border-t-[3px] border-double border-ink pt-6"
+        >
+          <h2 id="summary-title" className="text-xl">
+            In brief
+          </h2>
+          <StorySummary summary={card.summary} articles={card.articles} />
+        </section>
+      ) : null}
 
       <section
         aria-labelledby="coverage-title"

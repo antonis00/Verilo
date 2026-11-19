@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import type { FrontPage as Page, Ranked } from "@/lib/feed";
+import { StorySummary } from "@/components/story-summary";
 import { ago, LEAN_LABEL } from "@/lib/sources";
 
 type Props = {
@@ -136,7 +137,14 @@ function Story({
           {story.headline}
         </Link>
       </h3>
-      {size === "lead" && story.lead.snippet ? (
+      {size === "lead" && story.card.summary ? (
+        <StorySummary
+          summary={story.card.summary}
+          articles={story.card.articles}
+          storyId={story.card.id}
+          compact
+        />
+      ) : size === "lead" && story.lead.snippet ? (
         <p className="mt-4 max-w-prose text-lg text-ink-muted">{story.lead.snippet}</p>
       ) : null}
       <p className="meta mt-3">

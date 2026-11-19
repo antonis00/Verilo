@@ -31,7 +31,7 @@ export async function candidateCards(): Promise<Card[]> {
   const { data, error } = await publicClient()
     .from("story_cards")
     .select(
-      "id, title, first_published_at, last_published_at, article_count, outlet_count, articles, topic_ids",
+      "id, title, first_published_at, last_published_at, article_count, outlet_count, articles, topic_ids, summary",
     )
     .gte("last_published_at", since)
     .order("last_published_at", { ascending: false })
@@ -96,7 +96,7 @@ export async function storyCard(id: number): Promise<Card | null> {
   const { data, error } = await publicClient()
     .from("story_cards")
     .select(
-      "id, title, first_published_at, last_published_at, article_count, outlet_count, articles, topic_ids",
+      "id, title, first_published_at, last_published_at, article_count, outlet_count, articles, topic_ids, summary",
     )
     .eq("id", id)
     .maybeSingle();
