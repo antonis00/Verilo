@@ -140,7 +140,9 @@ test("the welcome wizard saves choices that shape the front page and settings", 
     await expect.poll(openCount).toBe(0);
     await regions.first().locator("summary").click();
     await expect.poll(openCount).toBe(1);
-    await expect(page.getByRole("button", { name: "Expand all" })).toBeVisible();
+    // With one region open: "Expand all" if there are others, else everything is open.
+    const label = (await regions.count()) > 1 ? "Expand all" : "Collapse all";
+    await expect(page.getByRole("button", { name: label })).toBeVisible();
     await page.getByRole("switch", { name: /Opinion pieces/ }).check();
     await page.getByRole("button", { name: "Save changes" }).click();
     await expect(page.getByRole("status").filter({ hasText: "Saved." })).toBeVisible();
