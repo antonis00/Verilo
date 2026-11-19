@@ -6,6 +6,7 @@ import { requireReader } from "@/lib/auth";
 import { outlets, topics } from "@/lib/news";
 import { settingsFrom, type SettingsRow } from "@/lib/briefing";
 import { loadPreferences } from "@/lib/reader-preferences";
+import { trialLine } from "@/lib/trial";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "./actions";
 
@@ -46,6 +47,11 @@ async function Settings() {
       <p className="mt-3 text-ink-muted">
         Signed in as <span className="font-semibold text-ink">{reader.email}</span>
       </p>
+      {trialLine(reader.trial, settingsFrom(briefing.data).timeZone) ? (
+        <p className="meta mt-1" data-testid="trial">
+          {trialLine(reader.trial, settingsFrom(briefing.data).timeZone)}
+        </p>
+      ) : null}
       <div className="mt-10">
         <PreferencesForm
           mode="settings"

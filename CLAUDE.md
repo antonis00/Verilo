@@ -7,7 +7,7 @@ A personalised English-language newspaper, web first (mobile later), built by on
 2. Source ingestion: done (see "Sources and ingestion" below).
 3. Story grouping: done (see "Stories, opinion and topics" below).
 4. AI summaries with checks: only with 3+ trusted outlets of different leans; a second model checks each summary against the snippets; any failure shows headlines and links only and is logged. Done (Nov 2026): summaries, and an LLM topic tagger for the articles embeddings leave untagged.
-5. Personal feed and digest. Done first, at the owner's request (before 4): the front page, story pages, the welcome wizard, settings and the ranked personal feed (see "Readers, front page and preferences"). Still to do: the daily digest page and the free-trial flag.
+5. Personal feed and digest. Done first, at the owner's request (before 4): the front page, story pages, the welcome wizard, settings and the ranked personal feed (see "Readers, front page and preferences"). Then (Nov 2026): the daily briefing by email and the free-trial flag. Next: payments (Stripe or similar) when the owner decides prices; deployment; the Android app.
 
 Order agreed with the owner (Nov 2026): 5a (done) → 4 → rest of 5.
 
@@ -75,6 +75,11 @@ Order agreed with the owner (Nov 2026): 5a (done) → 4 → rest of 5.
 - **Mail**: any SMTP service by settings (`lib/mailer.ts`: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `BRIEFING_FROM`); locally Mailpit (Supabase's `smtp_port` 54325 is opened in `config.toml`; sent mail shows at http://127.0.0.1:54324). In production, Resend or Postmark by SMTP.
 - **Stopping**: the email's link (`/briefing/stop?u=&t=`, an HMAC of the reader id with `BRIEFING_SECRET`, so no sign-in is needed and no one else's can be made up) asks first, since mail scanners open links; the `List-Unsubscribe` header gives one-click unsubscribe in mail apps (`POST /api/briefing/unsubscribe`, RFC 8058). Changing `BRIEFING_SECRET` breaks links in emails already sent.
 - The briefing job reads every reader's choices with the secret key (`lib/supabase/admin.ts`, `SUPABASE_SECRET_KEY`, server-only); nothing a visitor asks for uses it.
+
+## Free trial (Phase 5)
+- `profiles.trial_ends_at` (14 days from sign-up, a column default; accounts from before got `created_at` + 14 days) and `profiles.subscribed_until` (empty until payments exist; the payment webhook will set it). Readers can't write either: their only update grant is `display_name` and `time_zone` (checked in `workers/tests/test_reader_rules_db.py`, acting as a signed-in reader).
+- `lib/trial.ts` (pure): subscribed / trial (whole days left) / ended; `getReader()` returns it as `reader.trial`.
+- **Nothing is locked yet** (the owner's choice until prices and payments are decided). Readers see one quiet line: in My News always ("Free trial: 9 days left (until 3 December)."), on the front page only in the last 3 days and after the end ("…everything stays open"). The desk counts readers in trial, trials ended and subscribed (the trial-to-paid figure the design asks for), with the secret-key client.
 
 ## Run and test
 ```powershell

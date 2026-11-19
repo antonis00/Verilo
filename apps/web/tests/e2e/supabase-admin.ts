@@ -202,3 +202,11 @@ export async function userIdFor(email: string): Promise<string> {
   if (!user) throw new Error(`no account for ${email}`);
   return user.id;
 }
+
+// Moves a reader's trial end (and subscription), as the payment system will later.
+export async function setTrial(
+  userId: string,
+  fields: { trial_ends_at?: string; subscribed_until?: string | null },
+) {
+  await rest(`profiles?id=eq.${userId}`, { method: "PATCH", body: JSON.stringify(fields) });
+}
