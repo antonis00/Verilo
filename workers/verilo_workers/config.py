@@ -15,3 +15,9 @@ USER_AGENT = os.environ.get(
 
 # How many feeds are fetched at once (one at a time per site).
 CONCURRENCY = int(os.environ.get("VERILO_FETCH_CONCURRENCY", "8"))
+
+# Where to tell the web app that stories changed, so new ones appear at once (POST, with the
+# same secret as the app's REVALIDATE_SECRET). Without a secret, no ping is sent and the app
+# picks up new stories within about a minute anyway.
+REVALIDATE_URL = os.environ.get("VERILO_REVALIDATE_URL", "http://localhost:3001/api/revalidate")
+REVALIDATE_SECRET = os.environ.get("VERILO_REVALIDATE_SECRET", "")

@@ -1,20 +1,9 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Page } from "@playwright/test";
-import { signInLinkFor } from "./mailpit";
+import { expect, test } from "@playwright/test";
+import { signIn, uniqueName } from "./sign-in";
 import { makeEditor, removeStory, seedStory } from "./supabase-admin";
 
-async function signIn(page: Page, email: string) {
-  await page.goto("/sign-in");
-  await page.getByLabel("Email address").fill(email);
-  await page.getByRole("button", { name: "Email me a sign-in link" }).click();
-  await expect(page.getByRole("status")).toContainText(email);
-  const { pathname, search } = new URL(await signInLinkFor(email));
-  await page.goto(pathname + search);
-  await expect(page).toHaveURL(/\/my-news$/);
-}
-
-const unique = (what: string, project: string) =>
-  `${what}-${project}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+const unique = uniqueName;
 
 test("the desk is not found for visitors and ordinary readers", async ({ page }, info) => {
   const missing = await page.goto("/desk");

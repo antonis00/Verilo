@@ -2,7 +2,8 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
 const PAGES = [
-  { path: "/", h1: "One story per event, not ten copies of the same article" },
+  { path: "/", h1: "Today’s front page" },
+  { path: "/about", h1: "One story per event, not ten copies of the same article" },
   { path: "/sign-in", h1: "Sign in or create an account" },
   { path: "/no-such-page", h1: "There’s no page at this address" },
 ];
@@ -35,7 +36,7 @@ test("the page never scrolls sideways", async ({ page }) => {
 });
 
 test("headlines use the serif and body text the sans", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/about");
   const h1 = await page
     .getByRole("heading", { level: 1 })
     .evaluate((el) => getComputedStyle(el).fontFamily);

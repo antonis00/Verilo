@@ -4,7 +4,7 @@ import { supabasePublishableKey, supabaseUrl } from "@/lib/env";
 
 // Pages that need a signed-in reader. This is only the quick check that saves a round trip;
 // every page and action still checks the session itself (lib/auth.ts).
-const PROTECTED = ["/my-news"];
+const PROTECTED = ["/my-news", "/welcome"];
 
 // Internal pages: anyone who isn't an editor gets a real 404, decided here because a page that
 // has started streaming can no longer change its status code.
