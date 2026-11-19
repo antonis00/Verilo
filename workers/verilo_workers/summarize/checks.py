@@ -55,29 +55,96 @@ NOT_NAMES = {
     "to", "by", "also", "still", "there", "here", "ai",
 }  # fmt: skip
 
+# Titles and honorifics: a writer may add one to a name the excerpts give ("President Lula").
+TITLES = {
+    "president", "vice", "prime", "minister", "secretary", "senator", "sen", "rep",
+    "representative", "governor", "gov", "chancellor", "king", "queen", "prince", "princess",
+    "mr", "mrs", "ms", "dr", "jr", "sr", "sir", "dame", "lord", "lady", "general", "gen",
+    "chief", "mayor", "judge", "justice", "speaker", "pope", "ambassador", "commissioner",
+}  # fmt: skip
+
+# Abbreviations in the excerpts that a writer may spell out, and the words that then count.
+EXPANSIONS = [
+    (re.compile(r"\bU\.?S\.?(?:A\.?)?(?![a-z])|\bAmerica"), "United States America American"),
+    (re.compile(r"\bU\.?K\.?(?![a-z])|\bBritain|\bBritish"), "United Kingdom Britain British"),
+    (re.compile(r"\bU\.?N\.?(?![a-z])"), "United Nations"),
+    (re.compile(r"\bE\.?U\.?(?![a-z])"), "European Union"),
+]
+
 _WORD = re.compile(r"[A-Z][\w'’.-]*[A-Za-z0-9]|[A-Z]{2,}")
 
 
-def names(text: str) -> set[str]:
-    """Capitalised words that aren't at the start of a sentence and aren't ordinary words."""
-    found = set()
+def _token(word: str) -> str:
+    return re.sub(r"['’]s$", "", word.strip("\"“”'‘’()[],.;:!?"))
+
+
+def name_runs(text: str) -> list[list[str]]:
+    """Runs of capitalised words that look like names ("Vice President JD Vance"). The first word
+    of a sentence counts only when a name follows it, and ordinary words never count."""
+    found: list[tuple[int, list[str]]] = []  # (position of the run's first word, its words)
     for sentence in re.split(r"(?<=[.!?:;])\s+", text):
-        words = sentence.split()
-        for i, word in enumerate(words):
-            token = word.strip("\"“”'‘’()[],.;:!?")
-            if i == 0 or not token or not _WORD.fullmatch(token):
-                continue
-            token = re.sub(r"['’]s$", "", token)
-            if token.lower() in NOT_NAMES:
-                continue
-            found.add(token)
-    return found
+        run: list[str] = []
+        start = 0
+        for i, word in enumerate(sentence.split()):
+            token = _token(word)
+            if token and _WORD.fullmatch(token) and token.lower() not in NOT_NAMES:
+                if not run:
+                    start = i
+                run.append(token)
+            elif run:
+                found.append((start, run))
+                run = []
+            # A run ends at punctuation: "Paris, France" is two names.
+            if run and re.search(r"[,;:()\"”]$", word):
+                found.append((start, run))
+                run = []
+        if run:
+            found.append((start, run))
+    # A sentence's first word alone is just a capital letter, not a name.
+    return [run for start, run in found if not (start == 0 and len(run) == 1)]
+
+
+def names(text: str) -> set[str]:
+    """Every word of every name run."""
+    return {t for run in name_runs(text) for t in run}
+
+
+def _flat(text: str) -> str:
+    return normalise(text).replace(".", "")
 
 
 def _present(needle: str, haystack: str) -> bool:
-    n = normalise(needle).replace(".", "")
-    h = normalise(haystack).replace(".", "")
-    return n in h
+    return _flat(needle) in _flat(haystack)
+
+
+class CitedNames:
+    """What the cited excerpts allow a point to name."""
+
+    def __init__(self, cited: str):
+        extra = " ".join(words for pattern, words in EXPANSIONS if pattern.search(cited))
+        self.text = _flat(f"{cited} {extra}")
+        self.words = {w.lower() for w in re.findall(r"[A-Z][A-Za-z]{3,}", f"{cited} {extra}")}
+
+    def has(self, token: str) -> bool:
+        flat = _flat(token)
+        if re.search(rf"(?<![\w]){re.escape(flat)}(?![\w])", self.text):
+            return True
+        # An adjective of a cited name: "Iranian" for Iran, "Israeli" for Israel.
+        low = token.lower()
+        return any(low != w and low.startswith(w[: max(4, len(w) - 1)]) for w in self.words)
+
+    def problems(self, run: list[str]) -> list[str]:
+        """The words of a name run the excerpts don't support. A title passes; so does a first
+        name when the run's last name is cited ("Donald Trump" where the excerpt says "Trump")."""
+        last_cited = self.has(run[-1])
+        missing = []
+        for i, token in enumerate(run):
+            if self.has(token) or token.lower().rstrip(".") in TITLES:
+                continue
+            if last_cited and i < len(run) - 1:
+                continue
+            missing.append(token)
+        return missing
 
 
 def run(bullets: list[dict], passages: dict[str, str]) -> list[Check]:
@@ -107,9 +174,9 @@ def run(bullets: list[dict], passages: dict[str, str]) -> list[Check]:
         for q in quotes(text):
             if not _present(q, cited):
                 quote_problems.append({"point": i, "quote": q})
-        for name in names(text):
-            if not _present(name, cited):
-                name_problems.append({"point": i, "name": name})
+        allowed = CitedNames(cited)
+        for run in name_runs(text):
+            name_problems += [{"point": i, "name": t} for t in allowed.problems(run)]
     results.append(Check("citations", not citation_problems, {"problems": citation_problems}))
     results.append(Check("numbers", not number_problems, {"problems": number_problems}))
     results.append(Check("quotes", not quote_problems, {"problems": quote_problems}))

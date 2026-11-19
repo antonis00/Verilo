@@ -107,3 +107,27 @@ def test_passages_take_one_per_outlet_tier_one_first_and_mix_leans():
     assert chosen[0].id == 2  # the outlet's fuller excerpt
     assert len({a.source_id for a in chosen}) == len(chosen) == 4  # tier 3 left out
     assert {eligibility.LEAN_GROUP[a.lean] for a in chosen[:3]} == {"centre", "left", "right"}
+
+
+def name_problems(text, cited):
+    r = by_name(checks.run([{"text": text, "sources": ["A1"]}] * 2, {"A1": cited}))
+    return sorted({p["name"] for p in r["names"].detail["problems"]})
+
+
+def test_names_allow_titles_first_names_adjectives_and_spelled_out_abbreviations():
+    cited = (
+        "Reuters: Trump and Vance meet U.S. allies. Iran and Israel trade strikes; "
+        "the UN calls for calm."
+    )
+    assert name_problems("President Donald Trump met Vice President JD Vance.", cited) == []
+    assert name_problems("The United States said Iranian and Israeli forces clashed.", cited) == []
+    assert name_problems("The United Nations called for calm.", cited) == []
+
+
+def test_names_still_catch_people_and_places_the_excerpts_never_mention():
+    cited = "Reuters: Trump meets allies in Paris."
+    assert name_problems("Joe Biden met allies in Paris.", cited) == ["Biden", "Joe"]
+    assert name_problems("Trump told DealBook he met allies.", cited) == ["DealBook"]
+    assert name_problems("The European Union met in Paris.", cited) == ["European", "Union"]
+    # A name at the start of a sentence counts when it's more than one word.
+    assert name_problems("Emmanuel Macron hosted Trump.", cited) == ["Emmanuel", "Macron"]

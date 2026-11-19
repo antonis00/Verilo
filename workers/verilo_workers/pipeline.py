@@ -1,4 +1,5 @@
-"""One round of the whole pipeline: fetch due feeds, enrich new articles, group them into stories.
+"""One round of the whole pipeline: fetch due feeds, enrich new articles (and AI-tag a few the
+embeddings left without a topic), group them into stories, summarise the stories that are due.
 `pipeline --loop` runs a round every minute; each stage only touches what's new."""
 
 import asyncio
@@ -10,6 +11,7 @@ import httpx
 from verilo_workers.cluster.stories import cluster_pending, merge_close
 from verilo_workers.common.http import ssl_context
 from verilo_workers.config import REVALIDATE_SECRET, REVALIDATE_URL
+from verilo_workers.enrich.llm_topics import tag_pending
 from verilo_workers.enrich.run import enrich_pending
 from verilo_workers.ingest import store
 from verilo_workers.ingest.run import ingest_due
@@ -39,13 +41,15 @@ def run_round(database_url: str | None = None) -> str:
     fetched = asyncio.run(ingest_due(database_url=database_url))
     with store.connect(database_url) as conn:
         enriched = enrich_pending(conn)
+        tagged = tag_pending(conn)
         placed = cluster_pending(conn)
         merged = merge_close(conn)
         summaries = summarize_due(conn)
-    changed = placed["placed"] or merged or summaries["published"]
+    changed = placed["placed"] or merged or summaries["published"] or tagged["tagged"]
     note = notify_app() if changed else "no changes"
     return (
-        f"{fetched.describe()}; enriched {enriched}; placed {placed['placed']} "
+        f"{fetched.describe()}; enriched {enriched}; "
+        f"AI-tagged {tagged['tagged']} of {tagged['looked at']}; placed {placed['placed']} "
         f"({placed['new stories']} new stories); merged {merged}; "
         f"summaries {summaries['published']} published, {summaries['failed']} failed; {note}"
     )

@@ -159,6 +159,15 @@ def _openai_compatible(role, system, user, max_tokens, want_json, transport) -> 
                     flush=True,
                 )
                 continue
+            # Groq checks JSON mode itself and sometimes refuses a model's own reply
+            # (json_validate_failed): the same request usually succeeds on a second try.
+            if (
+                response.status_code == 400
+                and "json_validate_failed" in response.text
+                and server_errors == 0
+            ):
+                server_errors += 1
+                continue
             if response.status_code >= 500 and server_errors == 0:
                 server_errors += 1
                 time.sleep(2)

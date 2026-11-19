@@ -115,6 +115,13 @@ VERDICTS = {
 NOTHING = {"published": 0, "failed": 0, "waiting": 0, "ineligible": 0}
 
 
+def due(conn, *args, **kwargs):
+    """summarize_due with its own daily cap: the real one counts every summary in the database,
+    and a running pipeline may have used it up."""
+    kwargs.setdefault("per_day", 10_000)
+    return summarize_due(conn, *args, **kwargs)
+
+
 def fake(*drafts, verdict=VERDICTS, fail=None):
     calls = []
     queue = list(drafts)
@@ -146,7 +153,7 @@ def card(conn, sid):
 
 def test_a_checked_summary_is_published_with_its_sources_and_shown_on_the_card(conn):
     sid = story(conn, THREE)
-    assert summarize_due(conn, NOW, story_ids=[sid], complete_fn=fake(GOOD))["published"] == 1
+    assert due(conn, NOW, story_ids=[sid], complete_fn=fake(GOOD))["published"] == 1
     [row] = summaries(conn, sid)
     assert (row["status"], row["writer"], row["checker"]) == (
         "published",
@@ -157,13 +164,13 @@ def test_a_checked_summary_is_published_with_its_sources_and_shown_on_the_card(c
     assert all(set(b["article_ids"]) <= set(row["article_ids"]) for b in row["bullets"])
     assert card(conn, sid)["bullets"][0]["text"].startswith("Officials said 40")
     # Nothing new since: not summarised again.
-    assert summarize_due(conn, NOW, story_ids=[sid], complete_fn=fake()) == NOTHING
+    assert due(conn, NOW, story_ids=[sid], complete_fn=fake()) == NOTHING
 
 
 def test_a_draft_failing_a_check_is_rewritten_with_the_problem_named(conn):
     sid = story(conn, THREE)
     fn = fake(BAD, GOOD)
-    assert summarize_due(conn, NOW, story_ids=[sid], complete_fn=fn)["published"] == 1
+    assert due(conn, NOW, story_ids=[sid], complete_fn=fn)["published"] == 1
     rewrite = [u for r, u in fn.calls if r == "writer"][1]
     assert "the number 45 is not in its cited excerpts" in rewrite
     assert summaries(conn, sid)[0]["attempts"] == 2
@@ -179,19 +186,19 @@ def test_failing_twice_keeps_headlines_only_and_logs_why(conn):
         ],
     }
     fn = fake(GOOD, GOOD, verdict=rejected)
-    assert summarize_due(conn, NOW, story_ids=[sid], complete_fn=fn)["failed"] == 1
+    assert due(conn, NOW, story_ids=[sid], complete_fn=fn)["failed"] == 1
     [row] = summaries(conn, sid)
     assert row["status"] == "failed"
     assert "judged contradicted" in row["failure"]
     assert card(conn, sid) is None
     # Not retried until more reports arrive.
-    assert summarize_due(conn, NOW, story_ids=[sid], complete_fn=fake()) == NOTHING
+    assert due(conn, NOW, story_ids=[sid], complete_fn=fake()) == NOTHING
 
 
 def test_a_story_without_enough_outlets_is_never_sent_to_a_model(conn):
     sid = story(conn, ["test-sum-left", "test-sum-right", "test-sum-extra"])  # no tier 1
     fn = fake()
-    assert summarize_due(conn, NOW, story_ids=[sid], complete_fn=fn)["ineligible"] == 1
+    assert due(conn, NOW, story_ids=[sid], complete_fn=fn)["ineligible"] == 1
     assert fn.calls == []
     assert summaries(conn, sid) == []
 
@@ -199,10 +206,10 @@ def test_a_story_without_enough_outlets_is_never_sent_to_a_model(conn):
 def test_rate_limits_pause_without_recording_and_errors_are_recorded(conn):
     sid = story(conn, THREE)
     fn = fake(fail={"writer": RateLimited(30)})
-    assert summarize_due(conn, NOW, story_ids=[sid], complete_fn=fn)["waiting"] == 1
+    assert due(conn, NOW, story_ids=[sid], complete_fn=fn)["waiting"] == 1
     assert summaries(conn, sid) == []
     fn = fake(GOOD, fail={"checker": AIError("checker unreachable")})
-    assert summarize_due(conn, NOW, story_ids=[sid], complete_fn=fn)["failed"] == 1
+    assert due(conn, NOW, story_ids=[sid], complete_fn=fn)["failed"] == 1
     assert "checker unreachable" in summaries(conn, sid)[0]["failure"]
 
 
@@ -212,16 +219,27 @@ def test_the_same_model_cannot_check_its_own_summary(conn):
     def same(role, system, user, **_):
         return Completion("", GOOD if role == "writer" else VERDICTS, "fake", "one-model")
 
-    assert summarize_due(conn, NOW, story_ids=[sid], complete_fn=same)["failed"] == 1
+    assert due(conn, NOW, story_ids=[sid], complete_fn=same)["failed"] == 1
 
 
 def test_new_reports_replace_an_older_summary_and_the_daily_cap_holds(conn):
     sid = story(conn, THREE)
-    summarize_due(conn, NOW, story_ids=[sid], complete_fn=fake(GOOD))
+    due(conn, NOW, story_ids=[sid], complete_fn=fake(GOOD))
     for slug in ["test-sum-extra", "test-sum-left", "test-sum-right"]:
         add(conn, sid, slug)
     conn.commit()
     later = NOW + timedelta(hours=3)
-    assert summarize_due(conn, later, story_ids=[sid], per_day=0, complete_fn=fake()) == NOTHING
-    assert summarize_due(conn, later, story_ids=[sid], complete_fn=fake(GOOD))["published"] == 1
+    assert due(conn, later, story_ids=[sid], per_day=0, complete_fn=fake()) == NOTHING
+    assert due(conn, later, story_ids=[sid], complete_fn=fake(GOOD))["published"] == 1
     assert [r["status"] for r in summaries(conn, sid)] == ["superseded", "published"]
+
+
+def test_excerpt_ids_written_in_the_text_become_citations():
+    from verilo_workers.summarize.run import _points
+
+    data = {
+        "points": [{"text": "Prices rose 4% (A1, A4) today. Talks ended [A2].", "sources": ["A1"]}]
+    }
+    assert _points(data) == [
+        {"text": "Prices rose 4% today. Talks ended.", "sources": ["A1", "A4", "A2"]}
+    ]
