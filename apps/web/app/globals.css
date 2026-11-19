@@ -333,6 +333,15 @@
     font-weight: 600;
   }
 
+  /* A strip that scrolls sideways (the section menu) without showing a scrollbar. */
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
   /* Progress through the welcome wizard. */
   .progress {
     height: 2px;
