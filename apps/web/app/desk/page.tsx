@@ -15,6 +15,7 @@ import {
   type Tier,
 } from "@/lib/sources";
 import { requestTime } from "@/lib/request-time";
+import { adminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -158,6 +159,7 @@ async function Desk() {
   }
 
   const now = await requestTime();
+  const readers = await readerCounts(now);
   const rows = sources.data ?? [];
   const active = rows.filter((s) => s.status === "active");
   const failing = active.filter((s) =>
@@ -179,7 +181,7 @@ async function Desk() {
 
   return (
     <>
-      <dl className="mt-6 grid grid-cols-2 gap-x-8 gap-y-4 border-y border-rule py-5 sm:grid-cols-3 lg:grid-cols-6">
+      <dl className="mt-6 grid grid-cols-2 gap-x-8 gap-y-4 border-y border-rule py-5 sm:grid-cols-3 lg:grid-cols-5">
         <Figure label="Active sources" value={active.length} />
         <Figure label="Stories" value={allStories.count ?? 0} />
         <Figure label="With a failing feed" value={failing} />
@@ -192,6 +194,9 @@ async function Desk() {
           label="Summaries failed, last 24 h"
           value={lastDay.filter((r) => r.status === "failed").length}
         />
+        <Figure label="Readers in their free trial" value={readers.inTrial} />
+        <Figure label="Trials ended, not subscribed" value={readers.ended} />
+        <Figure label="Subscribed" value={readers.subscribed} />
       </dl>
 
       <div className="mt-10 grid gap-12 lg:grid-cols-12">
@@ -325,6 +330,22 @@ function StoryItem({
       </details>
     </li>
   );
+}
+
+// Where readers stand with the free trial: the start of the trial-to-paid figure the design asks
+// for. Counts across every reader, so the secret-key client (this page is for editors only).
+async function readerCounts(now: number) {
+  const db = adminClient();
+  const at = new Date(now).toISOString();
+  const count = async (filter: (q: ReturnType<ReturnType<typeof db.from>["select"]>) => typeof q) =>
+    (await filter(db.from("profiles").select("id", { count: "exact", head: true }))).count ?? 0;
+  const notSubscribed = `subscribed_until.is.null,subscribed_until.lte.${at}`;
+  const [inTrial, ended, subscribed] = await Promise.all([
+    count((q) => q.gt("trial_ends_at", at).or(notSubscribed)),
+    count((q) => q.lte("trial_ends_at", at).or(notSubscribed)),
+    count((q) => q.gt("subscribed_until", at)),
+  ]);
+  return { inTrial, ended, subscribed };
 }
 
 function Figure({ label, value }: { label: string; value: number }) {

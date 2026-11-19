@@ -6,6 +6,7 @@ import { NO_PREFERENCES, rank } from "@/lib/feed";
 import { cacheStories, candidateCards, topicNames } from "@/lib/news";
 import { toRanking } from "@/lib/preferences";
 import { loadPreferences } from "@/lib/reader-preferences";
+import { shouldRemind, trialLine } from "@/lib/trial";
 import { cachedTime, requestTime } from "@/lib/request-time";
 
 // The front page. Everyone first gets the general page, ranked without preferences and cached,
@@ -50,12 +51,24 @@ async function ReaderFront() {
   const prefs = toRanking(saved.input);
   const personal = prefs.followTopics.length > 0 || prefs.followSources.length > 0;
   return (
-    <FrontPage
-      page={rank(cards, prefs, now, { topicNames: names })}
-      topicNames={names}
-      now={now}
-      personal={personal}
-    />
+    <>
+      {shouldRemind(reader.trial) ? <TrialNotice line={trialLine(reader.trial)!} /> : null}
+      <FrontPage
+        page={rank(cards, prefs, now, { topicNames: names })}
+        topicNames={names}
+        now={now}
+        personal={personal}
+      />
+    </>
+  );
+}
+
+// Near the end of the free trial, and after it: one quiet line, never a wall.
+function TrialNotice({ line }: { line: string }) {
+  return (
+    <aside aria-label="Your free trial" className="mb-8 border-y border-rule py-4 text-sm">
+      {line} <Link href="/my-news">Your account</Link>
+    </aside>
   );
 }
 

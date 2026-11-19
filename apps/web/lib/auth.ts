@@ -1,28 +1,38 @@
 import "server-only";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { trialState, type TrialState } from "@/lib/trial";
 
 // The one place that reads who the reader is (the data access layer). Returns only what pages need.
 export type Reader = {
   id: string;
   email: string;
   isEditor: boolean;
+  trial: TrialState;
 };
 
 export async function getReader(): Promise<Reader | null> {
+  // The client reads the request first (connection()), so reading the clock after it is allowed.
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getClaims();
   if (error || !data?.claims?.sub) return null;
   // Row-level security lets a reader read only their own profile.
   const { data: profile } = await supabase
     .from("profiles")
-    .select("is_editor")
+    .select("is_editor, trial_ends_at, subscribed_until")
     .eq("id", data.claims.sub)
     .maybeSingle();
   return {
     id: data.claims.sub,
     email: String(data.claims.email ?? ""),
     isEditor: profile?.is_editor === true,
+    trial: trialState(
+      {
+        trial_ends_at: profile?.trial_ends_at ?? null,
+        subscribed_until: profile?.subscribed_until ?? null,
+      },
+      Date.now(),
+    ),
   };
 }
 
