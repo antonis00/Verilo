@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { signInLinkFor } from "./mailpit";
-import { makeEditor, removeOutlet, seedOutlet } from "./supabase-admin";
+import { makeEditor, removeStory, seedStory } from "./supabase-admin";
 
 async function signIn(page: Page, email: string) {
   await page.goto("/sign-in");
@@ -26,7 +26,7 @@ test("the desk is not found for visitors and ordinary readers", async ({ page },
   await expect(page.getByRole("navigation", { name: "Account" })).not.toContainText("Desk");
 });
 
-test("an editor sees the latest articles and each source's tier, lean and feeds", async ({
+test("an editor sees stories with their outlets, leans, opinion labels and summary status", async ({
   page,
 }, info) => {
   const email = `${unique("editor", info.project.name)}@example.com`;
@@ -35,30 +35,39 @@ test("an editor sees the latest articles and each source's tier, lean and feeds"
 
   await signIn(page, email);
   await makeEditor(email);
-  await seedOutlet(slug, headline);
   try {
+    await seedStory(slug, headline);
     await page.goto("/desk");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("The desk");
     await expect(page.getByRole("navigation", { name: "Account" })).toContainText("Desk");
 
-    const article = page.getByRole("listitem").filter({ hasText: headline });
-    await expect(article).toContainText(`Test Outlet ${slug}`);
-    await expect(article).toContainText("Reputable · Lean right");
-    await expect(article.getByRole("link", { name: headline })).toHaveAttribute(
+    const story = page
+      .getByRole("region", { name: "Stories" })
+      .getByRole("listitem")
+      .filter({ has: page.getByRole("heading", { name: headline }) });
+    // Only the news report counts for leans and the summary rule; the opinion piece doesn't.
+    await expect(story).toContainText("Leans: Centre");
+    await expect(story).toContainText("no summary yet: needs 2 more reputable outlets");
+
+    await story.getByText("The 2 articles").click();
+    const opinion = story.getByRole("listitem").filter({ hasText: `Our view on ${headline}` });
+    await expect(opinion).toContainText("Lean right · Opinion");
+    await expect(opinion.getByText("Opinion")).toHaveAttribute("title", "link path /opinion/");
+    await expect(story.getByRole("link", { name: headline, exact: true })).toHaveAttribute(
       "href",
-      `https://test-outlet.example/${slug}`,
+      `https://test-outlet.example/${slug}/report`,
     );
 
     const source = page
       .getByRole("region", { name: "Sources" })
       .getByRole("listitem")
-      .filter({ hasText: `Test Outlet ${slug}` });
+      .filter({ hasText: `Test Outlet ${slug}-b` });
     await expect(source).toContainText("Tier 2 (Reputable)");
     await expect(source).toContainText("not reviewed");
 
     const results = await new AxeBuilder({ page }).withTags(["wcag2aa", "wcag21aa"]).analyze();
     expect(results.violations.map((v) => `${v.id}: ${v.help}`)).toEqual([]);
   } finally {
-    await removeOutlet(slug);
+    await removeStory(slug, headline);
   }
 });

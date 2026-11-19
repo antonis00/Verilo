@@ -38,6 +38,62 @@ export function ago(iso: string | null, now: number): string {
   return `${Math.round(hours / 24)} days ago`;
 }
 
+export type Kind = "news" | "opinion" | "sponsored";
+
+export const KIND_LABEL: Record<Kind, string | null> = {
+  news: null,
+  opinion: "Opinion",
+  sponsored: "Sponsored",
+};
+
+// Leans fall into three groups for the balance rule: a summary needs outlets from two of them.
+export type LeanGroup = "left" | "centre" | "right";
+export const LEAN_GROUP: Record<Lean, LeanGroup> = {
+  left: "left",
+  lean_left: "left",
+  center: "centre",
+  lean_right: "right",
+  right: "right",
+};
+
+const LEAN_ORDER: Lean[] = ["left", "lean_left", "center", "lean_right", "right"];
+
+export function leanSpread(leans: Lean[]): Lean[] {
+  return LEAN_ORDER.filter((l) => leans.includes(l));
+}
+
+// The summary rule (CLAUDE.md, Phase 4): only news reports from tier 1–2 outlets count; there
+// must be at least 3 such outlets, at least one of them tier 1, from at least 2 lean groups.
+export const SUMMARY_RULE = { outlets: 3, groups: 2 } as const;
+
+export type Readiness = {
+  ready: boolean;
+  outlets: number;
+  tierOne: boolean;
+  groups: number;
+  missing: string[];
+};
+
+export function summaryReadiness(
+  articles: { kind: Kind; source: { id: number; tier: Tier; lean: Lean } | null }[],
+): Readiness {
+  const trusted = new Map<number, { tier: Tier; lean: Lean }>();
+  for (const a of articles) {
+    if (a.kind === "news" && a.source && a.source.tier <= 2) trusted.set(a.source.id, a.source);
+  }
+  const outlets = trusted.size;
+  const tierOne = [...trusted.values()].some((s) => s.tier === 1);
+  const groups = new Set([...trusted.values()].map((s) => LEAN_GROUP[s.lean])).size;
+  const missing: string[] = [];
+  if (outlets < SUMMARY_RULE.outlets)
+    missing.push(
+      `${SUMMARY_RULE.outlets - outlets} more reputable outlet${SUMMARY_RULE.outlets - outlets === 1 ? "" : "s"}`,
+    );
+  if (!tierOne) missing.push("a public broadcaster or wire service");
+  if (groups < SUMMARY_RULE.groups) missing.push("another lean group");
+  return { ready: missing.length === 0, outlets, tierOne, groups, missing };
+}
+
 export type FeedHealth = "ok" | "failing" | "waiting" | "off";
 
 export function feedHealth(feed: {

@@ -98,5 +98,11 @@ jobs:
           npm ci
           npx supabase start
 
+      # The embedding model (about 67 MB) is downloaded once and kept between runs.
+      - uses: actions/cache@v4
+        with:
+          path: workers/.cache
+          key: fastembed-bge-small-en-v1.5
+
       - name: Tests
         run: pytest -v

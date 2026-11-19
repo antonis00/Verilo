@@ -1,0 +1,1279 @@
+{
+ "about": "Pairs of real headlines (19 Nov 2026) from different outlets, labelled by hand: same news event or not. Used to check the story-grouping threshold.",
+ "pairs": [
+  {
+   "a": {
+    "outlet": "independent",
+    "title": "Iowa residents brace for a lead dust cloud as Army plans to detonate 5 tons of bomb-making chemicals",
+    "snippet": "Residents are raising concerns about plans by the U.S. Army to detonate about 5 tons of bomb-making chemicals at an ammunition plant in southeast Iowa"
+   },
+   "b": {
+    "outlet": "hindustan-times",
+    "title": "‘Let AQI go down’: SC's candid advice to Delhi father wanting son to visit from Singapore",
+    "snippet": "The Supreme Court advised a Delhi-based father to wait for pollution levels to improve before bringing his son from Singapore."
+   },
+   "same_event": false
+  },
+  {
+   "a": {
+    "outlet": "nytimes",
+    "title": "Andrey Zvyagintsev Is the Prophet of Putinism",
+    "snippet": "Andrey Zvyagintsev’s latest film invites viewers to see contemporary Russia in the terms of classical myth."
+   },
+   "b": {
+    "outlet": "economist",
+    "title": "The incredible shrinking legacy of Donald J. Trump",
+    "snippet": "A three-way summit with Vladimir Putin and Xi Jinping in China will diminish America"
+   },
+   "same_event": false
+  },
+  {
+   "a": {
+    "outlet": "cbs-news",
+    "title": "Protests flare in Philippines over Trump's visit and planned AI hub",
+    "snippet": "Protests against President Trump's visit to the Philippines have popped up around the country, as local residents criticize a Trump administration project to build an artificial intelligence hub."
+   },
+   "b": {
+    "outlet": "irish-times",
+    "title": "Trump, Putin and Jinping begin historic trilateral meeting in China",
+    "snippet": "US and Russian presidents now meeting Chinese counterpart Xi Jinping in Shenzen"
+   },
+   "same_event": false
+  },
+  {
+   "a": {
+    "outlet": "npr",
+    "title": "Democrats nominate Jeffries for speaker, prep investigations into Trump's orbit",
+    "snippet": "Democrats gave the official nod to Hakeem Jeffries to be the next speaker of the House. Meanwhile, Democrats are ramping up their plans to investigate the Trump administration come January."
+   },
+   "b": {
+    "outlet": "washington-post",
+    "title": "Hegseth survives impeachment fight, but more political threats await",
+    "snippet": "As Democrats promise to force the defense chief from office, his continued favor with the president appears to outweigh any liability he has created — for now."
+   },
+   "same_event": false
+  },
+  {
+   "a": {
+    "outlet": "rte-news",
+    "title": "Three people arrested over Edenderry fire released",
+    "snippet": "Three people arrested over the arson attack which claimed the lives of a four-year-old boy and his grand aunt in Edenderry, Co Offaly, last year, have been released without charge."
+   },
+   "b": {
+    "outlet": "irish-times",
+    "title": "Teenager due in court following fatal stabbing of 18-year-old in Cork",
+    "snippet": "Adam McSweeney from Glanmire died in hospital following assault on Lower Glanmire Road on Tuesday"
+   },
+   "same_event": false
+  },
+  {
+   "a": {
+    "outlet": "the-hindu",
+    "title": "U.S., Venezuela sign deal to re-establish military ties: Hegseth",
+    "snippet": "The U.S. Defence Secretary said that following the January capture of Nicolas Maduro by the U.S. military, the country “has gone from our most aggressive regional threat to a compliant security partner”"
+   },
+   "b": {
+    "outlet": "hindustan-times",
+    "title": "‘True landmark’: Trump touts US-Philippines trade deal as he heads to China",
+    "snippet": "President Donald Trump says landmark pact will benefit American farmers and the energy sector of the country."
+   },
+   "same_event": false
+  },
+  {
+   "a": {
+    "outlet": "abc-australia",
+    "title": "Burke backtracks on backpacker changes as PM is cheered on world stage",
+    "snippet": "While Anthony Albanese has been doing the rounds of global summits, his government is facing a grilling on budget measures it's trying to get through the Senate."
+   },
+   "b": {
+    "outlet": "nytimes",
+    "title": "Elon Musk Plays Down G.O.P. Support After Midterm Loss",
+    "snippet": "The C.E.O. of SpaceX, who spent millions to back Republican candidates, sought to portray himself as a political moderate."
+   },
+   "same_event": false
+  },
+  {
+   "a": {
+    "outlet": "politico",
+    "title": "Democrats see an immigration opening despite Stephen Miller’s rise",
+    "snippet": "Several moderate Democrats have already placed calls to the White House and Trump administration officials to express a willingness to work together."
+   },
+   "b": {
+    "outlet": "abc-news-us",
+    "title": "House Dems' bill would establish a 10-year expiration on final orders of removal",
+    "snippet": "House Democrats told ABC News they will introduce legislation that would provide relief to some immigrants who have final orders of removal but no criminal record."
+   },
+   "same_event": false
+  },
+  {
+   "a": {
+    "outlet": "npr",
+    "title": "House Democrat warns 13 Trump allies to save their records for upcoming investigations",
+    "snippet": "Among the recipients of letters from Robert Garcia, incoming chair of the House Oversight Committee, are Donald Trump Jr. and Eric Trump, Jared Kushner and White House Chief of Staff Stephen Miller."
+   },
+   "b": {
+    "outlet": "washington-examiner",
+    "title": "Trump minimizes Jensen Huang scandal: ‘We have to take care of our geniuses’",
+    "snippet": "President Donald Trump said he “might” have informally raised former Nvidia CEO Jensen Huang with Chinese President Xi Jinping during a dinner in China after Huang was forced out of the company he founded following a series of extramarital affairs, including with an alleged Chinese spy. “I might have referred to it just briefly because […]"
+   },
+   "same_event": false
+  },
+  {
+   "a": {
+    "outlet": "irish-times",
+    "title": "Ukraine destroys section of Putin’s Crimea bridge in fierce exchange",
+    "snippet": "Unverified video and pictures appear to show bridge’s road arch span has collapsed into the Kerch Strait"
+   },
+   "b": {
+    "outlet": "hindustan-times",
+    "title": "'Support free and open trade': Xi and Putin's tough stance against trade curbs ahead of Trump meet",
+    "snippet": "Addressing the Asia-Pacific Economic Cooperation (APEC) summit in Shenzhen, China, Xi urged countries to support what he described as “free and open trade”"
+   },
+   "same_event": false
+  },
+  {
+   "a": {
+    "outlet": "guardian",
+    "title": "Grade I interiors, gold bars, cost fears: Bank of England faces headache over £160m revamp",
+    "snippet": "UK central bank will want to avoid echoes of expensive US Federal Reserve revamp that led to Trump clash Andrew Bailey may spend his days closely watching developments in the strait of Hormuz or US stock markets for signs of shocks to the global economy – but the Bank of England’s governor has a £160m problem brewing much closer to home. A secretive major revamp of the Bank’s historic…"
+   },
+   "b": {
+    "outlet": "irish-times",
+    "title": "Burnham’s anti-Brexit comments help him at home and away",
+    "snippet": "UK prime minister tells bankers their nation’s Brexit deal shows ‘the emperor has no clothes’"
+   },
+   "same_event": false
+  },
+  {
+   "a": {
+    "outlet": "pbs-newshour",
+    "title": "News Wrap: Democrats nominate Hakeem Jeffries for Speaker of the House",
+    "snippet": "In our news wrap Wednesday, House Democratic Leader Hakeem Jeffries moved a step closer today to becoming the next Speaker of the House, Democrats have secured a 56-to-44 majority in the Senate after Mary Peltola won the last outstanding race in Alaska and Defense Secretary Pete Hegseth announced a new military agreement with Venezuela."
+   },
+   "b": {
+    "outlet": "washington-post",
+    "title": "‘Put on your seat belt’: Bernie Sanders unveils wish list for new Congress",
+    "snippet": "Hoping to capitalize on Democrats' gains, the democratic socialist senator from Vermont outlined his progressive policy agenda."
+   },
+   "same_event": false
+  },
+  {
+   "a": {
+    "outlet": "rte-news",
+    "title": "Behind The Story: China's global moment, and house prices",
+    "snippet": "On today's episode RTÉ's Behind the Story podcast analyses the potentially historic meeting of Donald TRump, Xi Jinping and Vladimir Putin, as well as signs of Ireland's housing market slowing down."
+   },
+   "b": {
+    "outlet": "guardian",
+    "title": "Will Burnham put a ‘brake’ on push to rejoin EU? – podcast",
+    "snippet": "It is a big week for Andy Burnham as two of his big policy priorities enter the spotlight. On Tuesday, the Milburn review of welfare for under-25s is published, which could ignite old Labour tensions over benefit cuts. Then, later this week, Burnham will be in Brussels for the UK-EU summit to discuss a potential new deal. But, as Pippa has signalled, cabinet ministers have told Burnham to put…"
+   },
+   "same_event": false
+  },
+  {
+   "a": {
+    "outlet": "fox-news",
+    "title": "President Trump downplays panic over tech outages: ‘Nobody’s going to play games with us’",
+    "snippet": "President Donald Trump urged Americans to \"relax\" over FAA and Microsoft outages, warning any country that targeted U.S. systems would be hit hard."
+   },
+   "b": {
+    "outlet": "globe-and-mail",
+    "title": "Trump-Xi meeting on sidelines of APEC summit unlikely to tackle major issues",
+    "snippet": "After the debacle of the U.S. midterms, China has no reason to make concessions to the lame-duck President"
+   },
+   "same_event": false
+  },
+  {
+   "a": {
+    "outlet": "politico",
+    "title": "Inside the Trump administration’s divisions over China",
+    "snippet": ""
+   },
+   "b": {
+    "outlet": "the-hindu",
+    "title": "Watch: Trump, Xi and Putin to hold historic trilateral talks in China on APEC sidelines",
+    "snippet": "U.S. President Donald Trump, Chinese President Xi Jinping, and Russian President Vladimir Putin are set to hold a landmark trilateral meeting in Shenzhen, China, on Thursday, November 19, on the sidelines of the 33rd APEC Economic Leaders’ Meeting. The gathering is historic because it brings together the heads of the world’s three most influential military powers in a formal three-way setting…"
+   },
+   "same_event": false
+  },
+  {
+   "a": {
+    "outlet": "npr",
+    "title": "Former U.S. ambassador on Trump's joint summit with leaders of China and Russia",
+    "snippet": "NPR's Leila Fadel speaks to Nicholas Burns, former U.S. ambassador to China and NATO, about President Trump's planned meeting with the leaders of China and Russia."
+   },
+   "b": {
+    "outlet": "ndtv",
+    "title": "'We Do It Better': Trump Says US \"Spies On China\" Before Talks With Xi",
+    "snippet": "Donald Trump and Xi Jinping during an event in China on November 18, 2026"
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "guardian",
+    "title": "Hi-tech Shenzhen takes centre stage as Xi sends ‘Chinamaxxing’ message at Apec summit",
+    "snippet": "Host city offers showcase of China’s rise into a confident and innovative power central to global economy In a Shenzhen square on a balmy evening, locals and tourists watched the dozens of glinting towers that make up the city’s skyline ripple through the colour spectrum – cyan and violet, cyber green, China’s national scarlet and gold – repeatedly flashing the words “Apec 2026”. The…"
+   },
+   "b": {
+    "outlet": "globe-and-mail",
+    "title": "Carney pledges to widen Chinese partnership",
+    "snippet": "Prime Minister Mark Carney pledges to widen Chinese partnership during a speech at the APEC summit in Shenzhen, China on Wednesday."
+   },
+   "same_event": false
+  },
+  {
+   "a": {
+    "outlet": "rte-news",
+    "title": "UK pressure group calls for closer relationship with EU",
+    "snippet": "A new pressure group in Britain led by former Conservative Party politicians has called for a closer relationship with the EU to become the settled direction of British policy."
+   },
+   "b": {
+    "outlet": "irish-independent",
+    "title": "Sean Duke: High-minded idealism of previous Cop events nowhere to be seen in Turkey",
+    "snippet": "Ireland’s former president Mary Robinson decried the role politics is playing in decisions around climate change"
+   },
+   "same_event": false
+  },
+  {
+   "a": {
+    "outlet": "ny-post",
+    "title": "Judge issues 14-day extension order blocking Trump’s DC memorial arch",
+    "snippet": "US District Judge Tanya Chutkan extended an order blocking construction of President Trump's proposed memorial arch in DC for another 2 weeks."
+   },
+   "b": {
+    "outlet": "hindustan-times",
+    "title": "US judge orders Trump to testify in BBC lawsuit by January 22",
+    "snippet": "US judge ordered Donald Trump to testify under oath by January 22 in his defamation lawsuit against the BBC."
+   },
+   "same_event": false
+  },
+  {
+   "a": {
+    "outlet": "the-hill",
+    "title": "Elbridge Colby chides Ukraine's strikes inside Russia, drawing German rebuke",
+    "snippet": "Elbridge Colby, U.S. under secretary of defense, criticized Ukraine for its long-range strikes against Russia, drawing rebuke from allies during high-level talks at NATO headquarters on Tuesday. Colby said that strikes “have not been effective … nor do they contribute to blunting Russia's advances on the front line.” He also added that they “have actually..."
+   },
+   "b": {
+    "outlet": "the-hindu",
+    "title": "Xi, Putin meet ahead of historic Trump trilateral summit",
+    "snippet": "Washington had signalled that Ukraine — something Mr. Xi vehemently sees as not China's problem — was not expected to be addressed, before Mr. Trump said that it would"
+   },
+   "same_event": false
+  },
+  {
+   "a": {
+    "outlet": "npr",
+    "title": "Why the Nvidia scandal is a national security issue",
+    "snippet": "The Nvidia scandal has spilled over into the Trump administration, which is now under intense scrutiny for how it allowed America's top AI chips to end up in China's hands."
+   },
+   "b": {
+    "outlet": "cbs-news",
+    "title": "11/17: The Takeout with Major Garrett",
+    "snippet": "More tech issues hit the U.S. after a week of disruptions; Trump gets ready to meet with Xi and Putin."
+   },
+   "same_event": false
+  },
+  {
+   "a": {
+    "outlet": "globe-and-mail",
+    "title": "Israel launches ground operation in central Gaza as displaced Palestinians flee",
+    "snippet": "More than 74,000 people in Gaza have been killed in Israel’s military campaign, Palestinian authorities say"
+   },
+   "b": {
+    "outlet": "irish-times",
+    "title": "‘People are appalled’: How Israel lost America",
+    "snippet": "Never before has Israel found itself at the centre of such a political storm, blamed for an epochal shift in US politics"
+   },
+   "same_event": false
+  },
+  {
+   "a": {
+    "outlet": "abc-australia",
+    "title": "Teen accused of Parliament House hoax threats faces terrorism charges",
+    "snippet": "A teen from regional NSW faces terrorism related charges after an AFP investigation into threats to Parliament House and Melbourne Airport"
+   },
+   "b": {
+    "outlet": "hindustan-times",
+    "title": "Markwayne Mullin to testify before House over flight disruptions, football trip and immigration",
+    "snippet": "Mullin is set to face lawmakers over cyber vulnerabilities, immigration enforcement and his flight to an LSU-Texas game after nationwide flight disruptions."
+   },
+   "same_event": false
+  },
+  {
+   "a": {
+    "outlet": "nytimes",
+    "title": "Will a Spy Scandal, Trade Friction and a Surprise Guest Ruin Xi’s Big Moment?",
+    "snippet": "The leader wants the APEC summit to showcase China’s strengths, but he faces export worries and an unpredictable Trump, who has floated meeting Kim Jong-un."
+   },
+   "b": {
+    "outlet": "globe-and-mail",
+    "title": "Why Trump's new AI chip crackdown matters before Xi talks",
+    "snippet": "A new U.S. crackdown on advanced AI chips is casting a shadow over this week's Trump-Xi meeting. Reuters South China correspondent David Kirton explains what Washington is trying to achieve, and how Beijing could respond."
+   },
+   "same_event": false
+  },
+  {
+   "a": {
+    "outlet": "the-hindu",
+    "title": "Six killed as car falls into canal in Bihar’s Araria",
+    "snippet": "A police team rushed to the spot and took all seven occupants of the car to the Araria Sadar Hospital, where six of them were declared dead, the statement said"
+   },
+   "b": {
+    "outlet": "indian-express",
+    "title": "Haryana: 6 cops suspended over custodial death",
+    "snippet": ""
+   },
+   "same_event": false
+  },
+  {
+   "a": {
+    "outlet": "the-hindu",
+    "title": "Tejashwi Yadav calls Ashok Choudhary a ‘fake minister’ over ‘office of profit’",
+    "snippet": "Mr. Yadav asserted that under the provisions concerning an office of profit, his membership should be revoked immediately and he should be punished for fraud"
+   },
+   "b": {
+    "outlet": "times-of-india",
+    "title": "After clip shows MP cops threatening couple, CM suspends additional SP, 5 cops",
+    "snippet": "Madhya Pradesh Chief Minister Mohan Yadav ordered the suspension of six police officers following a viral video. The footage showed them threatening a couple and suggesting they would plant narcotics in their belongings. An inquiry will be conducted by the deputy inspector general of police for further investigation. The actions of the police have raised concerns about their conduct toward…"
+   },
+   "same_event": false
+  },
+  {
+   "a": {
+    "outlet": "globe-and-mail",
+    "title": "Technical issue at JPMorgan Chase triggers online banking delays across major U.S. banks",
+    "snippet": "Chase says problems were not the result of a cyberattack, and that they were working to bring banking services back online"
+   },
+   "b": {
+    "outlet": "irish-times",
+    "title": "Rubio says US not ‘under systemic attack’ after series of tech outages",
+    "snippet": "Rush to patch systems, whose vulnerabilities are exposed by AI, may explain recent failures with air traffic controls, banks and government agencies"
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "npr",
+    "title": "After Nepal's epic flood, they're restoring their community ... and their lives",
+    "snippet": "As the emergency response to the flood ends, aid workers turn to the hard work of rebuilding communities that lost everything. Many of those workers lost everything, too."
+   },
+   "b": {
+    "outlet": "irish-times",
+    "title": "‘We’ll be out there’: The volunteers who patch up Ukraine after Russia strikes",
+    "snippet": "Dobrobat NGO provides vital quick fixes to homes, but eventual reconstruction will be mammoth task"
+   },
+   "same_event": false
+  },
+  {
+   "a": {
+    "outlet": "irish-times",
+    "title": "Trump, Putin and Jinping begin historic trilateral meeting in China",
+    "snippet": "US and Russian presidents now meeting Chinese counterpart Xi Jinping in Shenzen"
+   },
+   "b": {
+    "outlet": "sydney-morning-herald",
+    "title": "‘End your war, end it now’: Albanese gives Putin a serve at APEC",
+    "snippet": "The Australian prime minister has seized his opportunity to send Russia’s president and US president Donald Trump a message about war, economics and artificial intelligence."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "irish-times",
+    "title": "Trump arrives to protests in the Philippines",
+    "snippet": "Global Briefing: US president visits southeast Asia to win support for Pax Silica Trump, an initiative aimed at securing AI supply chains for the US and its allies"
+   },
+   "b": {
+    "outlet": "the-hindu",
+    "title": "Donald Trump says U.S. has concluded ‘very big trade deal’ with Philippines",
+    "snippet": "We were very happy with that, and we didn’t know that was going to take place, Donald Trump said"
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "cbs-news",
+    "title": "Trump, Xi, Putin begin rare joint meeting in China",
+    "snippet": "President Trump, Chinese President Xi Jinping and Russian President Vladimir Putin have started a rare face-to-face meeting in China."
+   },
+   "b": {
+    "outlet": "irish-times",
+    "title": "Korea fears a second Yalta",
+    "snippet": "South Koreans are concerned that Trump, Xi and Putin will agree a common approach to North Korea without consulting Seoul"
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "pbs-newshour",
+    "title": "Trump lands in China for trade talks and high-stakes summit with Xi and Putin",
+    "snippet": "President Trump landed in southern China after signing a trade deal and pledging increased defense cooperation with the Philippines. On Thursday, Trump will hold a historic summit with the Chinese and Russian presidents on the sidelines of a meeting of Asia-Pacific countries in Shenzhen, China. Nick Schifrin reports."
+   },
+   "b": {
+    "outlet": "nytimes",
+    "title": "Marcos Is Hosting Trump on Grounds Where He Spent Much of His Childhood",
+    "snippet": "President Trump met the Philippine leader Ferdinand R. Marcos Jr. at Malacañang Palace, which his family fled after his father was ousted from power 40 years ago."
+   },
+   "same_event": false
+  },
+  {
+   "a": {
+    "outlet": "nytimes",
+    "title": "Trump and Marcos Share a Moment Over Jollibee Fried Chicken",
+    "snippet": "President Trump’s host in Manila put in a late-night order from the Filipino fast-food chain Jollibee for the American leader."
+   },
+   "b": {
+    "outlet": "cbs-news",
+    "title": "Trump arrives in the Philippines amid protests",
+    "snippet": "President Trump arrived in the Philippines on Tuesday for the first leg of his Asia trip. Weijia Jiang reports."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "bbc-news",
+    "title": "Watch: Marco Rubio says recent tech outages are 'completely unrelated' to one another",
+    "snippet": "Microsoft, major US banks, Apple and Air Traffic authorities have been hit over recent days by tech glitches."
+   },
+   "b": {
+    "outlet": "cbs-news",
+    "title": "11/17: The Takeout with Major Garrett",
+    "snippet": "More tech issues hit the U.S. after a week of disruptions; Trump gets ready to meet with Xi and Putin."
+   },
+   "same_event": false
+  },
+  {
+   "a": {
+    "outlet": "globe-and-mail",
+    "title": "Trump kicks off Asia trip with economic deals and talks with allies",
+    "snippet": "Philippines is his first stop on a three-day trip that will later take him to China for three-way nuclear talks with Xi Jinping and Putin"
+   },
+   "b": {
+    "outlet": "hindustan-times",
+    "title": "India watches as Trump, Putin and Xi sit down for landmark trilateral",
+    "snippet": "Veteran American diplomats see little merit to the fear that Trump will make major strategic concessions to Russia or China, including in Asia."
+   },
+   "same_event": false
+  },
+  {
+   "a": {
+    "outlet": "abc-australia",
+    "title": "NBN breaks internet traffic record off GTA VI downloads",
+    "snippet": "After years of delays, video game Grand Theft Auto VI has been released, and critics say it lives up to the hype."
+   },
+   "b": {
+    "outlet": "cbs-news",
+    "title": "Grand Theft Auto 6 sparking widespread PTO requests ahead of midnight release",
+    "snippet": "The highly anticipated video game Grand Theft Auto 6 will be released at midnight on Thursday. Vladimir Duthiers has more."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "guardian",
+    "title": "Trump, Xi, Putin: Albanese’s blitz of the world’s most powerful – podcast",
+    "snippet": "Right now, the centre of global diplomacy has shifted to our region as world leaders descend on Asia for back-to-back summits in the Philippines and China. Anthony Albanese is currently in Manila for the Asean summit, where he is due to meet with Donald Trump along with other leaders. Then later this week the city of Shenzhen will host an unprecedented three-way meeting between Trump, the…"
+   },
+   "b": {
+    "outlet": "hindustan-times",
+    "title": "'Support free and open trade': Xi and Putin's tough stance against trade curbs ahead of Trump meet",
+    "snippet": "Addressing the Asia-Pacific Economic Cooperation (APEC) summit in Shenzhen, China, Xi urged countries to support what he described as “free and open trade”"
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "cbs-news",
+    "title": "11/18: CBS Evening News",
+    "snippet": "Trump to meet with Xi and Putin; Severe flooding hits Florida."
+   },
+   "b": {
+    "outlet": "times-of-india",
+    "title": "Historic trilateral talks begin: What will Trump, Xi & Putin discuss",
+    "snippet": ""
+   },
+   "same_event": false
+  },
+  {
+   "a": {
+    "outlet": "nytimes",
+    "title": "Trump Arrives in China Focused on Friendship With Xi, Not Nvidia Spy Scandal",
+    "snippet": "President Xi Jinping of China offered a hug and a red-carpet welcome as President Trump avoided discussing the espionage case that brought down Nvidia’s Jensen Huang."
+   },
+   "b": {
+    "outlet": "guardian",
+    "title": "The Guardian view on the Trump, Xi and Putin meeting: it may be a first, but it’s not progress | Editorial",
+    "snippet": "A trilateral gathering is good news for China and Russia, but bad for the US – and its traditional allies “Historic” is a neutral descriptor, not a favourable one. Things can be unprecedented for good reason. Donald Trump’s meeting with Xi Jinping and Vladimir Putin in Shenzhen, China on Thursday will be the first time that the leaders of the US, China and Russia have gathered for talks as a…"
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "globe-and-mail",
+    "title": "Trump to sit down with Xi and Putin, leaving allies wondering where they stand",
+    "snippet": "President Donald Trump will meet Xi Jinping and Vladimir Putin Thursday in an unprecedented nuclear-powers summit, leaving allies uneasy. Ex-CIA expert Jonathan Czin says it signals accommodation over confrontation, calls it a coup for Putin, and expects little real arms-control progress."
+   },
+   "b": {
+    "outlet": "sydney-morning-herald",
+    "title": "Leaders gather for ‘family photo’ in Shenzhen",
+    "snippet": "Anthony Albanese can be seen in the background as Donald Trump greets Xi Jinping."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "rte-news",
+    "title": "Behind The Story: China's global moment, and house prices",
+    "snippet": "On today's episode RTÉ's Behind the Story podcast analyses the potentially historic meeting of Donald TRump, Xi Jinping and Vladimir Putin, as well as signs of Ireland's housing market slowing down."
+   },
+   "b": {
+    "outlet": "fox-news",
+    "title": "SOUND OFF: Trump face to face with Putin in China",
+    "snippet": "President Donald Trump and Russian President Vladimir Putin are expected to meet in China this week. Give us your thoughts about its impact on Iran, Ukraine and more."
+   },
+   "same_event": false
+  },
+  {
+   "a": {
+    "outlet": "globe-and-mail",
+    "title": "How U.S. midterm losses, Nvidia scandal could affect Trump’s Asia visit",
+    "snippet": "President Donald Trump heads to Asia this week reeling from a midterm election drubbing and Chinese spy allegations that have upped the ante for his latest face-to-face with Beijing's powerful leader Xi Jinping. Reuters China Politics and Policy Correspondent Mei Mei Chu explains."
+   },
+   "b": {
+    "outlet": "the-hindu",
+    "title": "Trump-Xi-Putin historic trilateral summit: What to expect, significance, and more",
+    "snippet": "Xi-Trump-Putin meet comes on the sidelines of the APEC Summit and amidst a long ongoing Russia-Ukraine war."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "independent",
+    "title": "White House flabbergasted by Mullin’s ‘one guy’ response to tech outages",
+    "snippet": "Homeland Security Secretary Markwayne Mullin’s saying a ‘guy that’s very smart with tech’ had told him AI might be behind glitches met with incredulity in West Wing, according to report"
+   },
+   "b": {
+    "outlet": "fox-news",
+    "title": "Mullin defends TSA shoes-on policy after congressman calls classified briefing ‘very concerning’",
+    "snippet": "Markwayne Mullin defended the TSA shoe removal policy at a House Homeland Security hearing, telling Rep. Eli Crane the change never put anyone at risk."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "nytimes",
+    "title": "Russia Vows to Rebuild Destroyed Crimea Bridge. It Could Take Years.",
+    "snippet": "The steel arch that is now gone took about two years to produce, assemble and install. Replacing it will be complicated, if possible at all in wartime."
+   },
+   "b": {
+    "outlet": "hindustan-times",
+    "title": "Russia and Ukraine are bombing bridges. Who’s winning?",
+    "snippet": "A setback for Russia in Crimea, but damage in Kyiv may matter more"
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "rte-news",
+    "title": "Trump says talks with Xi, Putin are 'making history'",
+    "snippet": "China's President Xi Jinping has told US President Donald Trump that China and the United States should cooperate to keep AI \"under human control\"."
+   },
+   "b": {
+    "outlet": "irish-times",
+    "title": "Why Trump-Xi-Putin’s Yalta-style meeting has other powers on edge",
+    "snippet": "If summit becomes a fixture, China, Russia and the US could reshape diplomacy in ways their allies may not welcome"
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "nytimes",
+    "title": "How to Decode the Xi-Trump Hug",
+    "snippet": "The welcome China’s leader, Xi Jinping, offered President Trump appeared to reflect a desire for a measure of stability at a time of growing disagreements."
+   },
+   "b": {
+    "outlet": "irish-times",
+    "title": "Trump, Putin and Jinping begin historic trilateral meeting in China",
+    "snippet": "US and Russian presidents now meeting Chinese counterpart Xi Jinping in Shenzen"
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "nbc-news",
+    "title": "Trump meets with Putin in China",
+    "snippet": "President Trump is meeting with Russian President Putin ahead of a meeting with Putin and Chinese President Xi. Trump spoke just before the meeting, saying the two leaders have a “great relationship.” NBC News’ Janis Mackey Frayer and Garrett Haake report."
+   },
+   "b": {
+    "outlet": "fox-news",
+    "title": "Trump set for economic showdown with Xi as unfulfilled promises leave billions hanging in balance",
+    "snippet": "Trump and Xi Jinping meet in China today as expert Ryan Yonk says years of broad promises have yielded few executed deals on trade between the nations."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "npr",
+    "title": "Putin to meet with Trump and Xi after Ukrainian attack on Russian bridge",
+    "snippet": "Russian President Vladimir Putin will meet Thursday with President Trump and Chinese President Xi, escaping the aftermath of a Ukrainian attack that partially collapsed a prized bridge."
+   },
+   "b": {
+    "outlet": "irish-times",
+    "title": "Apec summit: Donald Trump receives rare greeting from Xi Jinping – a big hug",
+    "snippet": "Chinese president says he will stand up to protectionism while Putin claims western sanctions no longer work"
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "pbs-newshour",
+    "title": "Trump lands in China for trade talks and high-stakes summit with Xi and Putin",
+    "snippet": "President Trump landed in southern China after signing a trade deal and pledging increased defense cooperation with the Philippines. On Thursday, Trump will hold a historic summit with the Chinese and Russian presidents on the sidelines of a meeting of Asia-Pacific countries in Shenzhen, China. Nick Schifrin reports."
+   },
+   "b": {
+    "outlet": "globe-and-mail",
+    "title": "Xi-Trump-Putin meeting raises fears they may divide world into ‘spheres of influence’",
+    "snippet": "The leaders of the world’s three biggest nuclear powers will meet Thursday after the APEC summit in China"
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "pbs-newshour",
+    "title": "Trump lands in China for trade talks and high-stakes summit with Xi and Putin",
+    "snippet": "President Trump landed in southern China after signing a trade deal and pledging increased defense cooperation with the Philippines. On Thursday, Trump will hold a historic summit with the Chinese and Russian presidents on the sidelines of a meeting of Asia-Pacific countries in Shenzhen, China. Nick Schifrin reports."
+   },
+   "b": {
+    "outlet": "nytimes",
+    "title": "Xi Greets Trump on the Tarmac as He Lands in China for APEC Summit",
+    "snippet": "The appearance was the first time Xi Jinping had personally received a foreign dignitary at an airport during more than a decade as China’s leader."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "nytimes",
+    "title": "President Trump Starts Asia Trip in Manila by Shrugging Off U.S. Concerns",
+    "snippet": "Even for a president who prizes photo opportunities, Mr. Trump’s appearance in Manila suggested a lack of interest in diplomatic wins or issues at home. “It’s life,” he said."
+   },
+   "b": {
+    "outlet": "globe-and-mail",
+    "title": "How U.S. midterm losses, Nvidia scandal could affect Trump’s Asia visit",
+    "snippet": "President Donald Trump heads to Asia this week reeling from a midterm election drubbing and Chinese spy allegations that have upped the ante for his latest face-to-face with Beijing's powerful leader Xi Jinping. Reuters China Politics and Policy Correspondent Mei Mei Chu explains."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "sydney-morning-herald",
+    "title": "APEC summit 2026 LIVE updates: Trump, Xi and Putin hold talks in Shenzhen; Albanese appeals to Putin to end Ukraine war",
+    "snippet": "The leaders of Russia, China and the United States are holding an unprecedented three-way meeting on the sidelines of this year’s APEC summit in Shenzhen."
+   },
+   "b": {
+    "outlet": "hindustan-times",
+    "title": "Nuclear arms, ending wars in Iran and Ukraine will top agenda at Trump-Xi-Putin meeting",
+    "snippet": "Trump had a separate one-on-one meeting with Xi - his third substantial meeting with him this year - right before the trilateral."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "indian-express",
+    "title": "Nvidia earnings: Q4 revenue forecast brings investors relief after Huang’s exit",
+    "snippet": ""
+   },
+   "b": {
+    "outlet": "hindustan-times",
+    "title": "AI stocks rally: Nvidia, CoreWeave, Nebius, AMD shares jump after $130 billion forecast",
+    "snippet": "AI stocks rise after Nvidia's $130 billion revenue forecast eases demand fears following Jensen Huang's exit, while investors await Anthropic's IPO."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "fox-news",
+    "title": "China's Xi surprises Trump at tarmac, reciprocating gesture shown months ago",
+    "snippet": "Xi Jinping personally greeted Donald Trump at Shenzhen's airport, a rare welcome mirroring Trump's earlier tarmac reception and signaling reciprocity."
+   },
+   "b": {
+    "outlet": "irish-times",
+    "title": "Apec summit: Donald Trump receives rare greeting from Xi Jinping – a big hug",
+    "snippet": "Chinese president says he will stand up to protectionism while Putin claims western sanctions no longer work"
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "sky-news",
+    "title": "Democrat defeats Republican in Alaska in final midterms Senate race",
+    "snippet": "Democrat Mary Peltola has defeated incumbent Republican Dan Sullivan to complete a sweeping victory for the party in the Senate in the US midterm elections."
+   },
+   "b": {
+    "outlet": "washington-post",
+    "title": "Peltola win doesn’t end DOJ scrutiny of Alaska Senate race, officials say",
+    "snippet": "A criminal case is probing whether a spoiler candidate was recruited in an effort to confuse voters."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "globe-and-mail",
+    "title": "Trump heads to Asia with focus on economic deals, rare nuclear summit with Xi and Putin",
+    "snippet": "Controversy over Nvidia is certain to hang over his visit to China, despite efforts by administration officials to downplay the president’s close ties to Jensen Huang"
+   },
+   "b": {
+    "outlet": "sydney-morning-herald",
+    "title": "Trump holds bilateral meetings with Putin, Xi",
+    "snippet": "The leaders met on the sidelines of the APEC summit in Shenzhen, China."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "bloomberg",
+    "title": "Trump Hails Great Ties With Xi, Downplays Nvidia Controversy",
+    "snippet": "US President Donald Trump hailed his great “friendship” with Chinese counterpart Xi Jinping and downplayed a spying controversy involving Nvidia Corp., hours before leaders of the world’s top economies meet for talks."
+   },
+   "b": {
+    "outlet": "hindustan-times",
+    "title": "‘We are really making history’: Donald Trump during meeting with Xi, Putin",
+    "snippet": "Trump called for greater cooperation between the three powers, saying past leaders had avoided engaging with countries they disagreed with."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "sky-news",
+    "title": "William and Kate meet India's PM as they wrap up royal visit",
+    "snippet": "The Prince and Princess of Wales met the prime minister of India on Wednesday to discuss trade and bilateral ‌ties at the end of their three-day visit to the country."
+   },
+   "b": {
+    "outlet": "the-hindu",
+    "title": "PM Modi meets Prince and Princess of Wales, discusses boosting U.K.-India ties",
+    "snippet": "PM commends the work of the 'Earthshot Prize' in encouraging innovative solutions to pressing environmental challenges"
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "financial-times",
+    "title": "US tech outages blamed on rush to fix bugs found by AI",
+    "snippet": "Experts say race to patch software flaws probably created instability in computer systems at Microsoft, JPMorgan and others"
+   },
+   "b": {
+    "outlet": "irish-times",
+    "title": "Rubio says US not ‘under systemic attack’ after series of tech outages",
+    "snippet": "Rush to patch systems, whose vulnerabilities are exposed by AI, may explain recent failures with air traffic controls, banks and government agencies"
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "guardian",
+    "title": "Apec summit as it happened: Xi welcomes Trump on China visit as Putin claims Europe in ‘humiliating decline’",
+    "snippet": "This blog is now closed, you can read more on this story here Yalta became a byword for betrayal. Will Trump, Xi and Putin enact another carve-up? That is the question the Guardian’s diplomatic correspondent Patrick Wintour seeks to address in his piece about the expected, Putin, Trump and Xi, meeting at Apec on Thursday. It is a truism in diplomacy that if you are not around the table, the risk…"
+   },
+   "b": {
+    "outlet": "hindustan-times",
+    "title": "Trump, Putin shake hands in China at APEC summit in presence of Xi Jinping; first meeting since August 2025",
+    "snippet": "Putin approached Trump and the two leaders exchanged greetings before posing for a group photograph at the annual APEC summit in Shenzhen."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "nytimes",
+    "title": "‘GTA Flu’ Has Schools and Jobs Bracing for Sick Days",
+    "snippet": "The highly anticipated release of Grand Theft Auto VI is expected to prompt a wave of students and employees to stay home on Thursday."
+   },
+   "b": {
+    "outlet": "independent",
+    "title": "UK school ‘offers pupils prize’ if they don’t skip lessons for GTA VI",
+    "snippet": "Grand Theft Auto fans are eagerly awaiting Thursday’s release of the latest instalment in the blockbuster video game series"
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "rte-news",
+    "title": "Iran attacks Gulf neighbours after US strike on Qeshm",
+    "snippet": "Gulf countries said they had intercepted missiles and drones from Iran and its Houthi allies today, after the United States ⁠had struck Qeshm Island in the Strait of Hormuz in an uptick of hostilities."
+   },
+   "b": {
+    "outlet": "fox-news",
+    "title": "Bahrain intercepts Iranian drones targeting US radar after 2-month lull in Gulf strikes",
+    "snippet": "Iran's IRGC claims it struck a U.S. radar system at the Sheikh Isa base in Bahrain, home to the Fifth Fleet, the third attack in five days after a lull."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "irish-times",
+    "title": "Why Trump-Xi-Putin’s Yalta-style meeting has other powers on edge",
+    "snippet": "If summit becomes a fixture, China, Russia and the US could reshape diplomacy in ways their allies may not welcome"
+   },
+   "b": {
+    "outlet": "times-of-india",
+    "title": "'Chaos if major powers clash': Xi's blunt warning at trilateral with Trump, Putin",
+    "snippet": ""
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "hindustan-times",
+    "title": "India watches as Trump, Putin and Xi sit down for landmark trilateral",
+    "snippet": "Veteran American diplomats see little merit to the fear that Trump will make major strategic concessions to Russia or China, including in Asia."
+   },
+   "b": {
+    "outlet": "times-of-india",
+    "title": "Historic trilateral talks begin: What will Trump, Xi & Putin discuss",
+    "snippet": ""
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "nytimes",
+    "title": "What Nvidia’s Interim CEO, Colette Kress, Said to Employees After Jensen Huang’s Resignation",
+    "snippet": "At an all-hands meeting with employees, Colette Kress sought to put the indiscretions of Nvidia’s co-founder, Jensen Huang, behind them."
+   },
+   "b": {
+    "outlet": "the-hindu",
+    "title": "Nvidia Board does not intend to reinstate Jensen Huang as CEO: Chairperson",
+    "snippet": "Jensen Huang acknowledged making \"serious mistakes\" in his personal life; In its third-quarter earnings statement released on November 17, Nvidia did not mention his ouster or possible return"
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "pbs-newshour",
+    "title": "Anthropic prices its IPO at $83 per share, valuing the AI giant at $1.5 trillion",
+    "snippet": "The higher-than-anticipated pricing signals broad investor enthusiasm for AI stocks even amid some uncertainty in the market stemming from the ouster of Nvidia's CEO and worries about an AI bubble."
+   },
+   "b": {
+    "outlet": "bloomberg",
+    "title": "Anthropic Shares Indicated Up to 24% Higher on Gray Market",
+    "snippet": "Anthropic PBC shares are indicated to open higher in gray market trading after the artificial intelligence lab’s upsized $107.3 billion initial public offering and private placement broke SpaceX’s record."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "bloomberg",
+    "title": "Trump Calls Xi a 'Friend' as Leaders Hold Talks in China",
+    "snippet": "Chinese leader Xi Jinping and US President Donald Trump spoke fondly of each other at their third meeting this year, showing little sign that a fresh fight over chip curbs immediately threatens a broader truce between the world’s two largest economies. Bloomberg’s Minmin Low reports from Shenzhen. (Source: Bloomberg)"
+   },
+   "b": {
+    "outlet": "hindustan-times",
+    "title": "Trump to meet Putin separately in China ahead of trilateral summit with Xi Jinping: Report",
+    "snippet": "Trump plans separate talks with Putin in China alongside a three-way meeting with Xi Jinping."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "guardian",
+    "title": "Apec summit as it happened: Xi welcomes Trump on China visit as Putin claims Europe in ‘humiliating decline’",
+    "snippet": "This blog is now closed, you can read more on this story here Yalta became a byword for betrayal. Will Trump, Xi and Putin enact another carve-up? That is the question the Guardian’s diplomatic correspondent Patrick Wintour seeks to address in his piece about the expected, Putin, Trump and Xi, meeting at Apec on Thursday. It is a truism in diplomacy that if you are not around the table, the risk…"
+   },
+   "b": {
+    "outlet": "hindustan-times",
+    "title": "'Support free and open trade': Xi and Putin's tough stance against trade curbs ahead of Trump meet",
+    "snippet": "Addressing the Asia-Pacific Economic Cooperation (APEC) summit in Shenzhen, China, Xi urged countries to support what he described as “free and open trade”"
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "cbs-news",
+    "title": "Trump lands in China ahead of historic meeting with Xi and Putin",
+    "snippet": "President Trump landed in Shenzhen, China, on Wednesday ahead of his historic meeting with Xi Jinping and Russia's Vladimir Putin. Tony Dokoupil and Nancy Cordes report."
+   },
+   "b": {
+    "outlet": "hindustan-times",
+    "title": "Nuclear arms, ending wars in Iran and Ukraine will top agenda at Trump-Xi-Putin meeting",
+    "snippet": "Trump had a separate one-on-one meeting with Xi - his third substantial meeting with him this year - right before the trilateral."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "cbs-news",
+    "title": "Trump summit with Xi and Putin comes at time of uncertainty",
+    "snippet": "President Trump's meeting with China's Xi Jinping and Russia's Vladimir Putin comes as the U.S. and China are battling for dominancy in the AI chip race. It also comes as Mr. Trump works to broker a peace deal between Russia and Ukraine. Henrietta Levin, senior fellow at the Center for Strategic and International Studies, joins CBS News to discuss."
+   },
+   "b": {
+    "outlet": "sydney-morning-herald",
+    "title": "‘More dialogue, less conflict’: Albanese backs historic meeting between Trump, Xi and Putin",
+    "snippet": "Prime Minister Anthony Albanese took part in a group photo that included Russian leader Vladimir Putin at the APEC summit in Shenzhen."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "independent",
+    "title": "Extraordinary moment Trump greets Putin at Apec summit: ‘Who is he? He’s my friend’",
+    "snippet": "Trump was all smiles when he met with the Russian leader ahead of an historic trilateral meeting with China’s Xi Jinping"
+   },
+   "b": {
+    "outlet": "cbs-news",
+    "title": "China's Xi greets Trump at airport ahead of planned summit with Putin",
+    "snippet": "President Trump arrived Wednesday in China, where the Kremlin said he had an informal meeting with Vladimir Putin."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "cbs-news",
+    "title": "China's Xi greets Trump at airport ahead of planned summit with Putin",
+    "snippet": "President Trump arrived Wednesday in China, where the Kremlin said he had an informal meeting with Vladimir Putin."
+   },
+   "b": {
+    "outlet": "fox-news",
+    "title": "China's Xi surprises Trump at tarmac, reciprocating gesture shown months ago",
+    "snippet": "Xi Jinping personally greeted Donald Trump at Shenzhen's airport, a rare welcome mirroring Trump's earlier tarmac reception and signaling reciprocity."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "guardian",
+    "title": "Can progressives push Hakeem Jeffries to the left? | Norman Solomon",
+    "snippet": "The likely next House speaker has a record of defending corporate interests. His fellow Democrats must fight for Medicare for All and the abolition of ICE On Wednesday, Democrats nominated Hakeem Jeffries to be the next House speaker when they take control of Congress. For progressives, that will mean dealing with a powerful leader who has a record of hostility toward the left. “There will never…"
+   },
+   "b": {
+    "outlet": "irish-times",
+    "title": "Can incoming House speaker Hakeem Jeffries unite the Democrat fightback against Trump?",
+    "snippet": "Jeffries’ passivity during the chaos of Trump’s second term has frustrated the Democratic Party’s progressive wing and voters"
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "irish-times",
+    "title": "Ukraine destroys section of Putin’s Crimea bridge in fierce exchange",
+    "snippet": "Unverified video and pictures appear to show bridge’s road arch span has collapsed into the Kerch Strait"
+   },
+   "b": {
+    "outlet": "hindustan-times",
+    "title": "Russia and Ukraine are bombing bridges. Who’s winning?",
+    "snippet": "A setback for Russia in Crimea, but damage in Kyiv may matter more"
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "bbc-news",
+    "title": "Torrential rain causes widespread flooding in South Florida",
+    "snippet": "Entire neighbourhoods remain under water as disruptions impact schools, roads, hospitals and airports."
+   },
+   "b": {
+    "outlet": "ny-post",
+    "title": "Florida rainfall supercharged by El Niño floods roads and collapses synagogue’s roof",
+    "snippet": "A slow-moving storm system dumped heavy rains in South Florida, flooding some streets and homes, closing sections of highways and collapsing the roof of a synagogue Wednesday."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "npr",
+    "title": "Trump to meet with Russia's Putin and China's Xi for historic joint meeting",
+    "snippet": "President Trump will meet with Russian President Vladimir Putin and Chinese President Xi on Thursday for a historic three-way meeting."
+   },
+   "b": {
+    "outlet": "sydney-morning-herald",
+    "title": "Trump, Xi and Putin take centre stage at APEC",
+    "snippet": "Hours after Russian state media flaunted Vladimir Putin’s nuclear briefcase, the Russian leader joined Donald Trump and Xi Jinping at the APEC summit in China."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "abc-news-us",
+    "title": "Mullin grilled about nationwide ground stop as FAA administrator says 'blame me'",
+    "snippet": "DHS Secretary Markwayne Mullin was in the hot seat in Congress Wednesday, following last week's air ground stop and several outages of critical online services."
+   },
+   "b": {
+    "outlet": "fox-news",
+    "title": "JOIN THE CHAT: Recent tech outages loom over Mullin testimony on worldwide threats",
+    "snippet": "What do you think about the string of new tech outages? Give us your thoughts as Homeland Security Secretary Markwayne Mullin testifies to Congress."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "cbs-news",
+    "title": "What to know about Trump's meeting with Xi in China",
+    "snippet": "President Trump is holding a high-stakes meeting with Chinese President Xi Jinping on Thursday against the backdrop of a widening scandal."
+   },
+   "b": {
+    "outlet": "hindustan-times",
+    "title": "Xi Jinping, Trump share hug at Shenzhen airport as US President arrives in China",
+    "snippet": "Trump is in Shenzhen for the 33rd APEC Economic Leaders' Meeting and a trilateral meeting with Xi and Russian President Putin."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "rte-news",
+    "title": "Putin attacks Western action as Trump lands in China",
+    "snippet": "China's President Xi Jinping has pledged to stand up against trade protectionism, but also gave a warm welcome to US President Donald Trump as he arrived in the country."
+   },
+   "b": {
+    "outlet": "independent",
+    "title": "Trump, Putin and Xi meet ahead of unprecedented three-way summit as China rolls out red carpet",
+    "snippet": "Xi Jinping greeted the US president with a warm hug as he landed in China’s Shenzhen, a rare gesture from the reserved leader"
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "independent",
+    "title": "Extraordinary moment Trump greets Putin at Apec summit: ‘Who is he? He’s my friend’",
+    "snippet": "Trump was all smiles when he met with the Russian leader ahead of an historic trilateral meeting with China’s Xi Jinping"
+   },
+   "b": {
+    "outlet": "cbs-news",
+    "title": "What we know about Trump's meeting with China's Xi, Russia's Putin",
+    "snippet": "President Trump, Chinese President Xi Jinping and Russian President Vladimir Putin are scheduled to hold a trilateral meeting on Thursday in Shenzhen, China. Nancy Cordes and Anna Coren report on the summit."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "rte-news",
+    "title": "Ukraine war to be raised in China summit, says Trump",
+    "snippet": "Follow developments as trilateral talks between the presidents of China, the US and Russia are taking place in China."
+   },
+   "b": {
+    "outlet": "cbs-news",
+    "title": "Latest on Trump's summit with Xi, Putin",
+    "snippet": "President Trump has arrived in China ahead of his highly-anticipated meeting with Chinese President Xi Jinping and Russian President Vladimir Putin. CBS News' Nancy Cordes reports."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "bloomberg",
+    "title": "Xi Hosts ‘Groundbreaking’ Trilateral With Trump and Putin",
+    "snippet": "President Xi Jinping hosted what he called a “groundbreaking” trilateral meeting with his counterparts from the US and Russia, warning that major-power rivalry breeds global instability."
+   },
+   "b": {
+    "outlet": "irish-times",
+    "title": "Apec summit: Donald Trump receives rare greeting from Xi Jinping – a big hug",
+    "snippet": "Chinese president says he will stand up to protectionism while Putin claims western sanctions no longer work"
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "cbs-news",
+    "title": "Trump summit with Xi and Putin comes at time of uncertainty",
+    "snippet": "President Trump's meeting with China's Xi Jinping and Russia's Vladimir Putin comes as the U.S. and China are battling for dominancy in the AI chip race. It also comes as Mr. Trump works to broker a peace deal between Russia and Ukraine. Henrietta Levin, senior fellow at the Center for Strategic and International Studies, joins CBS News to discuss."
+   },
+   "b": {
+    "outlet": "fox-news",
+    "title": "Trump set for economic showdown with Xi as unfulfilled promises leave billions hanging in balance",
+    "snippet": "Trump and Xi Jinping meet in China today as expert Ryan Yonk says years of broad promises have yielded few executed deals on trade between the nations."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "bbc-news",
+    "title": "Nvidia says it won't reinstate Huang as it reports soaring sales",
+    "snippet": "The AI chip giant reported strong quarterly earnings on Tuesday after the dramatic exit of Jensen Huang."
+   },
+   "b": {
+    "outlet": "indian-express",
+    "title": "Nvidia earnings: Q4 revenue forecast brings investors relief after Huang’s exit",
+    "snippet": ""
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "globe-and-mail",
+    "title": "What to know about Anthropic’s blockbuster IPO",
+    "snippet": "The company behind the Claude chatbot will start trading this week in major test for AI industry and the stock market"
+   },
+   "b": {
+    "outlet": "washington-post",
+    "title": "Anthropic completes its IPO and joins the ranks of the most valuable corporations",
+    "snippet": "The company behind the Claude chatbot is valued at roughly $1.5 trillion. Its stock offering may for now settle jitters about the sustainability of the AI boom."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "bbc-news",
+    "title": "Steve Rosenberg: Historic talks with Xi and Trump are a coup for Putin",
+    "snippet": "Thursday's meeting between the leaders of US, China and Russia will give Vladimir Putin a big stage - but it does not bring him closer to winning the war in Ukraine."
+   },
+   "b": {
+    "outlet": "npr",
+    "title": "Trump to meet with Russia's Putin and China's Xi for historic joint meeting",
+    "snippet": "President Trump will meet with Russian President Vladimir Putin and Chinese President Xi on Thursday for a historic three-way meeting."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "the-hindu",
+    "title": "Watch: Trump, Xi and Putin to hold historic trilateral talks in China on APEC sidelines",
+    "snippet": "U.S. President Donald Trump, Chinese President Xi Jinping, and Russian President Vladimir Putin are set to hold a landmark trilateral meeting in Shenzhen, China, on Thursday, November 19, on the sidelines of the 33rd APEC Economic Leaders’ Meeting. The gathering is historic because it brings together the heads of the world’s three most influential military powers in a formal three-way setting…"
+   },
+   "b": {
+    "outlet": "times-of-india",
+    "title": "Historic trilateral talks begin: What will Trump, Xi & Putin discuss",
+    "snippet": ""
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "cbs-news",
+    "title": "Trump lands in China ahead of historic meeting with Xi and Putin",
+    "snippet": "President Trump landed in Shenzhen, China, on Wednesday ahead of his historic meeting with Xi Jinping and Russia's Vladimir Putin. Tony Dokoupil and Nancy Cordes report."
+   },
+   "b": {
+    "outlet": "hindustan-times",
+    "title": "Xi Jinping, Trump share hug at Shenzhen airport as US President arrives in China",
+    "snippet": "Trump is in Shenzhen for the 33rd APEC Economic Leaders' Meeting and a trilateral meeting with Xi and Russian President Putin."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "nbc-news",
+    "title": "What to expect from Trump's meeting with Putin and Xi Jinping",
+    "snippet": "NBC News' Janis Mackey Frayer and Gabe Gutierrez go over what to potentially expect from President Trump's meeting with President Putin and President Xi Jinping during the APEC summit and what each country may ask for."
+   },
+   "b": {
+    "outlet": "hindustan-times",
+    "title": "Trump, Putin shake hands in China at APEC summit in presence of Xi Jinping; first meeting since August 2025",
+    "snippet": "Putin approached Trump and the two leaders exchanged greetings before posing for a group photograph at the annual APEC summit in Shenzhen."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "indian-express",
+    "title": "APEC Summit 2026: Trump, Putin, and Xi set to hold trilateral talks",
+    "snippet": ""
+   },
+   "b": {
+    "outlet": "hindustan-times",
+    "title": "Apec Summit LIVE: Trump-Xi-Putin trilateral underway in Shenzhen; Iran and Ukraine wars on agenda",
+    "snippet": "Apec Summit LIVE: The highly anticipated trilateral between US President Donald Trump, Russian President Vladimir Putin, and Chinese President Xi Jinping is now underway."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "guardian",
+    "title": "Hegseth uses Venezuela visit to boast of Maduro’s capture by US military",
+    "snippet": "Defense secretary asserts US dominance on trip that would have seemed ‘impossible, almost unbelievable’ a year ago Pete Hegseth has used his first visit to Venezuela since US special forces abducted its former president, Nicolás Maduro, to boast of the dictator’s capture during what he called “the single most sophisticated military operation in the history of Latin America”. Maduro was…"
+   },
+   "b": {
+    "outlet": "independent",
+    "title": "Hegseth is in Venezuela to meet interim leaders in latest Trump Cabinet visit since Maduro's ouster",
+    "snippet": "Defense Secretary Pete Hegseth is visiting Venezuela to meet with interim authorities"
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "guardian",
+    "title": "Democrats nominate Hakeem Jeffries as first Black House speaker despite progressives’ concerns",
+    "snippet": "Jeffries is set to become one of Trump’s most prominent opponents for final two years of his presidency US politics live – latest updates Democrats on Wednesday resoundingly nominated Hakeem Jeffries to serve as speaker of the House when the new Congress is sworn in next year, teeing him up to become the first Black lawmaker to lead the chamber. A New York congressman who has served as the…"
+   },
+   "b": {
+    "outlet": "fox-news",
+    "title": "Jeffries survives Dem vote to secure speaker position as progressive resistance clouds his chances",
+    "snippet": "House Democrats nominated Hakeem Jeffries for speaker despite progressive backlash, setting up a January vote that could test party unity."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "globe-and-mail",
+    "title": "Jensen Huang reportedly mulling comeback as Nvidia CEO",
+    "snippet": "Huang stepped down after revelations of extramarital affairs, including one involving a suspected Chinese spy"
+   },
+   "b": {
+    "outlet": "the-hindu",
+    "title": "Nvidia Board does not intend to reinstate Jensen Huang as CEO: Chairperson",
+    "snippet": "Jensen Huang acknowledged making \"serious mistakes\" in his personal life; In its third-quarter earnings statement released on November 17, Nvidia did not mention his ouster or possible return"
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "guardian",
+    "title": "The Guardian view on the Trump, Xi and Putin meeting: it may be a first, but it’s not progress | Editorial",
+    "snippet": "A trilateral gathering is good news for China and Russia, but bad for the US – and its traditional allies “Historic” is a neutral descriptor, not a favourable one. Things can be unprecedented for good reason. Donald Trump’s meeting with Xi Jinping and Vladimir Putin in Shenzhen, China on Thursday will be the first time that the leaders of the US, China and Russia have gathered for talks as a…"
+   },
+   "b": {
+    "outlet": "the-hindu",
+    "title": "Watch: Trump, Xi and Putin to hold historic trilateral talks in China on APEC sidelines",
+    "snippet": "U.S. President Donald Trump, Chinese President Xi Jinping, and Russian President Vladimir Putin are set to hold a landmark trilateral meeting in Shenzhen, China, on Thursday, November 19, on the sidelines of the 33rd APEC Economic Leaders’ Meeting. The gathering is historic because it brings together the heads of the world’s three most influential military powers in a formal three-way setting…"
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "nbc-news",
+    "title": "Anthropic is about to be worth more than $1 trillion. What that means for the rest of us.",
+    "snippet": "Leading AI lab Anthropic is expected to make the largest-ever public market debut when it starts trading on the Nasdaq stock exchange Thursday."
+   },
+   "b": {
+    "outlet": "washington-post",
+    "title": "Anthropic completes its IPO and joins the ranks of the most valuable corporations",
+    "snippet": "The company behind the Claude chatbot is valued at roughly $1.5 trillion. Its stock offering may for now settle jitters about the sustainability of the AI boom."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "cbs-news",
+    "title": "What we know about Trump's meeting with China's Xi, Russia's Putin",
+    "snippet": "President Trump, Chinese President Xi Jinping and Russian President Vladimir Putin are scheduled to hold a trilateral meeting on Thursday in Shenzhen, China. Nancy Cordes and Anna Coren report on the summit."
+   },
+   "b": {
+    "outlet": "sydney-morning-herald",
+    "title": "Trump, Xi and Putin take centre stage at APEC",
+    "snippet": "Hours after Russian state media flaunted Vladimir Putin’s nuclear briefcase, the Russian leader joined Donald Trump and Xi Jinping at the APEC summit in China."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "nbc-news",
+    "title": "Trump meets with Putin in China",
+    "snippet": "President Trump is meeting with Russian President Putin ahead of a meeting with Putin and Chinese President Xi. Trump spoke just before the meeting, saying the two leaders have a “great relationship.” NBC News’ Janis Mackey Frayer and Garrett Haake report."
+   },
+   "b": {
+    "outlet": "hindustan-times",
+    "title": "‘We are really making history’: Donald Trump during meeting with Xi, Putin",
+    "snippet": "Trump called for greater cooperation between the three powers, saying past leaders had avoided engaging with countries they disagreed with."
+   },
+   "same_event": true
+  },
+  {
+   "a": {
+    "outlet": "hindustan-times",
+    "title": "Muhammad Yunus's ancestral home set on fire in Bangladesh amid ‘lockdown’ call by Sheikh Hasina's Awami League: Report",
+    "snippet": "A police officer said that security was stepped up around the former Bangladesh interim government chief's residence in Chattogram after the fire."
+   },
+   "b": {
+    "outlet": "times-of-india",
+    "title": "Bangladesh violence: Muhammad Yunus’s ancestral home set ablaze amid unrest",
+    "snippet": ""
+   },
+   "same_event": true
+  }
+ ]
+}
