@@ -20,6 +20,7 @@ def make_snippet(raw: str | None, limit: int = MAX_SNIPPET) -> str:
         return ""
     text = _TAGS.sub(" ", raw)
     text = html.unescape(text)
+    text = text.replace("�", " ")  # characters lost to a feed's wrong encoding
     text = _SPACE.sub(" ", text).strip()
     if len(text) <= limit:
         return text

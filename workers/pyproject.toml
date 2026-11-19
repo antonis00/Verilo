@@ -3,7 +3,12 @@ name = "verilo-workers"
 version = "0.1.0"
 description = "Verilo's news pipeline: ingest feeds, enrich, group into stories, summarise and check."
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+  "feedparser==6.0.14",
+  "httpx==0.28.1",
+  "psycopg[binary]==3.3.9",
+  "truststore==0.10.5",
+]
 
 [project.optional-dependencies]
 dev = ["pytest==9.0.1", "ruff==0.14.5"]

@@ -4,7 +4,7 @@ A personalised English-language newspaper, web first (mobile later), built by on
 
 ## Phases (stop for the owner's review after each: tests pass, commit, push)
 1. Plan and scaffold: done.
-2. Source ingestion: `sources` with trust tier and lean, scheduled RSS fetching, headline / snippet / link / date only. Seed wire services and major English papers.
+2. Source ingestion: done (see "Sources and ingestion" below).
 3. Story grouping: embeddings plus time windows; flag opinion pieces so they never feed summaries.
 4. AI summaries with checks: only with 3+ trusted outlets of different leans; a second model checks each summary against the snippets; any failure shows headlines and links only and is logged.
 5. Personal feed and digest: onboarding (topics, sources), ranked feed, daily digest page, a free-trial flag on accounts.
@@ -20,11 +20,22 @@ A personalised English-language newspaper, web first (mobile later), built by on
 - `apps/web`: Next.js **16** (App Router, TypeScript strict, Cache Components and Partial Prefetching on), Tailwind v4 with only our tokens, Supabase via `@supabase/ssr`. Next 16 differs from older versions: read `apps/web/node_modules/next/dist/docs/` before using an API (see `apps/web/AGENTS.md`). In particular:
   - Middleware is `proxy.ts` (`lib/supabase/proxy.ts` refreshes the session and guards `/my-news`).
   - Anything that reads cookies, headers or `searchParams` must sit inside `<Suspense>`, or the build fails. Pages are a static shell with the reader's parts streamed in; keep it that way (don't await the session at the top of a layout).
-  - Who the reader is comes only from `lib/auth.ts` (`getReader`, `requireReader`). Every page and server action checks the session itself; the proxy check is only a shortcut.
+  - Who the reader is comes only from `lib/auth.ts` (`getReader`, `requireReader`, `requireEditor`). Every page and server action checks the session itself; the proxy check is only a shortcut.
+  - A page that has started streaming can't change its status code: a request-time 404 or redirect belongs in the proxy (`/desk` answers a real 404 to non-editors there). Read the clock through `lib/request-time.ts`, never `Date.now()` in a component.
 - `supabase/`: local Supabase (CLI 3.2, pinned in the root `package.json`, Postgres 17). Database changes only as SQL in `supabase/migrations/`. Row-level security on every table readers touch. Unused services are off in `config.toml`. Local emails go to Mailpit (http://127.0.0.1:54324).
 - Sign-in: an emailed link (`supabase/templates/magic_link.html`) to `/auth/confirm`, which verifies the token hash on the server (`verifyOtp`). `lib/safe-next.ts` keeps redirects on this site.
 - `workers/`: Python 3.12+ package `verilo_workers` (ingest, enrich, cluster, summarize, common). Plain `venv` + `pip install -e ".[dev]"`; Ruff and pytest.
 - Models (when used, phases 3–4): Claude Haiku 5.5 (`claude-haiku-5-5`) for tagging and writing summaries, Claude Sonnet 5.5 (`claude-sonnet-5-5`) to check them, through the official `anthropic` Python SDK. Embeddings: local `fastembed` (`bge-small-en-v1.5`, 384 dimensions), the owner's choice (Nov 2026); keep the embedding call behind one function so Voyage could replace it if grouping quality measured on real headlines falls short.
+
+## Sources and ingestion
+- **The registry is `workers/data/sources.toml`** (the owner edits it; `python -m verilo_workers sync-sources` writes it to the database). Each outlet: tier (1 fact base, 2 reputable, 3 labelled and never summarised), lean (left / lean_left / center / lean_right / right), kind, country, `basis` (why that tier and lean), `reviewed` (date the owner checked them; empty until then), `status` (active / paused / excluded) with a `note` saying why when paused, and its news feeds with a poll interval.
+- The first tiers and leans (Nov 2026) are a proposal from general knowledge of public ratings (AllSides, Ad Fontes), not checked line by line against them; the owner reviews each. Ratings providers' own scores are not shown in the app until their licences are checked.
+- Wire services (Reuters, AP, AFP) publish no public RSS; public broadcasters (BBC, NPR, PBS, CBC, ABC Australia, SBS, RTÉ) are the fact base. Outlets whose robots.txt disallows crawlers (The Times, Axios, The Australian, National Post, CTV, TheJournal.ie) or whose feeds are dead (WSJ, CNN since Aug 2024) are paused with the reason. CBC's robots.txt doesn't answer from the development machine (connection reset); the fetcher skips it until it does.
+- `python -m verilo_workers check-feeds` tries every active feed and reports, storing nothing: run it before adding a source.
+- `ingest` fetches the feeds that are due (`--all` for every feed, `--source slug` to limit, `--loop` to keep going every minute). Politeness: robots.txt per site (RFC 9309: missing allows, an error or no answer means not now), `VeriloBot/0.1 (+https://github.com/antonis00/Verilo)` as the user agent (until there's a domain), conditional requests (ETag / Last-Modified), one request at a time per site, 5 MB limit, backoff doubling per failure up to a day. TLS checks against the Windows certificate store too (truststore), because antivirus HTTPS inspection on this machine re-signs certificates.
+- Parsing keeps the headline, a snippet from the item's summary (never `content:encoded`), the link without tracking parameters, and the date. Items with no date, older than 7 days or with non-web links are skipped; future dates become now. Duplicates: the same URL, or the same headline from the same outlet on the same day (`content_hash`).
+- Tables (`supabase/migrations/…02_sources_and_articles.sql`): `sources`, `source_feeds`, `articles` (no article-text column; length checks on title and snippet), `fetch_log` (30 days). Sources and articles are readable by anyone; feeds and the log by editors only; only the workers write. `profiles.is_editor` (readers can update only their name and time zone) opens `/desk`: `python -m verilo_workers make-editor you@example.com`.
+- `/desk` (editors only): the latest articles with outlet, tier, lean and age, and every source's feed health and review status.
 
 ## Run and test
 ```powershell
@@ -34,9 +45,11 @@ npm run dev                                   # http://localhost:3001
 npm run check                                 # lint, types, format, unit tests, build, e2e, Lighthouse
 npm test; npm run test:e2e; npm run lighthouse  # separately (e2e and Lighthouse need `npm run build` first)
 cd workers; python -m venv .venv; .venv\Scripts\pip install -e ".[dev]"; .venv\Scripts\python -m pytest; .venv\Scripts\python -m ruff check .
+.venv\Scripts\python -m verilo_workers sync-sources; .venv\Scripts\python -m verilo_workers ingest --loop
 ```
+- Worker tests: registry validation, parsing (full text never kept), polite fetching against a fake web (`httpx.MockTransport`), and `test_ingest_db.py` end to end against the local database (skipped when it isn't running). Tests that sync sources pass `scope=` so they never pause the real registry.
 - Unit tests (Vitest, `apps/web/tests/unit`) include `contrast.test.ts` (WCAG contrast of every token pair, both themes) and `design-rules.test.ts` (no gradients, blur, shadows, rounding over 2px, emoji or hex colours outside `globals.css`).
-- E2E (Playwright, installed Chrome, desktop and phone, `apps/web/tests/e2e`) runs against `npm run start` on port 3100 and the local Supabase: real sign-in through Mailpit, axe in light and dark, no sideways scroll, security headers.
+- E2E (Playwright, installed Chrome, desktop and phone, `apps/web/tests/e2e`) runs against `npm run start` on port 3100 and the local Supabase: real sign-in through Mailpit, axe in light and dark, no sideways scroll, security headers, the theme button, the desk (404 for non-editors). Test data is arranged through `tests/e2e/supabase-admin.ts` with the local secret key, which `playwright.config.ts` reads from `supabase status`.
 - Lighthouse CI (`lighthouserc*.json`, port 3200): mobile and desktop, performance / best practices / SEO 95+, accessibility 100, mobile LCP under 1.8 s.
 - Every feature needs unit or worker tests, and anything on screen needs an e2e step with an axe check.
 
