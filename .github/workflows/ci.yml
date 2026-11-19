@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            apps/web/package-lock.json
+
+      - name: Install
+        run: |
+          npm ci --prefix ../..
+          npm ci
+
+      - name: Lint, types, format, unit tests
+        run: |
+          npm run lint
+          npm run typecheck
+          npm run format:check
+          npm test
+
+      # Unused services are switched off in supabase/config.toml.
+      - name: Start local Supabase and write .env.local
+        working-directory: .
+        run: |
+          npx supabase start
+          KEY=$(npx supabase status -o json | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s.slice(s.indexOf('{'))).PUBLISHABLE_KEY))")
+          printf 'NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321\nNEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=%s\nNEXT_PUBLIC_SITE_URL=http://localhost:3001\n' "$KEY" > apps/web/.env.local
+
+      - name: Build
+        run: npm run build
+
+      - name: End-to-end and accessibility tests
+        run: npm run test:e2e
+
+      - name: Lighthouse
+        run: npm run lighthouse
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: web-test-results
+          path: |
+            apps/web/test-results
+            apps/web/.lighthouseci
+          retention-days: 7
+
+  workers:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: workers
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: workers/pyproject.toml
+
+      - run: pip install -e ".[dev]"
+      - run: ruff check .
+      - run: ruff format --check .
+      - run: pytest
