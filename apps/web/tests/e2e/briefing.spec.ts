@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { TEST_BRIEFING_SECRET } from "./constants";
-import { anyEmailTo, emailTo } from "./mailpit";
+import { countEmailsTo, emailTo } from "./mailpit";
 import { signIn, uniqueName } from "./sign-in";
 import {
   refreshCaches,
@@ -95,9 +95,8 @@ test("a reader sets the daily briefing, gets it once that morning and stops it f
       "You won’t get the daily briefing",
     );
 
-    const nextDay = Date.now();
     expect(await run(at(after, 6))).toMatchObject({ due: 0, sent: 0 });
-    expect(await anyEmailTo(email, /^Your briefing: /, nextDay)).toBe(false);
+    expect(await countEmailsTo(email, /^Your briefing: /)).toBe(1); // only the first morning's
     await page.goto("/my-news");
     await expect(
       page.getByRole("switch", { name: /Send me the daily briefing/ }),

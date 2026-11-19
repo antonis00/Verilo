@@ -61,9 +61,9 @@ export async function emailTo(
   throw new Error(`No email matching ${options.subject} for ${email}`);
 }
 
-// Whether any email to `email` with a matching subject was sent after `sentAfter`.
-export async function anyEmailTo(email: string, subject: RegExp, sentAfter: number) {
+// How many emails to `email` have a matching subject.
+export async function countEmailsTo(email: string, subject: RegExp): Promise<number> {
   const search = await fetch(`${MAILPIT}/api/v1/search?query=${encodeURIComponent(`to:${email}`)}`);
   const { messages } = (await search.json()) as { messages: (Summary & { Subject: string })[] };
-  return messages.some((m) => subject.test(m.Subject) && Date.parse(m.Created) >= sentAfter - 1000);
+  return messages.filter((m) => subject.test(m.Subject)).length;
 }
