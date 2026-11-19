@@ -6,9 +6,8 @@ import { getReader } from "@/lib/auth";
 export function Masthead() {
   return (
     <header className="page pt-4 md:pt-6">
-      <div className="flex min-h-11 items-center justify-between gap-4 text-sm">
-        <p className="meta hidden sm:block">English edition</p>
-        <div className="ml-auto flex items-center gap-1">
+      <div className="flex min-h-11 items-center justify-end gap-4 text-sm">
+        <div className="flex items-center gap-1">
           <ThemeSwitch />
           {/* Reading the session is request-time work, so it streams in without holding up the page. */}
           <Suspense fallback={<span aria-hidden="true" className="min-h-11" />}>
