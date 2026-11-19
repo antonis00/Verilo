@@ -192,12 +192,12 @@ def test_two_stories_that_turn_out_the_same_are_merged(conn):
     # Placed in a different story by hand, as if found before the first existed.
     b = add(conn, "test-story-paper", "Same report", near(base, 0.93), 4)
     conn.commit()
-    conn.execute(
+    separate = conn.execute(
         """insert into public.stories (title, first_published_at, last_published_at, centroid,
-             article_count, outlet_count) values ('Same report', %s, %s, %s, 1, 1)""",
+             article_count, outlet_count) values ('Same report', %s, %s, %s, 1, 1)
+           returning id""",
         (NOW, NOW, near(base, 0.93)),
-    )
-    separate = conn.execute("select max(id) as id from public.stories").fetchone()["id"]
+    ).fetchone()["id"]
     conn.execute(
         "update public.articles set story_id = %s, clustered_at = now() where id = %s",
         (separate, b),
@@ -205,12 +205,14 @@ def test_two_stories_that_turn_out_the_same_are_merged(conn):
     conn.commit()
     assert story_of(conn, a) != story_of(conn, b)
 
+    first = story_of(conn, a)
     assert merge_close(conn, NOW, sources=list(ids(conn).values())) == 1
-    assert story_of(conn, a) == story_of(conn, b)
+    # Equal size: the older story (the first report, an hour earlier) keeps its id.
+    assert story_of(conn, a) == story_of(conn, b) == first
     gone = conn.execute(
         "select merged_into from public.stories where id = %s", (separate,)
     ).fetchone()
-    assert gone["merged_into"] == story_of(conn, a)
+    assert gone["merged_into"] == first
 
 
 def test_readers_cannot_read_embeddings(conn):
