@@ -56,7 +56,7 @@ test("an editor sees stories with their outlets, leans, opinion labels and summa
     );
 
     const source = page
-      .getByRole("region", { name: "Sources" })
+      .getByRole("region", { name: "Sources", exact: true })
       .getByRole("listitem")
       .filter({ hasText: `Test Outlet ${slug}-b` });
     await expect(source).toContainText("Tier 2 (Reputable)");
