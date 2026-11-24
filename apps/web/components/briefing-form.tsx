@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useSyncExternalStore, useTransition } from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
 import { saveBriefing } from "@/app/preferences/actions";
 import type { BriefingSettings } from "@/lib/briefing";
 import { useReady } from "@/lib/use-ready";
 
-// "Daily briefing" in My News: on or off, the hour and the length. The hour is in the reader's
-// own time zone, which the browser knows; it's saved with the rest.
+// "Daily briefing" in My News: on or off, the hour and the length, each saved as soon as it's
+// changed. The hour is in the reader's own time zone, which the browser knows; it's saved too.
 
 const noSubscription = () => () => {};
 
@@ -22,7 +22,10 @@ function hourLabel(h: number): string {
 
 export function BriefingForm({ initial }: { initial: BriefingSettings }) {
   const [settings, setSettings] = useState(initial);
-  const [pending, startTransition] = useTransition();
+  const [pending, setPending] = useState(false);
+  // Saves go one after another, so the last change is the one kept.
+  const queue = useRef<Promise<void>>(Promise.resolve());
+  const latest = useRef(0);
   const ready = useReady();
   const [message, setMessage] = useState<{ kind: "saved" | "error"; text: string } | null>(null);
 
@@ -34,21 +37,28 @@ export function BriefingForm({ initial }: { initial: BriefingSettings }) {
   );
   const zone = browserZone ?? settings.timeZone;
 
-  const save = () =>
-    startTransition(async () => {
-      setMessage(null);
-      const result = await saveBriefing({ ...settings, timeZone: zone });
-      if (!result.ok) setMessage({ kind: "error", text: result.message });
-      else {
-        setSettings((s) => ({ ...s, timeZone: zone }));
-        setMessage({
-          kind: "saved",
-          text: settings.enabled
-            ? `Saved. Your briefing comes at ${hourLabel(settings.sendHour)}, ${zone.replace(/_/g, " ")} time.`
-            : "Saved. You won’t get the daily briefing.",
-        });
-      }
+  const update = (patch: Partial<BriefingSettings>) => {
+    const next = { ...settings, ...patch, timeZone: zone };
+    setSettings(next);
+    setMessage(null);
+    setPending(true);
+    const id = ++latest.current;
+    queue.current = queue.current.then(async () => {
+      const result = await saveBriefing(next);
+      if (id !== latest.current) return;
+      setPending(false);
+      setMessage(
+        !result.ok
+          ? { kind: "error", text: result.message }
+          : {
+              kind: "saved",
+              text: next.enabled
+                ? `Saved. Your briefing comes at ${hourLabel(next.sendHour)}, ${zone.replace(/_/g, " ")} time.`
+                : "Saved. You won’t get the daily briefing.",
+            },
+      );
     });
+  };
 
   return (
     <form
@@ -56,10 +66,7 @@ export function BriefingForm({ initial }: { initial: BriefingSettings }) {
       aria-labelledby="briefing-title"
       data-ready={ready}
       className="scroll-mt-8 border-t border-rule pt-6 pb-8"
-      onSubmit={(e) => {
-        e.preventDefault();
-        save();
-      }}
+      onSubmit={(e) => e.preventDefault()}
     >
       <h2 id="briefing-title" className="text-xl">
         Daily briefing
@@ -73,7 +80,7 @@ export function BriefingForm({ initial }: { initial: BriefingSettings }) {
           role="switch"
           className="mt-1 size-5 accent-[var(--ink)]"
           checked={settings.enabled}
-          onChange={(e) => setSettings((s) => ({ ...s, enabled: e.target.checked }))}
+          onChange={(e) => update({ enabled: e.target.checked })}
         />
         <span>
           <span className="font-semibold">Send me the daily briefing</span>
@@ -82,7 +89,7 @@ export function BriefingForm({ initial }: { initial: BriefingSettings }) {
       </label>
       <fieldset
         disabled={!settings.enabled}
-        className="mt-5 grid gap-5 disabled:opacity-60 sm:grid-cols-2"
+        className="mt-5 grid gap-5 disabled:opacity-60 sm:grid-cols-2 xl:grid-cols-1"
       >
         <div>
           <label htmlFor="briefing-hour" className="font-semibold">
@@ -91,9 +98,9 @@ export function BriefingForm({ initial }: { initial: BriefingSettings }) {
           <select
             id="briefing-hour"
             aria-describedby="briefing-zone"
-            className="field mt-1 block w-full"
+            className="field mt-1 block w-full xl:max-w-56"
             value={settings.sendHour}
-            onChange={(e) => setSettings((s) => ({ ...s, sendHour: Number(e.target.value) }))}
+            onChange={(e) => update({ sendHour: Number(e.target.value) })}
           >
             {HOURS.map((h) => (
               <option key={h} value={h}>
@@ -119,7 +126,7 @@ export function BriefingForm({ initial }: { initial: BriefingSettings }) {
                 name="briefing-length"
                 className="mt-1 accent-[var(--ink)]"
                 checked={settings.length === value}
-                onChange={() => setSettings((s) => ({ ...s, length: value }))}
+                onChange={() => update({ length: value })}
               />
               <span>
                 {label} <span className="meta">· {help}</span>
@@ -128,17 +135,15 @@ export function BriefingForm({ initial }: { initial: BriefingSettings }) {
           ))}
         </fieldset>
       </fieldset>
-      <div className="mt-6">
-        <button type="submit" className="button button-secondary" disabled={pending}>
-          {pending ? "Saving…" : "Save briefing"}
-        </button>
+      <div className="mt-5 min-h-6">
+        {pending ? <p className="text-sm text-ink-muted">Saving…</p> : null}
         {message ? (
           <p
             role={message.kind === "error" ? "alert" : "status"}
             className={
               message.kind === "error"
-                ? "mt-4 border-l-2 border-accent pl-4 text-sm"
-                : "mt-4 text-sm text-ink-muted"
+                ? "border-l-2 border-accent pl-4 text-sm"
+                : "text-sm text-ink-muted"
             }
           >
             {message.text}

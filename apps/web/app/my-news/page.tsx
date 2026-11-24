@@ -75,10 +75,11 @@ async function Settings() {
             initial={saved.input}
           />
         </div>
-        <div className="mt-4">
+        {/* Side by side on wide screens: each saves on its own, as soon as it's changed. */}
+        <div className="mt-4 grid items-start xl:grid-cols-2 xl:gap-x-12">
           <BriefingForm initial={settingsFrom(briefing.data)} />
+          <OwnSourcesForm accepted={own.accepted} sources={own.sources} />
         </div>
-        <OwnSourcesForm accepted={own.accepted} sources={own.sources} />
         <section
           id="your-data"
           aria-labelledby="your-data-title"

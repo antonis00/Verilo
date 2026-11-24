@@ -67,6 +67,9 @@ function Check() {
 export function PreferencesForm({ mode, topics, outlets, initial }: Props) {
   const router = useRouter();
   const [prefs, setPrefs] = useState<PreferencesInput>(initial);
+  // What's saved, to tell whether anything has changed since (settings only).
+  const [saved, setSaved] = useState<PreferencesInput>(initial);
+  const dirty = mode === "settings" && JSON.stringify(prefs) !== JSON.stringify(saved);
   const ready = useReady();
   const [step, setStep] = useState(0);
   const [briefing, setBriefing] = useState({ enabled: false, sendHour: 7 });
@@ -87,14 +90,41 @@ export function PreferencesForm({ mode, topics, outlets, initial }: Props) {
   const save = (then?: () => Promise<void> | void) =>
     startTransition(async () => {
       setMessage(null);
-      const result = await savePreferences(prefs);
+      const sent = prefs;
+      const result = await savePreferences(sent);
       if (!result.ok) {
         setMessage({ kind: "error", text: result.message });
         return;
       }
+      setSaved(sent);
       if (then) await then();
       else setMessage({ kind: "saved", text: "Saved. Your front page uses these choices now." });
     });
+
+  // The save bar mustn't cover the end of the page.
+  const barShown = dirty || message !== null;
+  useEffect(() => {
+    if (mode !== "settings" || !barShown) return;
+    document.body.style.paddingBottom = "5rem";
+    return () => {
+      document.body.style.paddingBottom = "";
+    };
+  }, [barShown, mode]);
+
+  // "Saved" goes by itself after a few seconds.
+  useEffect(() => {
+    if (mode !== "settings" || message?.kind !== "saved") return;
+    const timer = setTimeout(() => setMessage(null), 5000);
+    return () => clearTimeout(timer);
+  }, [message, mode]);
+
+  // Leaving with unsaved changes asks first.
+  useEffect(() => {
+    if (!dirty) return;
+    const warn = (e: BeforeUnloadEvent) => e.preventDefault();
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [dirty]);
 
   const finish = () =>
     save(async () => {
@@ -156,12 +186,47 @@ export function PreferencesForm({ mode, topics, outlets, initial }: Props) {
             <div className="mt-4">{section}</div>
           </section>
         ))}
-        <div className="border-t border-rule pt-6">
-          <button type="submit" className="button" disabled={pending}>
-            {pending ? "Saving…" : "Save changes"}
-          </button>
-          {status}
-        </div>
+        {/* One save for the choices above, at the foot of the screen while anything is unsaved. */}
+        {dirty || message ? (
+          <div className="fixed inset-x-0 bottom-0 z-40 border-t border-ink bg-paper-raised">
+            <div
+              className={`page flex min-h-16 items-center justify-between gap-x-6 gap-y-2 py-3 ${dirty ? "flex-wrap" : ""}`}
+            >
+              {dirty ? (
+                <p className="text-sm font-semibold">You have unsaved changes.</p>
+              ) : (
+                <div className="min-w-0 flex-1 [&>p]:mt-0">{status}</div>
+              )}
+              {dirty ? (
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    className="button button-secondary"
+                    disabled={pending}
+                    onClick={() => {
+                      setPrefs(saved);
+                      setMessage(null);
+                    }}
+                  >
+                    Undo
+                  </button>
+                  <button type="submit" className="button" disabled={pending}>
+                    {pending ? "Saving…" : "Save changes"}
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className="quiet-link text-sm text-ink-muted hover:text-ink"
+                  onClick={() => setMessage(null)}
+                >
+                  Close
+                </button>
+              )}
+            </div>
+            {dirty && message?.kind === "error" ? <div className="page pb-3">{status}</div> : null}
+          </div>
+        ) : null}
       </form>
     );
   }
@@ -311,6 +376,69 @@ const POPULAR_OUTLETS = [
   "DW (Deutsche Welle)",
 ];
 
+// How much Verilo relies on an outlet: three bars for the fact base, two for reputable, one for
+// a weaker record. The words go to screen readers and show on hover.
+function Reliability({ tier }: { tier: Outlet["tier"] }) {
+  const filled = 4 - tier;
+  return (
+    <span className="inline-flex items-end gap-[2px]" title={TIER_LABEL[tier]}>
+      {[1, 2, 3].map((n) => (
+        <span
+          key={n}
+          aria-hidden="true"
+          className={`w-[3px] ${n <= filled ? "bg-ink" : "bg-rule"}`}
+          style={{ height: `${4 + n * 3}px` }}
+        />
+      ))}
+      <span className="sr-only">{TIER_LABEL[tier]}</span>
+    </span>
+  );
+}
+
+const LEANS = ["left", "lean_left", "center", "lean_right", "right"] as const;
+
+// Where an outlet leans, as a dot on a short scale from left to right.
+function LeanMark({ lean }: { lean: Outlet["lean"] }) {
+  const at = LEANS.indexOf(lean);
+  return (
+    <span className="inline-flex items-center gap-[3px]" title={LEAN_LABEL[lean]}>
+      {LEANS.map((l, i) => (
+        <span
+          key={l}
+          aria-hidden="true"
+          className={i === at ? "size-[7px] bg-ink" : "h-[3px] w-[5px] bg-rule"}
+        />
+      ))}
+      <span className="sr-only">{LEAN_LABEL[lean]}</span>
+    </span>
+  );
+}
+
+// The key to the marks, above the list of outlets.
+function MarksKey() {
+  return (
+    <p className="meta flex flex-wrap items-center gap-x-5 gap-y-1">
+      <span className="inline-flex items-center gap-1.5">
+        <Reliability tier={1} />
+        <span aria-hidden="true">fact base</span>
+      </span>
+      <span className="inline-flex items-center gap-1.5">
+        <Reliability tier={2} />
+        <span aria-hidden="true">reputable</span>
+      </span>
+      <span className="inline-flex items-center gap-1.5">
+        <Reliability tier={3} />
+        <span aria-hidden="true">weaker record</span>
+      </span>
+      <span className="inline-flex items-center gap-1.5">
+        <span>left</span>
+        <LeanMark lean="center" />
+        <span>right</span>
+      </span>
+    </p>
+  );
+}
+
 function OutletRow({
   outlet: o,
   prefs,
@@ -325,8 +453,10 @@ function OutletRow({
     <li className="flex items-center justify-between gap-4 py-2">
       <span className="min-w-0">
         <span className="block text-sm font-semibold">{o.name}</span>
-        <span className="meta block">
-          {COUNTRY_LABEL[o.country] ?? o.country} · {TIER_LABEL[o.tier]} · {LEAN_LABEL[o.lean]}
+        <span className="meta flex items-center gap-2.5">
+          <span>{COUNTRY_LABEL[o.country] ?? o.country}</span>
+          <Reliability tier={o.tier} />
+          <LeanMark lean={o.lean} />
         </span>
       </span>
       <span className="flex shrink-0 gap-2">
@@ -393,10 +523,14 @@ function OutletsStep({
   const full = (
     <>
       <div className="mb-4 flex items-start justify-between gap-4">
-        <p className="meta">
-          Each outlet shows how much we rely on it (fact base, reputable, lower reliability) and
-          where it leans. Those labels are the same for every reader.
-        </p>
+        <div>
+          <p className="meta">
+            Each outlet shows how much we rely on it and where it leans, the same for every reader.
+          </p>
+          <div className="mt-2">
+            <MarksKey />
+          </div>
+        </div>
         <button
           type="button"
           onClick={() => setOpen(allOpen ? new Set() : new Set(byRegion.map(([region]) => region)))}

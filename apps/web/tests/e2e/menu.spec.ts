@@ -49,8 +49,19 @@ test("the topics a reader follows, dragged into order, lead the sections bar", a
     await expect(mine.getByRole("button")).toHaveText([names[2], names[1], names[0]]);
     await expect(mine.getByRole("button", { name: names[1] })).toBeFocused();
 
+    // One save, at the foot of the screen while anything is unsaved; Undo puts it back.
+    await expect(page.getByText("You have unsaved changes.")).toBeVisible();
+    await mine.getByRole("button", { name: names[0] }).click();
+    await expect(mine.getByRole("button")).toHaveCount(2);
+    await page.getByRole("button", { name: "Undo" }).click();
+    await expect(mine.getByRole("button")).toHaveCount(0);
+    await expect(page.getByText("You have unsaved changes.")).toHaveCount(0);
+    for (const name of [names[2], names[1], names[0]]) {
+      await toAdd.getByRole("button", { name }).click();
+    }
     await page.getByRole("button", { name: "Save changes" }).click();
     await expect(page.getByRole("status").filter({ hasText: "Saved" })).toBeVisible();
+    await expect(page.getByText("You have unsaved changes.")).toHaveCount(0);
 
     // The bar under the masthead starts with them, in that order.
     await page.goto("/");

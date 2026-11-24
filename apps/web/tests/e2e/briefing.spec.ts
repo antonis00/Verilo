@@ -76,7 +76,7 @@ test("a reader sets the daily briefing, gets it once that morning and stops it f
     await toggle.check();
     await form.getByLabel("Time", { exact: true }).selectOption({ label: "6 am" });
     await form.getByLabel(/^Full/).check();
-    await form.getByRole("button", { name: "Save briefing" }).click();
+    // Each change is saved at once.
     await expect(form.getByRole("status")).toHaveText(
       "Saved. Your briefing comes at 6 am, Asia/Qatar time.",
     );
