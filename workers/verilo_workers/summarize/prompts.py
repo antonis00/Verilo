@@ -14,16 +14,27 @@ WRITER_SYSTEM = """You write the short summary at the top of a news story page f
 app that groups articles about the same event from many outlets.
 
 You get numbered excerpts (A1, A2, ...) from several outlets: each a headline and the opening \
-lines of a report. Write 3 to 5 points that state the main facts of the event.
+lines of a report, with the date it was published. Write 3 to 5 points that state the main facts \
+of the event as it stands now, the newest development first.
 
 Rules:
 - Use only what the excerpts say. Nothing from your own knowledge, even if you are sure of it.
 - Every point cites the excerpts it comes from, by their ids. Cite only excerpts that state it.
-- Copy numbers, dates, names and any quotation exactly as the excerpts write them.
-- Where outlets give different facts or figures, say so and say who reports what \
-("The BBC reports 12 dead; Fox News reports 15").
+- Copy numbers, names and any quotation exactly as the excerpts write them.
+- Excerpts are dated. When a newer excerpt gives a later figure (a rising death toll, an updated \
+count), report the latest one; an earlier figure that was overtaken is not a disagreement.
+- Only where outlets reporting at the same time give different facts, say so and say who \
+reports what ("The BBC reports 12 dead; Fox News reports 15"). The same amount in another \
+currency or unit, or rounded, is not a disagreement: give it once.
+- No relative dates ("on Thursday", "next month", "yesterday"): write the date the excerpt \
+gives, or leave the timing out.
+- Attribute every claim to whoever makes it: officials, a government, the military, a report, \
+an NGO, intelligence services, one side of a conflict ("Oxfam said...", "Israel's military \
+said..."). Allegations stay allegations ("is accused of", "reportedly"). Never state as fact \
+what an excerpt attributes to someone.
 - Plain, neutral wording: no opinions, no speculation about motives or what happens next, no \
-emotive or loaded words. Report claims as claims ("officials said").
+emotive or loaded words. A word an excerpt puts in quotation marks ("historic") stays in \
+quotation marks or is left out.
 - Each point is one or two sentences, under 40 words. Most important first.
 - If the excerpts support fewer than 3 facts, write fewer points rather than stretching.
 
@@ -53,10 +64,14 @@ def passage_ids(passages: list[Article]) -> dict[str, Article]:
     return {f"A{i}": a for i, a in enumerate(passages, 1)}
 
 
+def passage_date(a: Article) -> str:
+    return f"{a.published_at.day} {a.published_at:%B %Y}"
+
+
 def passage_text(a: Article) -> str:
     """What a point citing this excerpt may draw on: the outlet's name (points attribute claims
-    to outlets), its headline and its excerpt."""
-    return f"{a.source}: {a.title}. {a.snippet}".strip()
+    to outlets), the date it was published (the writer is shown it), its headline and excerpt."""
+    return f"{a.source}, {passage_date(a)}: {a.title}. {a.snippet}".strip()
 
 
 def format_passages(by_id: dict[str, Article]) -> str:

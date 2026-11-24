@@ -2,22 +2,26 @@
 
 The rule (CLAUDE.md, and lib/sources.ts summaryReadiness on the web, which must agree): only
 news reports from tier 1-2 outlets count; at least MIN_OUTLETS such outlets (SENSITIVE_MIN for
-sensitive topics: elections, health, disasters, crime), at least one tier 1 (a wire service or
+sensitive topics: elections, health, disasters, crime, war), at least one tier 1 (a wire service or
 public broadcaster), from at least two lean groups. Opinion, sponsored pieces and tier 3 outlets
 are never given to the writer.
 """
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 
 MIN_OUTLETS = 3
 SENSITIVE_MIN = 4
 MIN_LEAN_GROUPS = 2
 MAX_PASSAGES = 12
+# Only reports from the last FRESH before the story's newest one are given to the writer, so a
+# summary describes the event as it stands, not as it was first reported (Nov 2026 review: a
+# summary published on the 24th said a meeting "is being held on Thursday, 19 November").
+FRESH = timedelta(hours=48)
 
 SENSITIVE_TOPICS = {
     "elections", "crime", "law-and-justice", "health", "medicine", "mental-health", "outbreaks",
-    "weather-and-disasters",
+    "weather-and-disasters", "war-and-security",
 }  # fmt: skip
 
 LEAN_GROUP = {
@@ -69,13 +73,19 @@ def check(articles: list[Article], topic_slugs: set[str]) -> Verdict:
 
 def passages(articles: list[Article], limit: int = MAX_PASSAGES) -> list[Article]:
     """One excerpt per trusted outlet, the fact base first and leans interleaved, so the
-    writer sees the spread of coverage rather than one outlet's angle."""
+    writer sees the spread of coverage rather than one outlet's angle. Per outlet, its newest
+    report (one with an excerpt when it has one), and only reports from the last FRESH."""
+    pool = trusted(articles)
+    if not pool:
+        return []
+    newest = max(a.published_at for a in pool)
     best: dict[int, Article] = {}
-    for a in trusted(articles):
+    for a in pool:
+        if a.published_at < newest - FRESH:
+            continue
         current = best.get(a.source_id)
-        # Per outlet: the report with the most to go on (longest excerpt), newest on a tie.
-        if current is None or (len(a.snippet), a.published_at) > (
-            len(current.snippet),
+        if current is None or (bool(a.snippet), a.published_at) > (
+            bool(current.snippet),
             current.published_at,
         ):
             best[a.source_id] = a

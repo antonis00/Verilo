@@ -260,3 +260,61 @@ def test_a_story_s_topics_need_a_share_of_its_articles(conn):
 
     assert topics_of(ids_[0]) == [main]
     assert topics_of(single) == [stray]
+
+
+def test_a_story_closes_after_its_life_and_later_coverage_follows_it(conn):
+    base = unit(RNG.normal(size=384))
+    first = add(conn, "test-story-wire", "Talks open in Geneva", base, 100)
+    second = add(conn, "test-story-paper", "Geneva talks continue", near(base, 0.95), 60)
+    later = add(conn, "test-story-wire", "Geneva talks resume after break", near(base, 0.95), 1)
+    conn.commit()
+    cluster_pending(conn, NOW, sources=list(ids(conn).values()))
+    assert story_of(conn, first) == story_of(conn, second)
+    # 99 hours after the story's first article: past its 72-hour life, so a new story...
+    assert story_of(conn, later) != story_of(conn, first)
+    # ...that says which story it continues.
+    follows = conn.execute(
+        "select follows from public.stories where id = %s", (story_of(conn, later),)
+    ).fetchone()["follows"]
+    assert follows == story_of(conn, first)
+
+
+def test_a_story_does_not_drift_away_from_what_it_opened_with(conn):
+    a = unit(RNG.normal(size=384))
+    b = unit(RNG.normal(size=384))
+    # A chain: each step close to the last one, but the end far from the start.
+    steps = [unit((1 - t) * a + t * b) for t in (0.0, 0.25, 0.5, 0.75, 1.0)]
+    placed = [
+        add(conn, ["test-story-wire", "test-story-paper"][i % 2], f"Step {i}", v, 10 - i)
+        for i, v in enumerate(steps)
+    ]
+    conn.commit()
+    cluster_pending(conn, NOW, sources=list(ids(conn).values()))
+    assert story_of(conn, placed[0]) == story_of(conn, placed[1])
+    assert story_of(conn, placed[-1]) != story_of(conn, placed[0])
+
+
+def test_headlines_lose_agency_prefixes_and_explainers_are_not_titles():
+    from verilo_workers.cluster.stories import clean_headline, is_explainer
+
+    assert clean_headline("(LEAD) S. Korea to raise rates") == "S. Korea to raise rates"
+    assert clean_headline("Live: Power land Cochrane at No 1") == "Power land Cochrane at No 1"
+    assert clean_headline("(2nd LD) LEET scorer found") == "LEET scorer found"
+    assert clean_headline("WATCH: SUV hits taxis") == "SUV hits taxis"
+    assert is_explainer("Why Trump pushed for Huang's return")
+    assert is_explainer("Is the ceasefire holding?")
+    assert not is_explainer("Ceasefire holds in Gaza")
+
+
+def test_the_title_prefers_a_plain_report_over_a_why_headline(conn):
+    base = unit(RNG.normal(size=384))
+    add(conn, "test-story-wire", "Why leaders met in Geneva", base, 5)
+    add(conn, "test-story-paper", "(LEAD) Leaders meet in Geneva", near(base, 0.9), 4)
+    conn.commit()
+    cluster_pending(conn, NOW, sources=list(ids(conn).values()))
+    titles = conn.execute(
+        """select st.title from public.stories st join public.articles a on a.story_id = st.id
+           join public.sources s on s.id = a.source_id where s.slug = any(%s)""",
+        (SLUGS,),
+    ).fetchall()
+    assert {t["title"] for t in titles} == {"Leaders meet in Geneva"}
