@@ -15,6 +15,8 @@ test("search finds a story by a word in its headline", async ({ page }, info) =>
     await page.getByLabel("Search stories").fill(word);
     await page.getByRole("button", { name: "Search", exact: true }).click();
     await expect(page.getByRole("status")).toContainText(`1 story for “${word}”`);
+    // The box keeps the words searched for.
+    await expect(page.getByLabel("Search stories")).toHaveValue(word);
     await expect(page.getByRole("link", { name: headline })).toHaveAttribute(
       "href",
       `/story/${storyId}`,

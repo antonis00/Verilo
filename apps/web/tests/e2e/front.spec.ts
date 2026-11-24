@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { signIn, uniqueName } from "./sign-in";
+import { signIn, skipWizard, uniqueName } from "./sign-in";
 import {
   refreshCaches,
   removeStory,
@@ -213,8 +213,7 @@ test("the welcome wizard saves choices that shape the front page and settings", 
 test("a reader can skip the wizard and still gets a front page", async ({ page }, info) => {
   const slug = uniqueName("skipper", info.project.name);
   await signIn(page, `${slug}@example.com`);
-  await page.getByRole("button", { name: "Skip for now" }).click();
-  await expect(page).toHaveURL(/\/$/);
+  await skipWizard(page);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Today’s front page");
 
   // Next time the link goes straight to the front page, not the wizard.
@@ -247,7 +246,13 @@ test("the section menu opens a topic's own page", async ({ page }, info) => {
     await sections.getByRole("link", { name: topicName }).click();
 
     await expect(page).toHaveURL(new RegExp(`/topic/${slug}$`));
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText(topicName);
+    // The topic's own page can lag the menu by a moment while parallel tests refresh caches.
+    await expect(async () => {
+      await page.reload();
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText(topicName, {
+        timeout: 1000,
+      });
+    }).toPass({ timeout: 20_000 });
     await expect(sections.getByRole("link", { name: topicName })).toHaveAttribute(
       "aria-current",
       "page",

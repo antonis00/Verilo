@@ -4,6 +4,7 @@
 // Until they do, it's the topics they follow first, in the order they chose them, then the
 // featured topics. Visitors get the featured topics.
 
+// The most sections a reader's own menu may hold (the default has every featured topic).
 export const MENU_MAX = 20;
 
 export type MenuTopic = { id: number; slug: string; name: string; featured: boolean };
@@ -19,7 +20,7 @@ export function menuTopics<T extends MenuTopic>(
   }
   const chosen = followed.map((id) => byId.get(id)).filter((t): t is T => t !== undefined);
   const seen = new Set(chosen.map((t) => t.id));
-  return [...chosen, ...topics.filter((t) => t.featured && !seen.has(t.id))].slice(0, MENU_MAX);
+  return [...chosen, ...topics.filter((t) => t.featured && !seen.has(t.id))];
 }
 
 // What a saved menu may hold: known topics, each once, at most MENU_MAX.

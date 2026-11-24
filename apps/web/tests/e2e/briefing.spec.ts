@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { TEST_BRIEFING_SECRET } from "./constants";
 import { countEmailsTo, emailTo } from "./mailpit";
-import { signIn, uniqueName } from "./sign-in";
+import { signIn, skipWizard, uniqueName } from "./sign-in";
 import {
   refreshCaches,
   removeStory,
@@ -30,6 +30,7 @@ test("a reader sets the daily briefing, gets it once that morning and stops it f
   page,
   request,
 }, info) => {
+  test.setTimeout(60_000); // many steps: sign-in, settings, four runs, the email, stopping
   const slug = uniqueName("briefing", info.project.name);
   const headline = `Briefing story ${slug}`;
   const email = `${slug}@example.com`;
@@ -41,9 +42,23 @@ test("a reader sets the daily briefing, gets it once that morning and stops it f
     await refreshCaches(page.request);
 
     await signIn(page, email);
-    await page.getByRole("searchbox", { name: "Search topics to follow" }).fill(`alias-${slug}`);
-    await page.getByRole("button", { name: `Topic ${slug}` }).click();
-    await page.getByRole("button", { name: "Skip for now" }).click();
+    // Typing needs the page's script; under load it's tried again until the topic shows.
+    await expect(async () => {
+      await page
+        .getByRole("searchbox", { name: "Search topics to follow" })
+        .fill(`alias-${slug}`, { timeout: 2000 });
+      const chip = page.getByRole("button", { name: `Topic ${slug}` });
+      // Only press it if an earlier try didn't already: pressing twice unselects it.
+      if ((await chip.getAttribute("aria-pressed", { timeout: 2000 })) !== "true") {
+        await chip.click({ timeout: 2000 });
+      }
+      await expect(page.getByRole("button", { name: `Topic ${slug}` })).toHaveAttribute(
+        "aria-pressed",
+        "true",
+        { timeout: 2000 },
+      );
+    }).toPass({ timeout: 20_000 });
+    await skipWizard(page);
     await expect(page).toHaveURL(/\/$/);
 
     await page.goto("/my-news");
@@ -52,6 +67,8 @@ test("a reader sets the daily briefing, gets it once that morning and stops it f
     // Off until the reader turns it on.
     const toggle = form.getByRole("switch", { name: /Send me the daily briefing/ });
     await expect(toggle).not.toBeChecked();
+    // Changes stick once the form's script has run (it marks itself ready).
+    await expect(form).toHaveAttribute("data-ready", "true");
     await toggle.check();
     await form.getByLabel("Time", { exact: true }).selectOption({ label: "6 am" });
     await form.getByLabel(/^Full/).check();

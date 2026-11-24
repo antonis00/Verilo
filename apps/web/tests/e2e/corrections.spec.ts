@@ -6,6 +6,7 @@ test("a reported mistake is withdrawn by an editor and corrected in public", asy
   page,
   browser,
 }, info) => {
+  test.setTimeout(60_000); // a visitor, an editor's sign-in and the desk, a heavy page
   const slug = uniqueName("correction", info.project.name);
   const headline = `Corrected story ${slug}`;
   try {
@@ -40,9 +41,12 @@ test("a reported mistake is withdrawn by an editor and corrected in public", asy
     await expect(report).toHaveCount(0);
 
     // The story goes back to headlines only and says why; the corrections page lists it.
-    await page.goto(`/story/${storyId}`);
+    // The page may serve its cached copy for a moment after the change.
+    await expect(async () => {
+      await page.goto(`/story/${storyId}`);
+      await expect(page.getByText(/^Correction, /)).toBeVisible({ timeout: 2000 });
+    }).toPass({ timeout: 20_000 });
     await expect(page.getByRole("region", { name: "In brief" })).toHaveCount(0);
-    await expect(page.getByText(/^Correction, /)).toBeVisible();
     await expect(page.getByText("The summary gave the wrong city.")).toBeVisible();
     await page.goto("/corrections");
     const entry = page.getByRole("listitem").filter({ hasText: headline });

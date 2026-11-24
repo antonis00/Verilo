@@ -25,6 +25,9 @@ export default defineConfig({
   globalSetup: "./tests/e2e/global-setup.ts",
   testDir: "tests/e2e",
   fullyParallel: true,
+  // Locally the app, the database and the browsers share one laptop: more than four browsers at
+  // once made clicks land before pages' scripts had loaded.
+  workers: process.env.CI ? undefined : 4,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [["github"], ["list"]] : "list",
