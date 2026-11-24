@@ -34,6 +34,7 @@ export type Card = {
   articles: CardArticle[];
   topic_ids: number[];
   summary: Summary | null;
+  follows?: number | null; // the earlier story this one continues
 };
 
 // A checked AI summary (Phase 4): points, each citing the articles it was drawn from.
@@ -88,6 +89,8 @@ export const TOP_WINDOW = 10;
 export const MAX_PER_TOPIC = 3;
 export const MAX_PER_SOURCE = 2;
 export const ALSO_IMPORTANT = 4;
+// The share of the follow boost a story gets however small it is; the rest scales with importance.
+export const FOLLOW_FLOOR = 0.4;
 export const ALSO_IMPORTANT_MIN_OUTLETS = 5;
 const TIER_WEIGHT: Record<Tier, number> = { 1: 1, 2: 0.7, 3: 0.3 };
 
@@ -131,7 +134,8 @@ export function score(
   const importance = Math.min(1, Math.log2(1 + outlets) / Math.log2(21) + (tierOne ? 0.1 : 0));
   const ageHours = Math.max(0, (now - Date.parse(card.last_published_at)) / 3_600_000);
   const freshness = 0.5 ** (ageHours / FRESH_HALF_LIFE_HOURS);
-  const topicHit = card.topic_ids.slice(0, 3).find((t) => p.followTopics.includes(t));
+  // Only the story's main topics count, so the reason shown is what the story is about.
+  const topicHit = mainTopics.find((t) => p.followTopics.includes(t));
   const sourceHit = visible.find((a) => followedSources.has(a.source_id));
   const regions = new Set(p.regions);
   const bySource = new Map(visible.map((a) => [a.source_id, a]));
@@ -144,8 +148,10 @@ export function score(
   const total =
     WEIGHTS.importance * importance +
     WEIGHTS.freshness * freshness +
-    WEIGHTS.topic * (topicHit !== undefined ? 1 : 0) +
-    WEIGHTS.source * (sourceHit ? 1 : 0) +
+    // Following lifts a story in proportion to its importance, so a one-outlet story on a
+    // followed topic can't outrank one thirty outlets cover (Nov 2026 review).
+    WEIGHTS.topic * (topicHit !== undefined ? FOLLOW_FLOOR + (1 - FOLLOW_FLOOR) * importance : 0) +
+    WEIGHTS.source * (sourceHit ? FOLLOW_FLOOR + (1 - FOLLOW_FLOOR) * importance : 0) +
     WEIGHTS.places * placesShare +
     WEIGHTS.reliability * reliability;
 
@@ -187,26 +193,18 @@ export function rank(
     .filter((r) => r.outlets >= 2 || r.followedTopic)
     .sort((a, b) => b.score - a.score || b.outlets - a.outlets);
 
-  // Reserve the widest stories outside the reader's interests before filling the main list.
-  const alsoImportant = personal
-    ? scored
-        .filter((r) => !r.followedTopic && r.outlets >= ALSO_IMPORTANT_MIN_OUTLETS)
-        .sort((a, b) => b.outlets - a.outlets || b.score - a.score)
-        .slice(0, ALSO_IMPORTANT)
-    : [];
-  const reserved = new Set(alsoImportant.map((r) => r.card.id));
-
   const top: Ranked[] = [];
   const perTopic = new Map<number, number>();
   const perSource = new Map<number, number>();
   const deferred: Ranked[] = [];
   for (const r of scored) {
-    if (reserved.has(r.card.id)) continue;
     if (top.length < TOP_WINDOW) {
       const topic = r.card.topic_ids[0];
       const tooManyTopic = topic !== undefined && (perTopic.get(topic) ?? 0) >= MAX_PER_TOPIC;
       const tooManySource = (perSource.get(r.lead.source_id) ?? 0) >= MAX_PER_SOURCE;
-      if (tooManyTopic || tooManySource) {
+      // The top of the page is for stories more than one outlet reports.
+      const tooSmall = r.outlets < 2;
+      if (tooManyTopic || tooManySource || tooSmall) {
         deferred.push(r);
         continue;
       }
@@ -218,7 +216,22 @@ export function rank(
     if (top.length >= limit) break;
   }
   if (top.length < limit) top.push(...deferred.slice(0, limit - top.length));
-  return { top: top.slice(0, limit), alsoImportant };
+  const shown = top.slice(0, limit);
+
+  // Widely covered stories outside the reader's interests that didn't make the top of their page
+  // (they compete in the main list first): so the page never becomes a bubble.
+  const inTop = new Set(shown.slice(0, TOP_WINDOW).map((r) => r.card.id));
+  const alsoImportant = personal
+    ? scored
+        .filter(
+          (r) =>
+            !r.followedTopic && !inTop.has(r.card.id) && r.outlets >= ALSO_IMPORTANT_MIN_OUTLETS,
+        )
+        .sort((a, b) => b.outlets - a.outlets || b.score - a.score)
+        .slice(0, ALSO_IMPORTANT)
+    : [];
+  const also = new Set(alsoImportant.map((r) => r.card.id));
+  return { top: shown.filter((r) => !also.has(r.card.id)), alsoImportant };
 }
 
 // One topic's page: its stories only, best first. Unlike the front page, a story one outlet covers

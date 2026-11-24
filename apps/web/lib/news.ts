@@ -22,25 +22,42 @@ function cacheReference() {
 }
 
 export const CANDIDATE_HOURS = 48;
-const MAX_CANDIDATES = 500;
+// Candidates for ranking, chosen by importance rather than recency: every story two or more
+// outlets covered in the last CANDIDATE_HOURS, widest first (Nov 2026 review: the 500 most
+// recently updated covered only 4.4 hours and left out 24 of the day's 54 widest stories), plus
+// the newest single-outlet stories, which reach a page only through a followed topic or outlet.
+const SHARED_CANDIDATES = 400;
+const SINGLE_CANDIDATES = 150;
+const SINGLE_HOURS = 12;
+const CARD_COLUMNS =
+  "id, title, first_published_at, last_published_at, article_count, outlet_count, articles, topic_ids, summary, follows";
 
 export async function candidateCards(): Promise<Card[]> {
   "use cache";
   cacheStories();
-  const since = new Date(Date.now() - CANDIDATE_HOURS * 3_600_000).toISOString();
-  const { data, error } = await publicClient()
-    .from("story_cards")
-    .select(
-      "id, title, first_published_at, last_published_at, article_count, outlet_count, articles, topic_ids, summary",
-    )
-    .gte("last_published_at", since)
-    .order("last_published_at", { ascending: false })
-    .limit(MAX_CANDIDATES);
-  if (error) {
-    console.error("front page stories failed", error.message);
-    return [];
+  const hoursAgo = (h: number) => new Date(Date.now() - h * 3_600_000).toISOString();
+  const db = publicClient();
+  const [shared, single] = await Promise.all([
+    db
+      .from("story_cards")
+      .select(CARD_COLUMNS)
+      .gte("last_published_at", hoursAgo(CANDIDATE_HOURS))
+      .gte("outlet_count", 2)
+      .order("outlet_count", { ascending: false })
+      .order("last_published_at", { ascending: false })
+      .limit(SHARED_CANDIDATES),
+    db
+      .from("story_cards")
+      .select(CARD_COLUMNS)
+      .gte("last_published_at", hoursAgo(SINGLE_HOURS))
+      .eq("outlet_count", 1)
+      .order("last_published_at", { ascending: false })
+      .limit(SINGLE_CANDIDATES),
+  ]);
+  if (shared.error || single.error) {
+    console.error("front page stories failed", (shared.error ?? single.error)?.message);
   }
-  return (data ?? []) as Card[];
+  return [...(shared.data ?? []), ...(single.data ?? [])] as Card[];
 }
 
 export type Topic = {

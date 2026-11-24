@@ -155,14 +155,49 @@ describe("rank", () => {
     expect(page.top[2].lead.source_id).toBe(1); // deferred, still shown after the window
   });
 
-  it("reserves widely covered stories outside the reader's interests", () => {
+  it("lets a widely covered story outside the reader's interests compete in the main list", () => {
     const followed = Array.from({ length: 5 }, (_, i) =>
       card(i + 1, outlets(3, 100 + i * 10), { topics: [1] }),
     );
-    const world = card(50, outlets(ALSO_IMPORTANT_MIN_OUTLETS + 3, 700), { topics: [2] });
+    const world = card(50, outlets(30, 700), { topics: [2] });
     const page = rank([...followed, world], prefs({ followTopics: [1] }), NOW);
+    expect(ids(page.top)[0]).toBe(50);
+    expect(page.alsoImportant).toEqual([]);
+  });
+
+  it("keeps widely covered stories that miss the top in 'also important today'", () => {
+    // Ten followed stories as wide as it gets fill the top; a wide outside story waits below.
+    const followed = Array.from({ length: 10 }, (_, i) =>
+      card(i + 1, outlets(25, 100 + i * 40), { topics: [10 + i] }),
+    );
+    const world = card(50, outlets(ALSO_IMPORTANT_MIN_OUTLETS + 1, 900), { topics: [2] });
+    const followTopics = followed.map((c) => c.topic_ids[0]);
+    const page = rank([...followed, world], prefs({ followTopics }), NOW);
     expect(ids(page.alsoImportant)).toEqual([50]);
     expect(ids(page.top)).not.toContain(50);
+  });
+
+  it("never lets a one-outlet story on a followed topic outrank one thirty outlets cover", () => {
+    const small = card(1, outlets(1, 100), { topics: [1] });
+    const big = card(2, outlets(30, 300), { topics: [2] });
+    expect(ids(rank([small, big], prefs({ followTopics: [1] }), NOW).top)).toEqual([2, 1]);
+  });
+
+  it("keeps single-outlet stories out of the top ten while wider ones are waiting", () => {
+    const singles = Array.from({ length: 12 }, (_, i) =>
+      card(i + 1, outlets(1, 100 + i), { topics: [1] }),
+    );
+    const shared = Array.from({ length: 10 }, (_, i) =>
+      card(100 + i, outlets(2, 500 + i * 5), { topics: [20 + i], age: 30 }),
+    );
+    const top = rank([...singles, ...shared], prefs({ followTopics: [1] }), NOW).top;
+    expect(top.slice(0, 10).every((r) => r.outlets >= 2)).toBe(true);
+  });
+
+  it("names only a main topic as the reason", () => {
+    const story = card(1, outlets(3, 100), { topics: [2, 5, 1] });
+    const [r] = rank([story], prefs({ followTopics: [1] }), NOW).top;
+    expect(r.reasons.some((x) => x.startsWith("You follow"))).toBe(false);
   });
 
   it("has no 'also important' section without personal interests", () => {
