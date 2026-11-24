@@ -1,56 +1,38 @@
 # Verilo
 
-Your front page, from sources you trust. Verilo groups the articles that report the same event into
-one story, ranks stories for each reader, and writes short summaries that cite their sources, checked
-before anyone sees them. It shows headlines, short excerpts and links; it never republishes articles.
+A personal front page built from sources you trust. Verilo groups the articles that report the
+same event into one story, shows how each outlet covered it, and writes short summaries that cite
+their sources and are checked before anyone sees them. It shows headlines, short excerpts and
+links; it never republishes articles.
 
-- Design and architecture: [docs/design.md](docs/design.md)
-- Visual style: [docs/style-guide.md](docs/style-guide.md)
+## Stack
 
-## Layout
+- **Web:** Next.js (`apps/web`)
+- **Database and sign-in:** Supabase / Postgres (`supabase`)
+- **News pipeline:** Python (`workers`): feeds, grouping, topics and checked summaries
 
-| Folder | What |
-|---|---|
-| `apps/web` | The Next.js web app |
-| `workers` | The Python news pipeline (ingestion, grouping, summaries) |
-| `supabase` | Database migrations, local config and email templates |
-| `docs` | Design documents |
-
-## Getting started
+## Run it locally
 
 Needs Node 22+, Python 3.12+ and Docker Desktop.
 
 ```sh
-npm install && npm run db:start          # local Supabase; prints the keys
+npm install && npx supabase start                    # local database
 cd apps/web && npm install
-cp .env.example .env.local               # paste the publishable key from `npx supabase status`
-npm run dev                              # http://localhost:3001
+cp .env.example .env.local                           # fill in from `npx supabase status`
+npm run dev                                          # http://localhost:3001
+
+cd ../../workers && python -m venv .venv
+.venv/bin/pip install -c requirements.lock -e ".[dev]"
+cp .env.example .env                                 # AI provider and keys
+.venv/bin/python -m verilo_workers sync-sources && .venv/bin/python -m verilo_workers sync-topics
+.venv/bin/python -m verilo_workers pipeline --loop   # fetch, group and summarise every minute
 ```
 
-Sign-in emails go to the local mail catcher at http://127.0.0.1:54324. New readers land on a
-short welcome wizard (topics, places, outlets, what to show); settings are under My News.
+Emails sent locally (sign-in links, briefings) appear at http://127.0.0.1:54324.
 
-## News ingestion
-
-The outlets and their feeds are listed in [workers/data/sources.toml](workers/data/sources.toml),
-each with its trust tier, political lean and the reason for both.
+## Tests
 
 ```sh
-cd workers && python -m venv .venv && .venv/bin/pip install -e ".[dev]"
-.venv/bin/python -m verilo_workers check-feeds          # try every feed, store nothing
-.venv/bin/python -m verilo_workers sync-sources         # write the registry to the database
-.venv/bin/python -m verilo_workers sync-topics          # write the topic list to the database
-.venv/bin/python -m verilo_workers pipeline --loop      # every minute: fetch, enrich, group into stories
-.venv/bin/python -m verilo_workers make-editor you@example.com   # open /desk for your account
-```
-
-Verilo stores only the headline, a short snippet, the link and the date of each article. Articles
-about the same event are grouped into stories; opinion and sponsored pieces are labelled and never
-used for summaries; topics are listed in [workers/data/topics.toml](workers/data/topics.toml).
-
-## Checks
-
-```sh
-cd apps/web && npm run check             # lint, types, format, unit, build, end-to-end, Lighthouse
-cd workers && python -m venv .venv && .venv/bin/pip install -e ".[dev]" && .venv/bin/pytest
+cd apps/web && npm run check        # lint, types, unit, build, end-to-end, Lighthouse
+cd workers && .venv/bin/python -m pytest
 ```
