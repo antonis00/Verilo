@@ -1,9 +1,11 @@
 import Link from "next/link";
-import { Suspense } from "react";
+import { Suspense, type ReactNode } from "react";
 import { FrontPage } from "@/components/front-page";
+import { OwnItems } from "@/components/own-items";
 import { getReader } from "@/lib/auth";
 import { NO_PREFERENCES, rank } from "@/lib/feed";
 import { cacheStories, candidateCards, topicNames } from "@/lib/news";
+import { ownItems, ownSources } from "@/lib/own-sources-db";
 import { toRanking } from "@/lib/preferences";
 import { loadPreferences } from "@/lib/reader-preferences";
 import { shouldRemind, trialLine } from "@/lib/trial";
@@ -47,7 +49,13 @@ async function ReaderFront() {
   const saved = await loadPreferences(reader.id);
   if (!saved.onboarded) return <GeneralFront />;
 
-  const [cards, names, now] = await Promise.all([candidateCards(), topicNames(), requestTime()]);
+  const [cards, names, now, own, items] = await Promise.all([
+    candidateCards(),
+    topicNames(),
+    requestTime(),
+    ownSources(),
+    ownItems(FROM_YOURS),
+  ]);
   const prefs = toRanking(saved.input);
   const personal = prefs.followTopics.length > 0 || prefs.followSources.length > 0;
   return (
@@ -58,8 +66,33 @@ async function ReaderFront() {
         topicNames={names}
         now={now}
         personal={personal}
+        extra={
+          own.sources.length && items.length ? (
+            <FromYourSources>
+              <OwnItems items={items} sources={own.sources} now={now} />
+            </FromYourSources>
+          ) : null
+        }
       />
     </>
+  );
+}
+
+const FROM_YOURS = 5;
+
+// The reader's own sources, apart from Verilo's stories and said to be unchecked.
+function FromYourSources({ children }: { children: ReactNode }) {
+  return (
+    <section aria-labelledby="yours-title" className="border-b border-rule py-8">
+      <h2 id="yours-title" className="kicker">
+        From your sources
+      </h2>
+      <p className="meta mt-1">Feeds and channels you added. Verilo doesn’t check them.</p>
+      <div className="mt-4">{children}</div>
+      <p className="mt-2 text-sm">
+        <Link href="/your-sources">Everything from your sources</Link>
+      </p>
+    </section>
   );
 }
 

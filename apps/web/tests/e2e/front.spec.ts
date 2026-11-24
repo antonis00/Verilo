@@ -118,6 +118,7 @@ test("the welcome wizard saves choices that shape the front page and settings", 
     await expect(page.getByText("Step 1 of 5")).toBeVisible();
     const topicChip = page.getByRole("button", { name: topicName });
     await expect(topicChip).toHaveCount(0);
+    await expect(page.locator("[data-testid=wizard][data-ready=true]")).toBeVisible();
     await page.getByRole("searchbox", { name: "Search topics to follow" }).fill(`alias-${slug}`);
     await expect(page.getByText(`1 match for “alias-${slug}”`)).toBeVisible();
     await topicChip.click();

@@ -7,11 +7,14 @@
 - Summary check logs older than CHECK_DAYS are deleted (the summaries themselves stay).
 - Each reader's briefing history older than BRIEFING_DAYS is deleted (privacy: it records what
   each reader was sent).
+- Readers' own sources: items after 14 days, and sources nobody follows (`own.run.prune`).
 """
 
 from datetime import UTC, datetime, timedelta
 
 import psycopg
+
+from verilo_workers.own.run import prune as prune_own
 
 EMBEDDING_DAYS = 10  # longer than grouping can still reach back (a 3-day story, 6 days ago)
 SINGLE_STORY_DAYS = 30
@@ -53,4 +56,5 @@ def prune(conn: psycopg.Connection, now: datetime | None = None) -> dict[str, in
         counts["briefings"] = conn.execute(
             "delete from public.digests where created_at < %s", (days(BRIEFING_DAYS),)
         ).rowcount
+        counts.update(prune_own(conn, now))
     return counts

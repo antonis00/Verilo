@@ -42,7 +42,9 @@ test("a reader sets the daily briefing, gets it once that morning and stops it f
     await refreshCaches(page.request);
 
     await signIn(page, email);
-    // Typing needs the page's script; under load it's tried again until the topic shows.
+    // Typing before the form's script has run is lost (the search never filters).
+    await expect(page.locator("[data-testid=wizard][data-ready=true]")).toBeVisible({ timeout: 15_000 });
+    // Under load it's tried again until the topic shows.
     await expect(async () => {
       await page
         .getByRole("searchbox", { name: "Search topics to follow" })

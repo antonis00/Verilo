@@ -15,27 +15,41 @@ type Props = {
   empty?: { title: string; body: ReactNode };
   // On a topic's page: its slug, so each summary leads with the points about it.
   topicSlug?: string;
+  // Shown before the end: the reader's own sources, on their front page.
+  extra?: ReactNode;
 };
 
 // The newspaper layout: a lead story across eight columns, three down the side, then rows of
 // three, "Also important today", and an end. Every card links to its story page.
-export function FrontPage({ page, topicNames, now, personal, label, empty, topicSlug }: Props) {
+export function FrontPage({
+  page,
+  topicNames,
+  now,
+  personal,
+  label,
+  empty,
+  topicSlug,
+  extra,
+}: Props) {
   const [lead, ...rest] = page.top;
   if (!lead) {
     return (
-      <section aria-labelledby="empty-title" className="border-t border-rule py-10">
-        <h2 id="empty-title" className="text-2xl">
-          {empty?.title ?? "No stories yet"}
-        </h2>
-        <p className="mt-3 max-w-prose text-ink-muted">
-          {empty?.body ?? (
-            <>
-              Stories appear here once outlets have reported them. If you run Verilo yourself, start
-              the pipeline with <code>python -m verilo_workers pipeline --loop</code>.
-            </>
-          )}
-        </p>
-      </section>
+      <>
+        <section aria-labelledby="empty-title" className="border-t border-rule py-10">
+          <h2 id="empty-title" className="text-2xl">
+            {empty?.title ?? "No stories yet"}
+          </h2>
+          <p className="mt-3 max-w-prose text-ink-muted">
+            {empty?.body ?? (
+              <>
+                Stories appear here once outlets have reported them. If you run Verilo yourself,
+                start the pipeline with <code>python -m verilo_workers pipeline --loop</code>.
+              </>
+            )}
+          </p>
+        </section>
+        {extra}
+      </>
     );
   }
   const side = rest.slice(0, 3);
@@ -89,6 +103,8 @@ export function FrontPage({ page, topicNames, now, personal, label, empty, topic
           </ol>
         </section>
       ) : null}
+
+      {extra}
 
       <p className="py-10 text-center font-serif text-lg">
         You’re caught up.

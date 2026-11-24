@@ -50,3 +50,45 @@ export async function dismissReport(form: FormData) {
     .eq("status", "open");
   revalidatePath("/desk");
 }
+
+// Readers' own sources. Blocking stops the fetching and removes what was fetched; the readers
+// who added it see that it was blocked, and why. Marking one official says it's a rated outlet's
+// own (a Telegram channel the outlet links to from its website, say): its items then say so.
+
+export async function blockOwnSource(form: FormData) {
+  await requireEditor();
+  const id = Number(form.get("source"));
+  const reason = String(form.get("reason") ?? "").trim();
+  if (!Number.isInteger(id) || reason.length < 3 || reason.length > 500) return;
+  const db = adminClient();
+  await db.from("own_sources").update({ status: "blocked", blocked_reason: reason }).eq("id", id);
+  await db.from("own_items").delete().eq("source_id", id);
+  revalidatePath("/desk");
+}
+
+export async function unblockOwnSource(form: FormData) {
+  await requireEditor();
+  const id = Number(form.get("source"));
+  if (!Number.isInteger(id)) return;
+  await adminClient()
+    .from("own_sources")
+    .update({
+      status: "pending",
+      blocked_reason: null,
+      consecutive_failures: 0,
+      next_fetch_at: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .eq("status", "blocked");
+  revalidatePath("/desk");
+}
+
+export async function setOwnSourceOutlet(form: FormData) {
+  await requireEditor();
+  const id = Number(form.get("source"));
+  const raw = String(form.get("outlet") ?? "");
+  const outlet = raw === "" ? null : Number(raw);
+  if (!Number.isInteger(id) || (outlet !== null && !Number.isInteger(outlet))) return;
+  await adminClient().from("own_sources").update({ official_source_id: outlet }).eq("id", id);
+  revalidatePath("/desk");
+}

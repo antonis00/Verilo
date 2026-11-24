@@ -241,3 +241,28 @@ export async function mergeStory(fromId: number, intoId: number) {
     body: JSON.stringify({ merged_into: intoId, article_count: 0, outlet_count: 0 }),
   });
 }
+
+// What the fetcher stores after reading a reader's own source: its name, "ok", and one item.
+export async function ownSourceFetched(
+  url: string,
+  title: string,
+  item: { url: string; title: string; snippet: string },
+) {
+  const [source] = (await rest(`own_sources?url=eq.${encodeURIComponent(url)}`, {
+    method: "PATCH",
+    body: JSON.stringify({ title, status: "ok", last_fetched_at: new Date().toISOString() }),
+  })) as { id: number }[];
+  if (!source) throw new Error(`no own source ${url}`);
+  await rest("own_items", {
+    method: "POST",
+    body: JSON.stringify({
+      source_id: source.id,
+      ...item,
+      published_at: new Date(Date.now() - 10 * 60_000).toISOString(),
+    }),
+  });
+}
+
+export async function removeOwnSource(url: string) {
+  await rest(`own_sources?url=eq.${encodeURIComponent(url)}`, { method: "DELETE" });
+}

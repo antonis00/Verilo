@@ -24,6 +24,8 @@ from verilo_workers.enrich.llm_topics import tag_pending
 from verilo_workers.enrich.run import enrich_pending
 from verilo_workers.ingest import store
 from verilo_workers.ingest.run import ingest_due
+from verilo_workers.own.run import describe as describe_own
+from verilo_workers.own.run import fetch_due as fetch_own_due
 from verilo_workers.retention import prune
 from verilo_workers.summarize.run import summarize_due
 
@@ -112,6 +114,10 @@ def run_round(database_url: str | None = None) -> str:
 def _round(database_url: str | None) -> str:
     global _last_notify
     fetched = asyncio.run(ingest_due(database_url=database_url))
+    try:  # readers' own sources never hold up the round
+        own = describe_own(asyncio.run(fetch_own_due(database_url)))
+    except Exception as exc:
+        own = f"own sources failed ({type(exc).__name__})"
     # Each stage's work is committed when it ends: one connection serves the round, and its
     # `transaction()` blocks are only savepoints inside the connection's own transaction, so
     # without these commits a stage's writes (and row locks) would wait for the whole round.
@@ -137,7 +143,8 @@ def _round(database_url: str | None) -> str:
         f"AI-tagged {tagged['tagged']} of {tagged['looked at']}; placed {placed['placed']} "
         f"({placed['new stories']} new stories); merged {merged}; "
         f"placed on the map {located['placed']} of {located['looked at']}; "
-        f"summaries {summaries['published']} published, {summaries['failed']} failed; {note}"
+        f"summaries {summaries['published']} published, {summaries['failed']} failed; {own}; "
+        f"{note}"
     )
 
 

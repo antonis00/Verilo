@@ -3,11 +3,13 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { BriefingForm } from "@/components/briefing-form";
 import { MenuForm } from "@/components/menu-form";
+import { OwnSourcesForm } from "@/components/own-sources-form";
 import { PreferencesForm } from "@/components/preferences-form";
 import { requireReader } from "@/lib/auth";
 import { outlets, topics } from "@/lib/news";
 import { settingsFrom, type SettingsRow } from "@/lib/briefing";
 import { menuTopics } from "@/lib/menu";
+import { ownSources } from "@/lib/own-sources-db";
 import { loadPreferences } from "@/lib/reader-preferences";
 import { trialLine } from "@/lib/trial";
 import { createClient } from "@/lib/supabase/server";
@@ -35,7 +37,7 @@ export default function MyNewsPage() {
 async function Settings() {
   const reader = await requireReader("/my-news");
   const supabase = await createClient();
-  const [saved, topicList, outletList, briefing] = await Promise.all([
+  const [saved, topicList, outletList, briefing, own] = await Promise.all([
     loadPreferences(reader.id),
     topics(),
     outlets(),
@@ -44,6 +46,7 @@ async function Settings() {
       .select("user_id, enabled, send_hour, length, time_zone")
       .eq("user_id", reader.id)
       .maybeSingle<SettingsRow>(),
+    ownSources(),
   ]);
   return (
     <>
@@ -74,6 +77,7 @@ async function Settings() {
       <div className="mt-4">
         <BriefingForm initial={settingsFrom(briefing.data)} />
       </div>
+      <OwnSourcesForm accepted={own.accepted} sources={own.sources} />
       <section
         id="your-data"
         aria-labelledby="your-data-title"
@@ -83,9 +87,9 @@ async function Settings() {
           Your data
         </h2>
         <p className="meta mt-1">
-          Verilo keeps your email address, the choices on this page, the stories you saved and the
-          dates of the briefings it sent you. Nothing else, and nothing is sold or shared for
-          advertising.
+          Verilo keeps your email address, the choices on this page (your own sources too), the
+          stories you saved and the dates of the briefings it sent you. Nothing else, and nothing is
+          sold or shared for advertising.
         </p>
         <p className="mt-4">
           <a href="/api/account/export" download>

@@ -87,6 +87,17 @@ export default function PrivacyPage() {
               </dd>
             </div>
             <div>
+              <dt className="font-semibold">Your own sources</dt>
+              <dd className="mt-1 text-ink-muted">
+                If you add feeds, websites or Telegram channels of your own, we keep their
+                addresses, when you added each, and when you accepted the note about them. Our
+                servers fetch them for you, so those sites see our servers, not you, until you open
+                a link. No other reader can see which sources you follow; our editors can see the
+                addresses readers have added and how many follow each, never who, so they can block
+                unlawful ones. We keep what we fetched from them for 14 days.
+              </dd>
+            </div>
+            <div>
               <dt className="font-semibold">A record of the briefings we send you</dt>
               <dd className="mt-1 text-ink-muted">
                 The date of each briefing and which stories were in it, so a briefing is never sent
@@ -229,6 +240,10 @@ export default function PrivacyPage() {
             <li>Your account and choices: until you delete your account.</li>
             <li>The record of briefings sent: 90 days.</li>
             <li>
+              What we fetched from your own sources: 14 days. A source nobody follows any more is
+              deleted within a day.
+            </li>
+            <li>
               Reports of mistakes: as long as useful for keeping our corrections record; the link to
               your account is removed when you delete it.
             </li>
@@ -294,8 +309,9 @@ export default function PrivacyPage() {
             Other sites
           </h2>
           <p className="mt-3">
-            Stories link to the outlets&rsquo; own articles. Those sites have their own privacy
-            policies, which this one doesn&rsquo;t cover.
+            Stories link to the outlets&rsquo; own articles, and items from your own sources to the
+            sites that published them. Those sites have their own privacy policies, which this one
+            doesn&rsquo;t cover.
           </p>
         </section>
 

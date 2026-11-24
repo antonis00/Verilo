@@ -8,6 +8,7 @@ import type { Outlet, Topic } from "@/lib/news";
 import { type PreferencesInput } from "@/lib/preferences";
 import { REGION_LABEL, REGIONS } from "@/lib/regions";
 import { COUNTRY_LABEL, LEAN_LABEL, TIER_LABEL } from "@/lib/sources";
+import { useReady } from "@/lib/use-ready";
 
 type Props = {
   mode: "wizard" | "settings";
@@ -61,6 +62,7 @@ function Check() {
 export function PreferencesForm({ mode, topics, outlets, initial }: Props) {
   const router = useRouter();
   const [prefs, setPrefs] = useState<PreferencesInput>(initial);
+  const ready = useReady();
   const [step, setStep] = useState(0);
   const [briefing, setBriefing] = useState({ enabled: false, sendHour: 7 });
   const [message, setMessage] = useState<{ kind: "error" | "saved"; text: string } | null>(null);
@@ -129,6 +131,7 @@ export function PreferencesForm({ mode, topics, outlets, initial }: Props) {
   if (mode === "settings") {
     return (
       <form
+        data-ready={ready}
         onSubmit={(e) => {
           e.preventDefault();
           save();
@@ -155,7 +158,7 @@ export function PreferencesForm({ mode, topics, outlets, initial }: Props) {
 
   const last = step === steps.length - 1;
   return (
-    <div>
+    <div data-testid="wizard" data-ready={ready}>
       <div className="flex items-baseline justify-between gap-4">
         <p className="meta">
           Step {step + 1} of {steps.length}

@@ -8,31 +8,36 @@ export async function GET() {
   const reader = await getReader();
   if (!reader) return new NextResponse(null, { status: 401 });
   const db = await createClient();
-  const [profile, preferences, topics, sources, briefing, briefings, saved] = await Promise.all([
-    db
-      .from("profiles")
-      .select("created_at, trial_ends_at, subscribed_until")
-      .eq("id", reader.id)
-      .maybeSingle(),
-    db
-      .from("reader_preferences")
-      .select("regions, show_opinion, show_tier3, onboarded_at")
-      .eq("user_id", reader.id)
-      .maybeSingle(),
-    db.from("reader_topics").select("choice, topics (name)").eq("user_id", reader.id),
-    db.from("reader_sources").select("choice, sources (name)").eq("user_id", reader.id),
-    db
-      .from("digest_settings")
-      .select("enabled, send_hour, length, time_zone, consented_at")
-      .eq("user_id", reader.id)
-      .maybeSingle(),
-    db
-      .from("digests")
-      .select("local_date, status, sent_at, story_ids")
-      .eq("user_id", reader.id)
-      .order("local_date", { ascending: false }),
-    db.from("saved_stories").select("saved_at, stories (title)").eq("user_id", reader.id),
-  ]);
+  const [profile, preferences, topics, sources, briefing, briefings, saved, own] =
+    await Promise.all([
+      db
+        .from("profiles")
+        .select("created_at, trial_ends_at, subscribed_until")
+        .eq("id", reader.id)
+        .maybeSingle(),
+      db
+        .from("reader_preferences")
+        .select("regions, show_opinion, show_tier3, onboarded_at, own_sources_accepted_at")
+        .eq("user_id", reader.id)
+        .maybeSingle(),
+      db.from("reader_topics").select("choice, topics (name)").eq("user_id", reader.id),
+      db.from("reader_sources").select("choice, sources (name)").eq("user_id", reader.id),
+      db
+        .from("digest_settings")
+        .select("enabled, send_hour, length, time_zone, consented_at")
+        .eq("user_id", reader.id)
+        .maybeSingle(),
+      db
+        .from("digests")
+        .select("local_date, status, sent_at, story_ids")
+        .eq("user_id", reader.id)
+        .order("local_date", { ascending: false }),
+      db.from("saved_stories").select("saved_at, stories (title)").eq("user_id", reader.id),
+      db
+        .from("reader_own_sources")
+        .select("added_at, own_sources (kind, url, title)")
+        .eq("user_id", reader.id),
+    ]);
   const body = {
     exported_at: new Date().toISOString(),
     account: { email: reader.email, ...profile.data },
@@ -42,6 +47,7 @@ export async function GET() {
     daily_briefing: briefing.data,
     briefings_sent: briefings.data,
     saved_stories: saved.data,
+    own_sources: own.data,
   };
   return new NextResponse(JSON.stringify(body, null, 2), {
     headers: {

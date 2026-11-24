@@ -20,7 +20,9 @@ def ssl_context() -> ssl.SSLContext:
     return truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
 
 
-def client(transport: httpx.AsyncBaseTransport | None = None) -> httpx.AsyncClient:
+def client(
+    transport: httpx.AsyncBaseTransport | None = None, event_hooks: dict | None = None
+) -> httpx.AsyncClient:
     return httpx.AsyncClient(
         headers={
             "User-Agent": USER_AGENT,
@@ -30,4 +32,5 @@ def client(transport: httpx.AsyncBaseTransport | None = None) -> httpx.AsyncClie
         follow_redirects=True,
         verify=ssl_context(),
         transport=transport,
+        event_hooks=event_hooks,
     )

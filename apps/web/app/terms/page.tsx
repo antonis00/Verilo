@@ -80,6 +80,12 @@ export default function TermsPage() {
             <li>
               Showing an outlet&rsquo;s report doesn&rsquo;t mean we agree with it or vouch for it.
             </li>
+            <li>
+              Sources you add yourself (feeds, websites, Telegram channels) are your choice. We
+              don&rsquo;t check, rate or endorse them, and we keep them out of our summaries. We say
+              an item comes from an outlet only when we have confirmed it; anything else is marked
+              unverified. You read them at your own risk.
+            </li>
           </ul>
           <p className="mt-3">
             If you find a mistake, use &ldquo;Report a mistake&rdquo; on the story; we publish our
@@ -128,6 +134,11 @@ export default function TermsPage() {
             </li>
             <li>request sign-in emails for addresses that aren&rsquo;t yours;</li>
             <li>send false, abusive or unlawful reports through &ldquo;Report a mistake&rdquo;;</li>
+            <li>
+              add as your own source anything unlawful where you or we are, or anything you use to
+              make {SITE_NAME} fetch what it shouldn&rsquo;t; we may block a source, or remove it,
+              without notice;
+            </li>
             <li>use {SITE_NAME} for anything unlawful.</li>
           </ul>
         </section>

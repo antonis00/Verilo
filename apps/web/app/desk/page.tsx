@@ -1,7 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { dismissReport, withdrawSummary } from "./actions";
+import {
+  blockOwnSource,
+  dismissReport,
+  setOwnSourceOutlet,
+  unblockOwnSource,
+  withdrawSummary,
+} from "./actions";
+import { sourceName } from "@/lib/own-sources";
 import { requireEditor } from "@/lib/auth";
 import {
   ago,
@@ -228,6 +235,8 @@ async function Desk() {
       </p>
 
       <Reports reports={reports} now={now} />
+
+      <OwnSourcesDesk outlets={rows.map((r) => ({ id: r.id, name: r.name }))} now={now} />
 
       <div className="mt-10 grid gap-12 lg:grid-cols-12">
         <section aria-labelledby="stories-title" className="lg:col-span-7">
@@ -456,6 +465,139 @@ function Reports({ reports, now }: { reports: Report[]; now: number }) {
                     Dismiss
                   </button>
                 </form>
+              </div>
+            </li>
+          ))}
+        </ol>
+      )}
+    </section>
+  );
+}
+
+type OwnSourceRow = {
+  id: number;
+  kind: "feed" | "telegram";
+  url: string;
+  title: string | null;
+  status: string;
+  last_error: string | null;
+  blocked_reason: string | null;
+  official_source_id: number | null;
+  last_fetched_at: string | null;
+  reader_own_sources: { count: number }[];
+};
+
+// What readers added for themselves: the addresses and how many follow each, never who.
+async function OwnSourcesDesk({
+  outlets,
+  now,
+}: {
+  outlets: { id: number; name: string }[];
+  now: number;
+}) {
+  const { data, error } = await adminClient()
+    .from("own_sources")
+    .select(
+      "id, kind, url, title, status, last_error, blocked_reason, official_source_id, last_fetched_at, reader_own_sources (count)",
+    )
+    .order("created_at", { ascending: false })
+    .limit(200)
+    .returns<OwnSourceRow[]>();
+  if (error) console.error("own sources failed", error.message);
+  const rows = (data ?? [])
+    .map((r) => ({ ...r, followers: r.reader_own_sources[0]?.count ?? 0 }))
+    .sort((a, b) => b.followers - a.followers);
+  return (
+    <section aria-labelledby="own-sources-title" className="mt-10">
+      <h2 id="own-sources-title" className="text-xl">
+        Readers’ own sources
+      </h2>
+      <p className="meta mt-1">
+        Feeds and channels readers added for themselves; only they see them. Block one that breaks
+        the law or the terms (its readers are told why). Mark one an outlet’s own only once you’ve
+        confirmed it, for example from the outlet’s website.
+      </p>
+      {!rows.length ? (
+        <p className="meta mt-3">None yet.</p>
+      ) : (
+        <ol className="mt-4">
+          {rows.map((s) => (
+            <li key={s.id} className="border-t border-rule py-4" data-testid="own-source-row">
+              <p>
+                <a
+                  href={s.url}
+                  rel="noopener noreferrer nofollow"
+                  className="quiet-link font-semibold"
+                >
+                  {sourceName(s)}
+                </a>{" "}
+                <span className="meta">
+                  · {s.kind === "telegram" ? "Telegram" : "feed"} · {s.followers}{" "}
+                  {s.followers === 1 ? "reader" : "readers"} · {s.status}
+                  {s.last_fetched_at ? (
+                    <>
+                      {" "}
+                      · read <time dateTime={s.last_fetched_at}>{ago(s.last_fetched_at, now)}</time>
+                    </>
+                  ) : null}
+                </span>
+              </p>
+              <p className="meta break-all">{s.url}</p>
+              {s.last_error && s.status !== "blocked" ? (
+                <p className="meta">Last error: {s.last_error}</p>
+              ) : null}
+              {s.status === "blocked" ? (
+                <p className="mt-1 border-l-2 border-accent pl-3 text-sm">
+                  Blocked: {s.blocked_reason}
+                </p>
+              ) : null}
+              <div className="mt-2 flex flex-wrap items-end gap-3">
+                <form action={setOwnSourceOutlet} className="flex items-end gap-2">
+                  <input type="hidden" name="source" value={s.id} />
+                  <label className="text-sm">
+                    <span className="block font-semibold">The outlet’s own</span>
+                    <select
+                      name="outlet"
+                      defaultValue={s.official_source_id ?? ""}
+                      className="field mt-1 max-w-56"
+                    >
+                      <option value="">Not confirmed</option>
+                      {outlets.map((o) => (
+                        <option key={o.id} value={o.id}>
+                          {o.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <button type="submit" className="button button-secondary">
+                    Save
+                  </button>
+                </form>
+                {s.status === "blocked" ? (
+                  <form action={unblockOwnSource}>
+                    <input type="hidden" name="source" value={s.id} />
+                    <button type="submit" className="button button-secondary">
+                      Unblock
+                    </button>
+                  </form>
+                ) : (
+                  <form action={blockOwnSource} className="flex flex-wrap items-end gap-2">
+                    <input type="hidden" name="source" value={s.id} />
+                    <label className="text-sm">
+                      <span className="block font-semibold">Reason (its readers see it)</span>
+                      <input
+                        name="reason"
+                        required
+                        minLength={3}
+                        maxLength={500}
+                        className="field mt-1 w-64 max-w-full"
+                      />
+                    </label>
+                    <button type="submit" className="button">
+                      Block
+                    </button>
+                  </form>
+                )}
               </div>
             </li>
           ))}

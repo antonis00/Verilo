@@ -61,6 +61,9 @@ def main(argv: list[str] | None = None) -> int:
     )
     summarize.add_argument("--story", type=int, action="append", help="only this story id")
     summarize.add_argument("--limit", type=int, default=3, help="at most this many stories")
+    commands.add_parser(
+        "own-sources", help="fetch the readers' own sources that are due (the pipeline does too)"
+    )
     pipeline = commands.add_parser(
         "pipeline", help="one round of everything: ingest, enrich, cluster (the normal way to run)"
     )
@@ -75,6 +78,12 @@ def main(argv: list[str] | None = None) -> int:
             pipe.loop()
         else:
             print(pipe.run_round())
+        return 0
+
+    if args.command == "own-sources":
+        from verilo_workers.own.run import describe, fetch_due
+
+        print(describe(asyncio.run(fetch_due())))
         return 0
 
     if args.command == "eval-summaries":
