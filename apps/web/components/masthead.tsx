@@ -47,7 +47,10 @@ export function Masthead() {
         >
           Verilo
         </Link>
-        <p className="meta mt-1 tracking-wide">Your front page, from sources you trust</p>
+        {/* The motto, in capitals by style so screen readers say it as words. */}
+        <p lang="la" className="meta mt-1 tracking-[0.25em] uppercase">
+          Lux veritatis
+        </p>
       </div>
       <Sections />
     </header>

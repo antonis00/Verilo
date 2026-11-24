@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { signIn, uniqueName } from "./sign-in";
+import { signIn, skipWizard, uniqueName } from "./sign-in";
 import { setTrial, userIdFor } from "./supabase-admin";
 
 const inDays = (n: number) => new Date(Date.now() + n * 86_400_000).toISOString();
@@ -9,8 +9,7 @@ test("a new reader's free trial shows in My News, and on the front page near its
 }, info) => {
   const email = `${uniqueName("trial", info.project.name)}@example.com`;
   await signIn(page, email);
-  await page.getByRole("button", { name: "Skip for now" }).click();
-  await expect(page).toHaveURL(/\/$/);
+  await skipWizard(page);
   const notice = page.getByRole("complementary", { name: "Your free trial" });
   await expect(page.getByRole("main")).toBeVisible();
   await expect(notice).toHaveCount(0); // 14 days left: no reminder

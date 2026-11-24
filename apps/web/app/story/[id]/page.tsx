@@ -38,6 +38,15 @@ export async function generateMetadata({ params }: PageProps<"/story/[id]">): Pr
 
 const OUTLETS_SHOWN = 10;
 
+// "17 November": when a story was first reported, so its age is always visible.
+function dayLabel(iso: string): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "long",
+    timeZone: "UTC",
+  }).format(new Date(iso));
+}
+
 // For signed-in readers only; it reads their session, so it streams in on its own.
 async function SaveControl({ storyId }: { storyId: number }) {
   const reader = await getReader();
@@ -151,8 +160,9 @@ async function Story({ params }: Pick<PageProps<"/story/[id]">, "params">) {
       ) : null}
       <h1 className="mt-2 text-3xl md:text-4xl">{card.title}</h1>
       <p className="meta mt-4">
-        Reported by {card.outlet_count} {card.outlet_count === 1 ? "outlet" : "outlets"} · updated{" "}
-        <time dateTime={card.last_published_at}>{ago(card.last_published_at, now)}</time>
+        Reported by {card.outlet_count} {card.outlet_count === 1 ? "outlet" : "outlets"} · first
+        reported <time dateTime={card.first_published_at}>{dayLabel(card.first_published_at)}</time>{" "}
+        · updated <time dateTime={card.last_published_at}>{ago(card.last_published_at, now)}</time>
         {leans.length ? ` · leans: ${leans.map((l) => LEAN_LABEL[l]).join(", ")}` : ""}
       </p>
       {gap ? <p className="meta mt-1">{gap}</p> : null}

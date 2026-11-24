@@ -1,12 +1,11 @@
 import { expect, test } from "@playwright/test";
-import { signIn, uniqueName } from "./sign-in";
+import { signIn, skipWizard, uniqueName } from "./sign-in";
 import { userIdFor } from "./supabase-admin";
 
 test("a reader can download their data and delete their account", async ({ page }, info) => {
   const email = `${uniqueName("account", info.project.name)}@example.com`;
   await signIn(page, email);
-  await page.getByRole("button", { name: "Skip for now" }).click();
-  await expect(page).toHaveURL(/\/$/);
+  await skipWizard(page);
 
   // Their data, as a file: their email and choices, nobody else's.
   const exported = await page.request.get("/api/account/export");

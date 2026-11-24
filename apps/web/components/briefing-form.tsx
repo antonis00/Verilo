@@ -3,6 +3,7 @@
 import { useState, useSyncExternalStore, useTransition } from "react";
 import { saveBriefing } from "@/app/preferences/actions";
 import type { BriefingSettings } from "@/lib/briefing";
+import { useReady } from "@/lib/use-ready";
 
 // "Daily briefing" in My News: on or off, the hour and the length. The hour is in the reader's
 // own time zone, which the browser knows; it's saved with the rest.
@@ -22,6 +23,7 @@ function hourLabel(h: number): string {
 export function BriefingForm({ initial }: { initial: BriefingSettings }) {
   const [settings, setSettings] = useState(initial);
   const [pending, startTransition] = useTransition();
+  const ready = useReady();
   const [message, setMessage] = useState<{ kind: "saved" | "error"; text: string } | null>(null);
 
   // The browser's time zone; null while rendering on the server, which can't know it.
@@ -51,6 +53,7 @@ export function BriefingForm({ initial }: { initial: BriefingSettings }) {
   return (
     <form
       aria-labelledby="briefing-title"
+      data-ready={ready}
       className="border-t border-rule pt-6 pb-8"
       onSubmit={(e) => {
         e.preventDefault();

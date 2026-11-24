@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { signIn, uniqueName } from "./sign-in";
+import { signIn, skipWizard, uniqueName } from "./sign-in";
 import { refreshCaches, removeStory, seedStory } from "./supabase-admin";
 
 test("a reader saves a story and finds it in Saved stories", async ({ page }, info) => {
@@ -9,7 +9,7 @@ test("a reader saves a story and finds it in Saved stories", async ({ page }, in
     const { storyId } = await seedStory(slug, headline);
     await refreshCaches(page.request);
     await signIn(page, `${slug}@example.com`);
-    await page.getByRole("button", { name: "Skip for now" }).click();
+    await skipWizard(page);
     await expect(page).toHaveURL(/\/$/);
 
     await page.goto(`/story/${storyId}`);

@@ -28,3 +28,14 @@ export async function signIn(page: Page, email: string, landing: RegExp = /\/wel
   await page.getByRole("button", { name: "Sign in to Verilo" }).click();
   await expect(page).toHaveURL(landing);
 }
+
+// "Skip for now" in the welcome wizard. The button needs the page's script; under load a click
+// can land before it has loaded, so it's pressed again until the front page opens.
+export async function skipWizard(page: Page) {
+  await expect(async () => {
+    if (/\/welcome$/.test(page.url())) {
+      await page.getByRole("button", { name: "Skip for now" }).click({ timeout: 2000 });
+    }
+    await expect(page).toHaveURL(/\/$/, { timeout: 2000 });
+  }).toPass({ timeout: 20_000 });
+}

@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { saveMenu } from "@/app/preferences/actions";
 import { MENU_MAX, type MenuTopic } from "@/lib/menu";
+import { useReady } from "@/lib/use-ready";
 
 // "Your sections menu" in My News: which topics the bar under the masthead shows, and in which
 // order. Move, remove, add; or go back to the default (followed topics first, then featured).
@@ -21,6 +22,7 @@ export function MenuForm({
   const [isCustom, setIsCustom] = useState(custom);
   const [adding, setAdding] = useState("");
   const [pending, startTransition] = useTransition();
+  const ready = useReady();
   const [message, setMessage] = useState<{ kind: "saved" | "error"; text: string } | null>(null);
 
   const change = (next: number[]) => {
@@ -54,7 +56,11 @@ export function MenuForm({
     });
 
   return (
-    <section aria-labelledby="menu-title" className="border-t border-rule pt-6 pb-8">
+    <section
+      aria-labelledby="menu-title"
+      data-ready={ready}
+      className="border-t border-rule pt-6 pb-8"
+    >
       <h2 id="menu-title" className="text-xl">
         Your sections menu
       </h2>

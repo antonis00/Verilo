@@ -183,6 +183,7 @@ def cluster_pending(
         f"""select {ARTICLE_COLUMNS} from public.articles a
             join public.sources s on s.id = a.source_id
             where a.enriched_at is not null and a.clustered_at is null
+              and a.embedding is not null
               and (%s::bigint[] is null or a.source_id = any(%s::bigint[]))
             order by a.published_at, a.id""",
         (sources, sources),
@@ -330,3 +331,18 @@ def merge_close(
                 _save(conn, big)
                 merges += 1
     return merges
+
+
+def recluster_all(conn: psycopg.Connection, now: datetime | None = None) -> dict[str, int]:
+    """Rebuild every story under the current rules (after changing them, on a development
+    database): stories are deleted, with their summaries, corrections and saved marks, and every
+    article is grouped again. Articles without an embedding (pruned after a week) stay out."""
+    with conn.transaction():
+        conn.execute("update public.articles set story_id = null, clustered_at = null")
+        conn.execute("delete from public.stories")
+    conn.commit()
+    placed = cluster_pending(conn, now)
+    conn.commit()
+    merged = merge_close(conn, now)
+    conn.commit()
+    return {**placed, "merged": merged}
