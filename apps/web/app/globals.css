@@ -255,21 +255,22 @@
     place-items: center;
     width: 2.75rem;
     height: 2.75rem;
-    color: var(--ink-muted);
+    color: var(--ink);
     cursor: pointer;
   }
 
   .theme-toggle:hover {
-    color: var(--ink);
+    color: var(--ink-muted);
   }
 
   .theme-icon {
     grid-area: 1 / 1;
-    width: 1.125rem;
-    height: 1.125rem;
+    /* Drawn smaller inside its box than the cog, so shown larger to look the same size. */
+    width: 1.55rem;
+    height: 1.55rem;
     fill: none;
     stroke: currentColor;
-    stroke-width: 1.5;
+    stroke-width: 1.2;
     stroke-linecap: round;
     stroke-linejoin: round;
     transition:

@@ -22,10 +22,10 @@ export function Masthead() {
               aria-hidden="true"
               focusable="false"
               viewBox="0 0 24 24"
-              className="size-[1.1rem]"
+              className="size-[1.5rem]"
               fill="none"
               stroke="currentColor"
-              strokeWidth="1.7"
+              strokeWidth="1.25"
               strokeLinecap="round"
             >
               <circle cx="11" cy="11" r="6.5" />
