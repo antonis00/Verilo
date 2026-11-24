@@ -16,7 +16,7 @@ export default function YourSourcesPage() {
       <h1 className="mt-2 text-2xl md:text-3xl">From your sources</h1>
       <p className="meta mt-2">
         Feeds and channels you added. Verilo doesn’t check or rate them, and keeps them out of its
-        summaries. <Link href="/my-news#own-sources">Manage your sources</Link>
+        summaries. <Link href="/preferences#own-sources">Manage your sources</Link>
       </p>
       <Suspense fallback={<p className="meta mt-4">Loading…</p>}>
         <Items />
@@ -32,7 +32,7 @@ async function Items() {
     return (
       <p className="mt-6 border-t border-rule pt-6 text-ink-muted">
         You haven’t added any sources yet.{" "}
-        <Link href="/my-news#own-sources">Add a feed or channel</Link>
+        <Link href="/preferences#own-sources">Add a feed or channel</Link>
       </p>
     );
   }

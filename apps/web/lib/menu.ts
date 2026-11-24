@@ -1,6 +1,6 @@
 // The sections menu (the horizontal bar under the masthead). Pure, so the rules are unit-tested.
 //
-// A reader's bar is the topics they follow, in the order they put them in (dragged in My News;
+// A reader's bar is the topics they follow, in the order they put them in (dragged in Preferences;
 // stored in reader_preferences.menu_topics), then the featured topics they neither follow nor
 // leave out. Visitors get the featured topics.
 

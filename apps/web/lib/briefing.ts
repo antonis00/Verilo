@@ -184,7 +184,7 @@ ${section("For you", b.stories)}
 ${section("Everyone should know", b.everyone)}
 <tr><td style="padding:28px 0 0;border-top:1px solid ${C.rule};font:400 12px/1.6 ${SANS};color:${C.muted}">
 Stories are grouped from many outlets; summaries are written by an AI model and checked against the outlets’ reports before they are shown. Each story page links to every report.<br>
-<a href="${links.site}/my-news" style="color:${C.muted}">Change your briefing</a> · <a href="${escapeHtml(links.unsubscribe)}" style="color:${C.muted}">Stop these emails</a>
+<a href="${links.site}/preferences" style="color:${C.muted}">Change your briefing</a> · <a href="${escapeHtml(links.unsubscribe)}" style="color:${C.muted}">Stop these emails</a>
 </td></tr>
 </table></td></tr></table></body></html>`;
   const text = [
@@ -195,7 +195,7 @@ Stories are grouped from many outlets; summaries are written by an AI model and 
     b.everyone.length
       ? `\nEVERYONE SHOULD KNOW\n\n${b.everyone.map((s) => storyText(s, links.site)).join("\n\n")}`
       : "",
-    `\nChange your briefing: ${links.site}/my-news`,
+    `\nChange your briefing: ${links.site}/preferences`,
     `Stop these emails: ${links.unsubscribe}`,
   ]
     .filter(Boolean)

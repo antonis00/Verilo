@@ -5,7 +5,7 @@ import { saveBriefing } from "@/app/preferences/actions";
 import type { BriefingSettings } from "@/lib/briefing";
 import { useReady } from "@/lib/use-ready";
 
-// "Daily briefing" in My News: on or off, the hour and the length, each saved as soon as it's
+// "Daily briefing" in Preferences: on or off, the hour and the length, each saved as soon as it's
 // changed. The hour is in the reader's own time zone, which the browser knows; it's saved too.
 
 const noSubscription = () => () => {};

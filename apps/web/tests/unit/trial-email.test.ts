@@ -9,7 +9,7 @@ describe("trial reminder emails", () => {
     expect(four.subject).toBe("Your Verilo free trial ends in 4 days");
     expect(four.text).toContain("Your free trial ends on 28 November.");
     expect(four.text).toContain("nothing is charged");
-    expect(four.html).toContain('href="https://v.example/my-news"');
+    expect(four.html).toContain('href="https://v.example/preferences"');
     expect(renderTrialEmail("1-day", "28 November", none, "x").subject).toBe(
       "Your Verilo free trial ends tomorrow",
     );

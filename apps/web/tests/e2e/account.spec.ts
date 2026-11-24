@@ -14,7 +14,7 @@ test("a reader can download their data and delete their account", async ({ page 
   expect(data.account.email).toBe(email);
   expect(data.preferences.onboarded_at).toBeTruthy();
 
-  await page.goto("/my-news");
+  await page.goto("/preferences");
   const yourData = page.getByRole("region", { name: "Your data" });
   await yourData.getByText("Delete my account").first().click();
   await yourData.getByLabel(/to confirm/).fill("delete");

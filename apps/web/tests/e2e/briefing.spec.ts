@@ -65,7 +65,7 @@ test("a reader sets the daily briefing, gets it once that morning and stops it f
     await skipWizard(page);
     await expect(page).toHaveURL(/\/$/);
 
-    await page.goto("/my-news");
+    await page.goto("/preferences");
     const form = page.getByRole("form", { name: "Daily briefing" });
     await expect(form).toContainText("Your time (Asia/Qatar)");
     // Off until the reader turns it on.
@@ -122,7 +122,7 @@ test("a reader sets the daily briefing, gets it once that morning and stops it f
 
     expect(await run(at(after, 6))).toMatchObject({ due: 0, sent: 0 });
     expect(await countEmailsTo(email, /^Your \w+ briefing: /)).toBe(1); // only the first morning's
-    await page.goto("/my-news");
+    await page.goto("/preferences");
     await expect(
       page.getByRole("switch", { name: /Send me the daily briefing/ }),
     ).not.toBeChecked();

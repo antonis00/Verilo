@@ -52,6 +52,14 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: "/:path*", headers: SECURITY_HEADERS }];
   },
+  // Preferences were at /my-news, then briefly /settings (Nov 2026); links in emails already
+  // sent still point there.
+  async redirects() {
+    return [
+      { source: "/my-news", destination: "/preferences", permanent: true },
+      { source: "/settings", destination: "/preferences", permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;

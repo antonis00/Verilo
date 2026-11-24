@@ -28,7 +28,7 @@ async function Stop({ searchParams }: Pick<PageProps<"/briefing/stop">, "searchP
         <h1 className="mt-2 text-2xl md:text-3xl">You won’t get the daily briefing</h1>
         <p className="mt-4 text-ink-muted">
           No more briefing emails. You can turn it back on any time in{" "}
-          <Link href="/my-news">My News</Link>.
+          <Link href="/preferences">Preferences</Link>.
         </p>
       </>
     );
@@ -41,7 +41,7 @@ async function Stop({ searchParams }: Pick<PageProps<"/briefing/stop">, "searchP
           {result === "error"
             ? "Something went wrong on our side. Try again in a moment, or turn the briefing off in "
             : "It may have been cut short when it was copied. Turn the briefing off in "}
-          <Link href="/my-news">My News</Link> instead.
+          <Link href="/preferences">Preferences</Link> instead.
         </p>
       </>
     );

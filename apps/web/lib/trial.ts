@@ -34,7 +34,7 @@ export function endDate(iso: string, timeZone?: string): string {
   );
 }
 
-// The quiet line readers see (My News, and the front page near the end of the trial).
+// The quiet line readers see (Preferences, and the front page near the end of the trial).
 export function trialLine(state: TrialState, timeZone?: string): string | null {
   switch (state.kind) {
     case "subscribed":

@@ -5,10 +5,18 @@ function newReader(project: string) {
   return `reader-${project}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.com`;
 }
 
-test("My News sends a signed-out reader to sign in", async ({ page }) => {
-  await page.goto("/my-news");
-  await expect(page).toHaveURL(/\/sign-in\?next=%2Fmy-news$/);
+test("Preferences send a signed-out reader to sign in", async ({ page }) => {
+  await page.goto("/preferences");
+  await expect(page).toHaveURL(/\/sign-in\?next=%2Fpreferences$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Sign in or create an account");
+});
+
+// Links in briefings and emails already sent point to the old address.
+test("the old addresses, /my-news and /settings, lead to Preferences", async ({ page }) => {
+  for (const old of ["/my-news", "/settings"]) {
+    await page.goto(old);
+    await expect(page).toHaveURL(/\/sign-in\?next=%2Fpreferences$/);
+  }
 });
 
 test("a bad email is explained next to the field", async ({ page }) => {
@@ -33,19 +41,19 @@ test("sign in with an emailed link, then sign out", async ({ page }, info) => {
   await page.goto(pathname + search);
   await page.getByRole("button", { name: "Sign in to Verilo" }).click();
 
-  // A new reader lands on the welcome wizard; their account is in My News.
+  // A new reader lands on the welcome wizard; their account is in Preferences.
   await expect(page).toHaveURL(/\/welcome$/);
-  await page.goto("/my-news");
+  await page.goto("/preferences");
   await expect(page.getByText(`Signed in as ${email}`)).toBeVisible();
   await expect(
-    page.getByRole("navigation", { name: "Account" }).getByRole("link", { name: "Settings" }),
+    page.getByRole("navigation", { name: "Account" }).getByRole("link", { name: "Preferences" }),
   ).toBeVisible();
 
   await page.getByRole("button", { name: "Sign out" }).click();
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("navigation", { name: "Account" })).toContainText("Sign in");
 
-  await page.goto("/my-news");
+  await page.goto("/preferences");
   await expect(page).toHaveURL(/\/sign-in/);
 });
 

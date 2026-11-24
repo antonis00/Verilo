@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-// The contents of the settings page. On wide screens a column that stays in view, marking the
+// The contents of the preferences page. On wide screens a column that stays in view, marking the
 // section being read; on a phone a row of links under the title that scrolls sideways.
 
 export const SETTINGS_SECTIONS = [
@@ -44,7 +44,7 @@ export function SettingsIndex() {
   }, []);
 
   return (
-    <nav aria-label="Settings sections" className="lg:sticky lg:top-8">
+    <nav aria-label="Preferences sections" className="lg:sticky lg:top-8">
       <p className="kicker hidden lg:block">On this page</p>
       <ul className="-mx-1 flex gap-1 overflow-x-auto pb-1 lg:mx-0 lg:mt-3 lg:block lg:overflow-visible lg:border-l lg:border-rule lg:pb-0">
         {SETTINGS_SECTIONS.map((s) => {

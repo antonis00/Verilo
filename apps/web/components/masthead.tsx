@@ -87,9 +87,9 @@ async function ReaderLinks() {
       {reader ? (
         // A quiet cog: settings are where the front page, the menu and the briefing are chosen.
         <Link
-          href="/my-news"
-          aria-label="Settings"
-          title="Settings"
+          href="/preferences"
+          aria-label="Preferences"
+          title="Preferences"
           className="quiet-link inline-flex size-11 items-center justify-center"
         >
           <svg

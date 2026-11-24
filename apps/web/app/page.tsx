@@ -100,7 +100,7 @@ function FromYourSources({ children }: { children: ReactNode }) {
 function TrialNotice({ line }: { line: string }) {
   return (
     <aside aria-label="Your free trial" className="mb-8 border-y border-rule py-4 text-sm">
-      {line} <Link href="/my-news">Your account</Link>
+      {line} <Link href="/preferences">Your account</Link>
     </aside>
   );
 }

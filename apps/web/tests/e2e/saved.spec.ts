@@ -19,7 +19,7 @@ test("a reader saves a story and finds it in Saved stories", async ({ page }, in
       "aria-pressed",
       "true",
     );
-    await page.goto("/my-news");
+    await page.goto("/preferences");
     await page.getByRole("link", { name: "Saved stories" }).click();
     await expect(page.getByRole("link", { name: headline })).toBeVisible();
 

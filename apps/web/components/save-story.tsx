@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { toggleSaved } from "@/app/story/[id]/actions";
 
-// "Save" on a story page: keeps it in the reader's Saved list (linked from Settings).
+// "Save" on a story page: keeps it in the reader's Saved list (linked from Preferences).
 export function SaveStory({ storyId, saved }: { storyId: number; saved: boolean }) {
   const [isSaved, setSaved] = useState(saved);
   const [pending, startTransition] = useTransition();

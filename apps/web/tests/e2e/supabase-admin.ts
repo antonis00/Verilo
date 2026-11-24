@@ -232,6 +232,34 @@ export async function sweepTestData() {
     await rest(`sources?id=in.(${ids})`, { method: "DELETE" });
   }
   await rest(`topics?slug=match.${encodeURIComponent(TEST_NAME)}`, { method: "DELETE" });
+  await sweepTestAccounts();
+}
+
+// Test accounts are "<what>-<desktop|phone>-<timestamp>-<random>@example.com" (uniqueName).
+// Deleting one deletes everything kept about it. Other accounts are never touched.
+const TEST_ACCOUNT = /-(desktop|phone)-\d{10,}-[a-z0-9]+@example\.com$/;
+
+async function sweepTestAccounts() {
+  const auth = { apikey: key(), Authorization: `Bearer ${key()}` };
+  const ids: string[] = [];
+  for (let page = 1; ; page++) {
+    const res = await fetch(`${API}/auth/v1/admin/users?page=${page}&per_page=1000`, {
+      headers: auth,
+    });
+    if (!res.ok) throw new Error(`listing accounts: ${res.status}`);
+    const { users } = (await res.json()) as { users: { id: string; email?: string }[] };
+    ids.push(...users.filter((u) => TEST_ACCOUNT.test(u.email ?? "")).map((u) => u.id));
+    if (users.length < 1000) break;
+  }
+  for (let i = 0; i < ids.length; i += 20) {
+    await Promise.all(
+      ids
+        .slice(i, i + 20)
+        .map((id) =>
+          fetch(`${API}/auth/v1/admin/users/${id}`, { method: "DELETE", headers: auth }),
+        ),
+    );
+  }
 }
 
 // Marks a story as merged into another, as the pipeline's merge does.

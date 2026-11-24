@@ -7,7 +7,7 @@ import {
   addOwnSource,
   removeOwnSource,
   type OwnResult,
-} from "@/app/my-news/own-sources-actions";
+} from "@/app/preferences/own-sources-actions";
 import {
   MAX_OWN_SOURCES,
   originLabel,
@@ -17,7 +17,7 @@ import {
 } from "@/lib/own-sources";
 import { useReady } from "@/lib/use-ready";
 
-// "Your own sources" in My News: the notice to accept first, then a field to add a feed,
+// "Your own sources" in Preferences: the notice to accept first, then a field to add a feed,
 // website or Telegram channel, and the list with each one's origin and state. The list comes
 // from the server; each action refreshes it.
 export function OwnSourcesForm({ accepted, sources }: { accepted: boolean; sources: OwnSource[] }) {

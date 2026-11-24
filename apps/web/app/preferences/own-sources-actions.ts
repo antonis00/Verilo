@@ -16,7 +16,7 @@ const FAILED: OwnResult = {
 };
 
 function refresh() {
-  revalidatePath("/my-news");
+  revalidatePath("/preferences");
   revalidatePath("/your-sources");
   revalidatePath("/");
 }

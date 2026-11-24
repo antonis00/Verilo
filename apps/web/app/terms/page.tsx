@@ -103,7 +103,7 @@ export default function TermsPage() {
               An account is for one person. We sign you in by emailing a link, so keep your email
               account secure; anyone with access to it can sign in as you.
             </li>
-            <li>You can delete your account at any time in Settings.</li>
+            <li>You can delete your account at any time in Preferences.</li>
           </ul>
         </section>
 

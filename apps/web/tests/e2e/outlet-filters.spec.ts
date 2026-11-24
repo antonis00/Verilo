@@ -10,7 +10,7 @@ test("settings filter the outlets by reliability and lean", async ({ page }, inf
     await refreshCaches(page.request);
     await signIn(page, `${slug}@example.com`);
     await skipWizard(page);
-    await page.goto("/my-news#settings-outlets");
+    await page.goto("/preferences#settings-outlets");
     await expect(page.locator("form[data-ready=true]").first()).toBeVisible();
     const outlets = page.locator("#settings-outlets");
     const row = (name: string) => outlets.getByRole("listitem").filter({ hasText: name });

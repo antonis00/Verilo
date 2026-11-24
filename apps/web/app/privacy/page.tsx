@@ -47,7 +47,7 @@ export default function PrivacyPage() {
             </li>
             <li>
               You can download everything we keep about you, and delete your account, at any time
-              from <Link href="/my-news">Settings</Link>.
+              from <Link href="/preferences">Preferences</Link>.
             </li>
           </ul>
         </section>
@@ -160,7 +160,7 @@ export default function PrivacyPage() {
             </li>
             <li>
               <span className="font-semibold">Your consent</span>, for the daily briefing email. You
-              can withdraw it at any time, in Settings or from any briefing.
+              can withdraw it at any time, in Preferences or from any briefing.
             </li>
             <li>
               <span className="font-semibold">Our legitimate interests</span> in keeping the service
@@ -266,12 +266,12 @@ export default function PrivacyPage() {
           <ul className="mt-3 list-disc space-y-2 pl-5">
             <li>
               give you a copy of your data (you can also download it yourself in{" "}
-              <Link href="/my-news">Settings</Link>);
+              <Link href="/preferences">Preferences</Link>);
             </li>
             <li>correct it;</li>
-            <li>delete it (you can delete your account yourself in Settings);</li>
+            <li>delete it (you can delete your account yourself in Preferences);</li>
             <li>stop or limit a particular use of it, or object to it;</li>
-            <li>stop the briefing email (one click in any briefing, or in Settings).</li>
+            <li>stop the briefing email (one click in any briefing, or in Preferences).</li>
           </ul>
           <p className="mt-3">
             Write to <Contact />. We will answer within one month, and we may ask you to confirm the

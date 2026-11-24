@@ -168,8 +168,8 @@ test("the welcome wizard saves choices that shape the front page and settings", 
     // The hidden outlet doesn't appear on the card.
     await expect(story).not.toContainText(`${slug}-b`);
 
-    // Settings show the same choices, and saving a change works.
-    await page.goto("/my-news");
+    // Preferences show the same choices, and saving a change works.
+    await page.goto("/preferences");
     const briefingForm = page.getByRole("form", { name: "Daily briefing" });
     await expect(
       briefingForm.getByRole("switch", { name: /Send me the daily briefing/ }),
@@ -221,7 +221,7 @@ test("a reader can skip the wizard and still gets a front page", async ({ page }
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Today’s front page");
 
   // Next time the link goes straight to the front page, not the wizard.
-  await page.getByRole("link", { name: "Settings" }).click();
+  await page.getByRole("link", { name: "Preferences" }).click();
   await page.getByRole("button", { name: "Sign out" }).click();
   await expect(page).toHaveURL(/\/$/);
   await signIn(page, `${slug}@example.com`, /\/$/);

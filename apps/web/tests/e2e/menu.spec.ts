@@ -20,9 +20,9 @@ test("the topics a reader follows, dragged into order, lead the sections bar", a
     // The cog in the masthead opens the settings.
     await page
       .getByRole("navigation", { name: "Account" })
-      .getByRole("link", { name: "Settings" })
+      .getByRole("link", { name: "Preferences" })
       .click();
-    await expect(page).toHaveURL(/\/my-news$/);
+    await expect(page).toHaveURL(/\/preferences$/);
     await expect(page.locator("form[data-ready=true]").first()).toBeVisible();
     const topics = page.locator("#settings-topics");
     const toAdd = topics.getByRole("group", { name: "Topics to follow" });
@@ -71,7 +71,7 @@ test("the topics a reader follows, dragged into order, lead the sections bar", a
     await expect(bar.nth(3)).toHaveText(names[0]);
 
     // The order is kept: settings show it again, and pressing one stops following it.
-    await page.goto("/my-news");
+    await page.goto("/preferences");
     await expect(page.locator("form[data-ready=true]").first()).toBeVisible();
     await expect(mine.getByRole("button")).toHaveText([names[2], names[1], names[0]]);
     await mine.getByRole("button", { name: names[1] }).click();

@@ -3,7 +3,7 @@ import { DEFAULT_AFTER_SIGN_IN, safeNext } from "@/lib/safe-next";
 
 describe("safeNext", () => {
   it("keeps paths on this site", () => {
-    expect(safeNext("/my-news")).toBe("/my-news");
+    expect(safeNext("/preferences")).toBe("/preferences");
     expect(safeNext("/story/123?from=digest")).toBe("/story/123?from=digest");
   });
 
@@ -15,7 +15,7 @@ describe("safeNext", () => {
     "//evil.example",
     "/\\evil.example",
     "javascript:alert(1)",
-    "my-news",
+    "preferences",
     "/a\nb",
     "/a\\b",
     `/${"x".repeat(600)}`,

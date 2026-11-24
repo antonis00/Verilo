@@ -17,7 +17,7 @@ test("a reader adds their own source, reads it apart from Verilo's stories, and 
     await signIn(page, `${slug}@example.com`);
     await skipWizard(page);
 
-    await page.goto("/my-news#own-sources");
+    await page.goto("/preferences#own-sources");
     const section = page.locator("#own-sources[data-ready=true]");
     await expect(section.getByTestId("own-sources-notice")).toContainText(
       "Verilo doesn’t check or rate these sources",
@@ -69,14 +69,14 @@ test("a reader adds their own source, reads it apart from Verilo's stories, and 
     await row.getByRole("button", { name: "Block" }).click();
     await expect(row).toContainText("Blocked: Pretends to be a ferry company");
 
-    await page.goto("/my-news#own-sources");
+    await page.goto("/preferences#own-sources");
     await expect(page.locator("#own-sources")).toContainText(
       "Blocked by Verilo’s editors: Pretends to be a ferry company",
     );
     await page.goto("/your-sources");
     await expect(page.getByRole("link", { name: headline })).toHaveCount(0);
 
-    await page.goto("/my-news#own-sources");
+    await page.goto("/preferences#own-sources");
     await page
       .locator("#own-sources[data-ready=true]")
       .getByRole("button", { name: `Remove Harbour Live` })

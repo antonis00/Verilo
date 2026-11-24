@@ -23,6 +23,7 @@ if (!process.env.SUPABASE_SECRET_KEY) {
 
 export default defineConfig({
   globalSetup: "./tests/e2e/global-setup.ts",
+  globalTeardown: "./tests/e2e/global-teardown.ts",
   testDir: "tests/e2e",
   fullyParallel: true,
   // Locally the app, the database and the browsers share one laptop: more than four browsers at

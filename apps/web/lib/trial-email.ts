@@ -58,7 +58,7 @@ ${lines.map((l) => `<p style="margin:14px 0 0;font:400 16px/1.55 ${SANS};color:$
 <p style="margin:22px 0 0;font:400 15px ${SANS}"><a href="${site}/" style="color:${C.accent}">Read today’s front page</a></p>
 </td></tr>
 <tr><td style="padding:28px 0 0;margin-top:28px;border-top:1px solid ${C.rule};font:400 12px/1.6 ${SANS};color:${C.muted}">
-You’re getting this because you have a Verilo account. <a href="${site}/my-news" style="color:${C.muted}">Settings</a>, where you can also delete your account.
+You’re getting this because you have a Verilo account. <a href="${site}/preferences" style="color:${C.muted}">Preferences</a>, where you can also delete your account.
 </td></tr>
 </table></td></tr></table></body></html>`;
   const text = [
@@ -67,7 +67,7 @@ You’re getting this because you have a Verilo account. <a href="${site}/my-new
     ...lines,
     "",
     `Read today’s front page: ${site}/`,
-    `Settings (and deleting your account): ${site}/my-news`,
+    `Preferences (and deleting your account): ${site}/preferences`,
   ].join("\n");
   return { subject, html, text };
 }

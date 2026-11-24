@@ -12,7 +12,7 @@ import { COUNTRY_LABEL, LEAN_LABEL, TIER_LABEL } from "@/lib/sources";
 import { useReady } from "@/lib/use-ready";
 
 type Props = {
-  mode: "wizard" | "settings";
+  mode: "wizard" | "preferences";
   topics: Topic[];
   outlets: Outlet[];
   initial: PreferencesInput;
@@ -41,7 +41,7 @@ const STEPS = [
   },
 ];
 
-// The wizard's last question; in My News the briefing has its own form.
+// The wizard's last question; in Preferences the briefing has its own form.
 const BRIEFING_STEP = {
   title: "Would you like a morning briefing?",
   hint: "A short email once a day: your top stories, and one or two everyone should know. Off unless you turn it on; stop any time.",
@@ -69,7 +69,7 @@ export function PreferencesForm({ mode, topics, outlets, initial }: Props) {
   const [prefs, setPrefs] = useState<PreferencesInput>(initial);
   // What's saved, to tell whether anything has changed since (settings only).
   const [saved, setSaved] = useState<PreferencesInput>(initial);
-  const dirty = mode === "settings" && JSON.stringify(prefs) !== JSON.stringify(saved);
+  const dirty = mode === "preferences" && JSON.stringify(prefs) !== JSON.stringify(saved);
   const ready = useReady();
   const [step, setStep] = useState(0);
   const [briefing, setBriefing] = useState({ enabled: false, sendHour: 7 });
@@ -104,7 +104,7 @@ export function PreferencesForm({ mode, topics, outlets, initial }: Props) {
   // The save bar mustn't cover the end of the page.
   const barShown = dirty || message !== null;
   useEffect(() => {
-    if (mode !== "settings" || !barShown) return;
+    if (mode !== "preferences" || !barShown) return;
     document.body.style.paddingBottom = "5rem";
     return () => {
       document.body.style.paddingBottom = "";
@@ -113,7 +113,7 @@ export function PreferencesForm({ mode, topics, outlets, initial }: Props) {
 
   // "Saved" goes by itself after a few seconds.
   useEffect(() => {
-    if (mode !== "settings" || message?.kind !== "saved") return;
+    if (mode !== "preferences" || message?.kind !== "saved") return;
     const timer = setTimeout(() => setMessage(null), 5000);
     return () => clearTimeout(timer);
   }, [message, mode]);
@@ -163,7 +163,7 @@ export function PreferencesForm({ mode, topics, outlets, initial }: Props) {
     </p>
   ) : null;
 
-  if (mode === "settings") {
+  if (mode === "preferences") {
     return (
       <form
         data-ready={ready}
@@ -314,7 +314,7 @@ function TopicsStep({
           }))
         }
       />
-      {mode === "settings" ? (
+      {mode === "preferences" ? (
         <div className="mt-8">
           <h3 className="font-sans text-sm font-semibold">Topics to leave out</h3>
           <p className="meta mt-1 mb-3">

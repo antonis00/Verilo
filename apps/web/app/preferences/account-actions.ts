@@ -22,14 +22,14 @@ export async function deleteAccount(form: FormData) {
       .trim()
       .toLowerCase() !== "delete"
   ) {
-    redirect("/my-news?delete=confirm#your-data");
+    redirect("/preferences?delete=confirm#your-data");
   }
   const supabase = await createClient();
   await supabase.auth.signOut();
   const { error } = await adminClient().auth.admin.deleteUser(reader.id);
   if (error) {
     console.error("deleting an account failed", { code: error.code });
-    redirect("/my-news?delete=failed#your-data");
+    redirect("/preferences?delete=failed#your-data");
   }
   redirect("/account-deleted");
 }

@@ -6,7 +6,7 @@ import { setTrial, userIdFor } from "./supabase-admin";
 
 const inDays = (n: number) => new Date(Date.now() + n * 86_400_000).toISOString();
 
-test("a new reader's free trial shows in My News, and on the front page near its end", async ({
+test("a new reader's free trial shows in Preferences, and on the front page near its end", async ({
   page,
 }, info) => {
   const email = `${uniqueName("trial", info.project.name)}@example.com`;
@@ -16,7 +16,7 @@ test("a new reader's free trial shows in My News, and on the front page near its
   await expect(page.getByRole("main")).toBeVisible();
   await expect(notice).toHaveCount(0); // 14 days left: no reminder
 
-  await page.goto("/my-news");
+  await page.goto("/preferences");
   await expect(page.getByTestId("trial")).toHaveText(/^Free trial: 14 days left \(until .+\)\.$/);
 
   // The last days: a quiet line on the front page.
@@ -37,7 +37,7 @@ test("a new reader's free trial shows in My News, and on the front page near its
   await page.goto("/");
   await expect(page.getByRole("main")).toBeVisible();
   await expect(notice).toHaveCount(0);
-  await page.goto("/my-news");
+  await page.goto("/preferences");
   await expect(page.getByTestId("trial")).toHaveCount(0);
 });
 
