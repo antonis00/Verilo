@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { rememberTimeZone, saveBriefing, savePreferences } from "@/app/preferences/actions";
+import { OrderedTopicPicker } from "@/components/ordered-topic-picker";
 import { TopicPicker } from "@/components/topic-picker";
 import type { Outlet, Topic } from "@/lib/news";
 import { type PreferencesInput } from "@/lib/preferences";
@@ -21,7 +22,7 @@ const STEPS = [
   {
     anchor: "topics",
     title: "What do you want to follow?",
-    hint: "Pick five or more for a good start, or search for anything more specific.",
+    hint: "Pick five or more for a good start, or search for anything more specific. Drag them into the order you want.",
   },
   {
     anchor: "places",
@@ -237,15 +238,14 @@ function TopicsStep({
   if (!topics.length) return <p className="text-ink-muted">Topics aren’t available yet.</p>;
   return (
     <>
-      <TopicPicker
+      <OrderedTopicPicker
         topics={topics}
         chosen={prefs.followTopics}
-        label="Topics to follow"
-        onToggle={(id) =>
+        onChange={(next) =>
           setPrefs((p) => ({
             ...p,
-            followTopics: toggle(p.followTopics, id),
-            muteTopics: p.muteTopics.filter((x) => x !== id),
+            followTopics: next,
+            muteTopics: p.muteTopics.filter((x) => !next.includes(x)),
           }))
         }
       />

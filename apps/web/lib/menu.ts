@@ -1,31 +1,30 @@
 // The sections menu (the horizontal bar under the masthead). Pure, so the rules are unit-tested.
 //
-// A reader may choose its sections and their order in My News (reader_preferences.menu_topics).
-// Until they do, it's the topics they follow first, in the order they chose them, then the
-// featured topics. Visitors get the featured topics.
+// A reader's bar is the topics they follow, in the order they put them in (dragged in My News;
+// stored in reader_preferences.menu_topics), then the featured topics they neither follow nor
+// leave out. Visitors get the featured topics.
 
-// The most sections a reader's own menu may hold (the default has every featured topic).
-export const MENU_MAX = 20;
+// The most topics the saved order holds; any followed beyond it come after, in the order chosen.
+export const MENU_MAX = 100;
 
 export type MenuTopic = { id: number; slug: string; name: string; featured: boolean };
 
 export function menuTopics<T extends MenuTopic>(
   topics: T[],
   followed: number[] = [],
-  custom: number[] | null = null,
+  muted: number[] = [],
 ): T[] {
   const byId = new Map(topics.map((t) => [t.id, t]));
-  if (custom) {
-    return custom.map((id) => byId.get(id)).filter((t): t is T => t !== undefined);
-  }
   const chosen = followed.map((id) => byId.get(id)).filter((t): t is T => t !== undefined);
-  const seen = new Set(chosen.map((t) => t.id));
-  return [...chosen, ...topics.filter((t) => t.featured && !seen.has(t.id))];
+  const skip = new Set([...chosen.map((t) => t.id), ...muted]);
+  return [...chosen, ...topics.filter((t) => t.featured && !skip.has(t.id))];
 }
 
-// What a saved menu may hold: known topics, each once, at most MENU_MAX.
-export function checkMenu(raw: unknown, known: Set<number>): number[] | null {
-  if (!Array.isArray(raw) || raw.length > MENU_MAX) return null;
-  if (!raw.every((x) => Number.isInteger(x) && x > 0)) return null;
-  return [...new Set(raw as number[])].filter((id) => known.has(id));
+// The topics followed, in the reader's saved order: those in `order` first, as placed, then any
+// followed since (in the order given).
+export function inOrder(followed: number[], order: number[] | null): number[] {
+  const set = new Set(followed);
+  const placed = (order ?? []).filter((id) => set.has(id));
+  const seen = new Set(placed);
+  return [...new Set([...placed, ...followed.filter((id) => !seen.has(id))])];
 }

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getReader } from "@/lib/auth";
 import { outlets, topics } from "@/lib/news";
 import { isTimeZone } from "@/lib/briefing";
-import { checkMenu } from "@/lib/menu";
+import { MENU_MAX } from "@/lib/menu";
 import { checkPreferences } from "@/lib/preferences";
 import { createClient } from "@/lib/supabase/server";
 
@@ -34,11 +34,19 @@ export async function savePreferences(raw: unknown): Promise<SaveResult> {
     p_follow_sources: v.followSources,
     p_hide_sources: v.hideSources,
   });
+  // The order of the topics followed is the sections bar's order.
+  const order = error
+    ? null
+    : await supabase
+        .from("reader_preferences")
+        .update({ menu_topics: v.followTopics.slice(0, MENU_MAX) })
+        .eq("user_id", reader.id);
+  if (order?.error) console.error("saving the topics' order failed", { code: order.error.code });
   if (error) {
     console.error("saving preferences failed", { code: error.code });
     return { ok: false, message: "We couldn't save your choices just now. Try again in a moment." };
   }
-  revalidatePath("/");
+  revalidatePath("/", "layout");
   return { ok: true };
 }
 
@@ -91,25 +99,4 @@ export async function rememberTimeZone(timeZone: unknown): Promise<void> {
       { user_id: reader.id, time_zone: timeZone },
       { onConflict: "user_id", ignoreDuplicates: true },
     );
-}
-
-// The reader's sections menu: topic ids in order, or null for the default.
-export async function saveMenu(raw: unknown): Promise<SaveResult> {
-  const reader = await getReader();
-  if (!reader) return { ok: false, message: "You're signed out. Sign in again to save." };
-  let menu: number[] | null = null;
-  if (raw !== null) {
-    menu = checkMenu(raw, new Set((await topics()).map((t) => t.id)));
-    if (!menu) return { ok: false, message: "Some choices couldn't be read. Reload the page." };
-  }
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("reader_preferences")
-    .upsert({ user_id: reader.id, menu_topics: menu }, { onConflict: "user_id" });
-  if (error) {
-    console.error("saving the menu failed", { code: error.code });
-    return { ok: false, message: "We couldn't save your menu just now. Try again in a moment." };
-  }
-  revalidatePath("/", "layout");
-  return { ok: true };
 }

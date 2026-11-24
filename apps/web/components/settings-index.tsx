@@ -10,7 +10,6 @@ export const SETTINGS_SECTIONS = [
   { id: "settings-places", label: "Places" },
   { id: "settings-outlets", label: "Outlets" },
   { id: "settings-show", label: "What shows" },
-  { id: "sections-menu", label: "Sections menu" },
   { id: "briefing", label: "Daily briefing" },
   { id: "own-sources", label: "Your own sources" },
   { id: "your-data", label: "Your data" },

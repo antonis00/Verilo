@@ -2,9 +2,11 @@ import { expect, test } from "@playwright/test";
 import { signIn, skipWizard, uniqueName } from "./sign-in";
 import { refreshCaches, removeTopic, seedTopic } from "./supabase-admin";
 
-// Self-contained: the test's own three sections, whatever else the catalog holds (CI starts with
+// Self-contained: the test's own three topics, whatever else the catalog holds (CI starts with
 // none; locally there are the real ones, and parallel tests add and remove their own).
-test("a reader chooses the sections on the menu and their order", async ({ page }, info) => {
+test("the topics a reader follows, dragged into order, lead the sections bar", async ({
+  page,
+}, info) => {
   test.setTimeout(60_000);
   const slug = uniqueName("menu", info.project.name);
   const names = ["A", "B", "C"].map((x) => `Menu ${x} ${slug}`);
@@ -21,36 +23,49 @@ test("a reader chooses the sections on the menu and their order", async ({ page 
       .getByRole("link", { name: "Settings" })
       .click();
     await expect(page).toHaveURL(/\/my-news$/);
-    const form = page.getByRole("region", { name: "Your sections menu" });
-    await expect(form).toHaveAttribute("data-ready", "true");
-    // By default, the featured sections: this test's three among them.
-    for (const name of names) await expect(form.getByText(name, { exact: true })).toBeVisible();
+    await expect(page.locator("form[data-ready=true]").first()).toBeVisible();
+    const topics = page.locator("#settings-topics");
+    const toAdd = topics.getByRole("group", { name: "Topics to follow" });
+    const mine = topics.getByRole("list", { name: "Your topics, in order" });
 
-    // Clear the menu, then add the three in the order C, A, B, and save.
-    const removes = form.getByRole("button", { name: /^Remove / });
-    while ((await removes.count()) > 0) await removes.first().click();
-    const adding = form.getByLabel("Add a section");
-    for (const name of [names[2], names[0], names[1]]) {
-      await adding.selectOption({ label: name });
-      await form.getByRole("button", { name: "Add", exact: true }).click();
-    }
-    // Then B up one place: C, B, A.
-    await form.getByRole("button", { name: `Move ${names[1]} up` }).click();
-    await form.getByRole("button", { name: "Save menu" }).click();
-    await expect(form.getByRole("status")).toHaveText("Saved. Your menu shows these sections now.");
+    // Follow A, B and C: each goes to the end of Your topics.
+    for (const name of names) await toAdd.getByRole("button", { name }).click();
+    await expect(mine.getByRole("button")).toHaveText(names);
 
-    // The bar under the masthead is exactly that, after "Top stories".
+    // Drag C before A: C, A, B. (On screen first: a pointer can only drag what's in view.)
+    await mine.scrollIntoViewIfNeeded();
+    const from = (await mine.getByRole("button", { name: names[2] }).boundingBox())!;
+    const to = (await mine.getByRole("button", { name: names[0] }).boundingBox())!;
+    await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(from.x + from.width / 2 - 20, from.y + from.height / 2, { steps: 4 });
+    await page.mouse.move(to.x + 4, to.y + to.height / 2, { steps: 12 });
+    await page.mouse.up();
+    await expect(mine.getByRole("button")).toHaveText([names[2], names[0], names[1]]);
+
+    // Shift + arrow moves one by keyboard: B before A gives C, B, A.
+    await mine.getByRole("button", { name: names[1] }).focus();
+    await page.keyboard.press("Shift+ArrowLeft");
+    await expect(mine.getByRole("button")).toHaveText([names[2], names[1], names[0]]);
+    await expect(mine.getByRole("button", { name: names[1] })).toBeFocused();
+
+    await page.getByRole("button", { name: "Save changes" }).click();
+    await expect(page.getByRole("status").filter({ hasText: "Saved" })).toBeVisible();
+
+    // The bar under the masthead starts with them, in that order.
     await page.goto("/");
     const bar = page.getByRole("navigation", { name: "Sections" }).getByRole("link");
-    await expect(bar).toHaveText(["Top stories", names[2], names[1], names[0]]);
+    await expect(bar.nth(1)).toHaveText(names[2]);
+    await expect(bar.nth(2)).toHaveText(names[1]);
+    await expect(bar.nth(3)).toHaveText(names[0]);
 
-    // Back to the default: the featured sections again.
+    // The order is kept: settings show it again, and pressing one stops following it.
     await page.goto("/my-news");
-    await expect(form).toHaveAttribute("data-ready", "true");
-    await form.getByRole("button", { name: "Back to the default" }).click();
-    await expect(form.getByRole("status")).toContainText("back to the default");
-    await page.goto("/");
-    for (const name of names) await expect(bar.filter({ hasText: name })).toHaveCount(1);
+    await expect(page.locator("form[data-ready=true]").first()).toBeVisible();
+    await expect(mine.getByRole("button")).toHaveText([names[2], names[1], names[0]]);
+    await mine.getByRole("button", { name: names[1] }).click();
+    await expect(mine.getByRole("button")).toHaveText([names[2], names[0]]);
+    await expect(toAdd.getByRole("button", { name: names[1] })).toBeVisible();
   } finally {
     for (const s of slugs) await removeTopic(s);
   }

@@ -2,14 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { BriefingForm } from "@/components/briefing-form";
-import { MenuForm } from "@/components/menu-form";
 import { OwnSourcesForm } from "@/components/own-sources-form";
 import { PreferencesForm } from "@/components/preferences-form";
 import { SettingsIndex } from "@/components/settings-index";
 import { requireReader } from "@/lib/auth";
 import { outlets, topics } from "@/lib/news";
 import { settingsFrom, type SettingsRow } from "@/lib/briefing";
-import { menuTopics } from "@/lib/menu";
 import { ownSources } from "@/lib/own-sources-db";
 import { loadPreferences } from "@/lib/reader-preferences";
 import { trialLine } from "@/lib/trial";
@@ -75,13 +73,6 @@ async function Settings() {
             topics={topicList}
             outlets={outletList}
             initial={saved.input}
-          />
-        </div>
-        <div className="mt-12">
-          <MenuForm
-            topics={topicList.map(({ id, slug, name, featured }) => ({ id, slug, name, featured }))}
-            initial={menuTopics(topicList, saved.input.followTopics, saved.menu).map((t) => t.id)}
-            custom={saved.menu !== null}
           />
         </div>
         <div className="mt-4">

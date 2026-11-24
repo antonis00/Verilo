@@ -70,7 +70,9 @@ async function ReaderSections({ defaults }: { defaults: NavItem[] }) {
   const reader = await getReader();
   if (!reader) return <TopicNav items={defaults} />;
   const [saved, all] = await Promise.all([loadPreferences(reader.id), topics()]);
-  return <TopicNav items={navItems(menuTopics(all, saved.input.followTopics, saved.menu))} />;
+  return (
+    <TopicNav items={navItems(menuTopics(all, saved.input.followTopics, saved.input.muteTopics))} />
+  );
 }
 
 async function ReaderLinks() {
