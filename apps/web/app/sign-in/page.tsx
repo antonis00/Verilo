@@ -15,6 +15,9 @@ export default function SignInPage({ searchParams }: PageProps<"/sign-in">) {
       <p className="mt-3 text-ink-muted">
         We’ll email you a link. There’s no password to remember.
       </p>
+      <p className="meta mt-2">
+        New here? Your first 14 days are free, with everything included and no card needed.
+      </p>
       <Suspense>
         <LinkProblem searchParams={searchParams} />
       </Suspense>
