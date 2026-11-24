@@ -266,3 +266,22 @@ export async function ownSourceFetched(
 export async function removeOwnSource(url: string) {
   await rest(`own_sources?url=eq.${encodeURIComponent(url)}`, { method: "DELETE" });
 }
+
+// Three outlets, one of each reliability, leaning centre, right and left.
+export async function seedOutlets(slug: string) {
+  await seedSource(`${slug}-fact`, 1, "center");
+  await seedSource(`${slug}-rep`, 2, "lean_right");
+  await seedSource(`${slug}-weak`, 3, "left");
+  return {
+    fact: `Test Outlet ${slug}-fact`,
+    rep: `Test Outlet ${slug}-rep`,
+    weak: `Test Outlet ${slug}-weak`,
+  };
+}
+
+export async function removeOutlets(slug: string) {
+  await rest(`sources?slug=in.(${slug}-fact,${slug}-rep,${slug}-weak)`, {
+    method: "DELETE",
+    prefer: "return=minimal",
+  });
+}

@@ -386,7 +386,7 @@ function Reliability({ tier }: { tier: Outlet["tier"] }) {
         <span
           key={n}
           aria-hidden="true"
-          className={`w-[3px] ${n <= filled ? "bg-ink" : "bg-rule"}`}
+          className={`w-[3px] bg-current ${n <= filled ? "" : "opacity-25"}`}
           style={{ height: `${4 + n * 3}px` }}
         />
       ))}
@@ -406,7 +406,7 @@ function LeanMark({ lean }: { lean: Outlet["lean"] }) {
         <span
           key={l}
           aria-hidden="true"
-          className={i === at ? "size-[7px] bg-ink" : "h-[3px] w-[5px] bg-rule"}
+          className={i === at ? "size-[7px] bg-current" : "h-[3px] w-[5px] bg-current opacity-25"}
         />
       ))}
       <span className="sr-only">{LEAN_LABEL[lean]}</span>
@@ -414,28 +414,65 @@ function LeanMark({ lean }: { lean: Outlet["lean"] }) {
   );
 }
 
-// The key to the marks, above the list of outlets.
-function MarksKey() {
+const TIERS = [1, 2, 3] as const;
+const TIER_SHORT: Record<Outlet["tier"], string> = {
+  1: "Fact base",
+  2: "Reputable",
+  3: "Weaker record",
+};
+
+// Narrowing the outlets list by how much Verilo relies on an outlet and where it leans. Nothing
+// chosen in a row means all of that row; each chip carries its mark, so the chips are the key.
+function OutletFilters({
+  tiers,
+  leans,
+  setTiers,
+  setLeans,
+}: {
+  tiers: Outlet["tier"][];
+  leans: Outlet["lean"][];
+  setTiers: (v: Outlet["tier"][]) => void;
+  setLeans: (v: Outlet["lean"][]) => void;
+}) {
+  const flip = <V,>(list: V[], v: V) =>
+    list.includes(v) ? list.filter((x) => x !== v) : [...list, v];
   return (
-    <p className="meta flex flex-wrap items-center gap-x-5 gap-y-1">
-      <span className="inline-flex items-center gap-1.5">
-        <Reliability tier={1} />
-        <span aria-hidden="true">fact base</span>
-      </span>
-      <span className="inline-flex items-center gap-1.5">
-        <Reliability tier={2} />
-        <span aria-hidden="true">reputable</span>
-      </span>
-      <span className="inline-flex items-center gap-1.5">
-        <Reliability tier={3} />
-        <span aria-hidden="true">weaker record</span>
-      </span>
-      <span className="inline-flex items-center gap-1.5">
-        <span>left</span>
-        <LeanMark lean="center" />
-        <span>right</span>
-      </span>
-    </p>
+    <div className="space-y-3">
+      <div
+        role="group"
+        aria-label="Filter by reliability"
+        className="flex flex-wrap items-center gap-2"
+      >
+        <span className="meta w-full shrink-0 sm:w-20">Reliability</span>
+        {TIERS.map((t) => (
+          <button
+            key={t}
+            type="button"
+            className="chip chip-small"
+            aria-pressed={tiers.includes(t)}
+            onClick={() => setTiers(flip(tiers, t))}
+          >
+            <Reliability tier={t} />
+            <span aria-hidden="true">{TIER_SHORT[t]}</span>
+          </button>
+        ))}
+      </div>
+      <div role="group" aria-label="Filter by lean" className="flex flex-wrap items-center gap-2">
+        <span className="meta w-full shrink-0 sm:w-20">Lean</span>
+        {LEANS.map((l) => (
+          <button
+            key={l}
+            type="button"
+            className="chip chip-small"
+            aria-pressed={leans.includes(l)}
+            onClick={() => setLeans(flip(leans, l))}
+          >
+            <LeanMark lean={l} />
+            <span aria-hidden="true">{LEAN_LABEL[l]}</span>
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -507,6 +544,15 @@ function OutletsStep({
           .filter((r) => prefs.regions.length === 0 || prefs.regions.includes(r)),
       ),
   );
+  const [tiers, setTiers] = useState<Outlet["tier"][]>([]);
+  const [leans, setLeans] = useState<Outlet["lean"][]>([]);
+  const filtering = tiers.length > 0 || leans.length > 0;
+  const matches = (o: Outlet) =>
+    (!tiers.length || tiers.includes(o.tier)) && (!leans.length || leans.includes(o.lean));
+  const shownRegions = byRegion
+    .map(([region, list]) => [region, list.filter(matches)] as const)
+    .filter(([, list]) => list.length > 0);
+  const shownCount = shownRegions.reduce((n, [, list]) => n + list.length, 0);
   const allOpen = byRegion.length > 0 && byRegion.every(([region]) => open.has(region));
   if (!outlets.length) return <p className="text-ink-muted">Outlets aren’t available yet.</p>;
   const set = (id: number, choice: "follow" | "hide") =>
@@ -523,14 +569,10 @@ function OutletsStep({
   const full = (
     <>
       <div className="mb-4 flex items-start justify-between gap-4">
-        <div>
-          <p className="meta">
-            Each outlet shows how much we rely on it and where it leans, the same for every reader.
-          </p>
-          <div className="mt-2">
-            <MarksKey />
-          </div>
-        </div>
+        <p className="meta">
+          Each outlet shows how much we rely on it and where it leans, the same for every reader.
+          Choose below to narrow the list.
+        </p>
         <button
           type="button"
           onClick={() => setOpen(allOpen ? new Set() : new Set(byRegion.map(([region]) => region)))}
@@ -547,10 +589,33 @@ function OutletsStep({
           {allOpen ? "Collapse all" : "Expand all"}
         </button>
       </div>
-      {byRegion.map(([region, list]) => (
+      <OutletFilters tiers={tiers} leans={leans} setTiers={setTiers} setLeans={setLeans} />
+      <p className="meta mt-3 mb-2" aria-live="polite">
+        {filtering ? (
+          <>
+            {shownCount
+              ? `Showing ${shownCount} of ${outlets.length} outlets.`
+              : "No outlet matches both. Choose more in either row."}{" "}
+            <button
+              type="button"
+              className="underline hover:text-ink"
+              onClick={() => {
+                setTiers([]);
+                setLeans([]);
+              }}
+            >
+              Show all
+            </button>
+          </>
+        ) : (
+          `All ${outlets.length} outlets, by region.`
+        )}
+      </p>
+      {/* While filtering, every region with a match is open, so the matches are in view. */}
+      {shownRegions.map(([region, list]) => (
         <details
           key={region}
-          open={open.has(region)}
+          open={filtering || open.has(region)}
           onToggle={(e) => {
             const isOpen = e.currentTarget.open;
             setOpen((current) => {
