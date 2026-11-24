@@ -34,6 +34,7 @@ def _limit(name: str, default: int) -> int:
 
 
 VERDICTS = {"supported", "not_supported", "contradicted"}
+MAX_FAILED_PER_DAY = 2
 
 Complete = Callable[..., object]
 
@@ -41,7 +42,10 @@ Complete = Callable[..., object]
 def _candidates(conn: psycopg.Connection, now: datetime, story_ids: list[int] | None):
     return conn.execute(
         """select st.id, st.outlet_count,
-                  ss.status as last_status, ss.created_at as last_at, ss.article_ids as last_ids
+                  ss.status as last_status, ss.created_at as last_at, ss.article_ids as last_ids,
+                  (select count(*) from public.story_summaries f
+                   where f.story_id = st.id and f.status = 'failed'
+                     and f.created_at > %s - interval '1 day') as failed_recently
            from public.stories st
            left join lateral (
              select status, created_at, article_ids from public.story_summaries
@@ -51,7 +55,7 @@ def _candidates(conn: psycopg.Connection, now: datetime, story_ids: list[int] | 
              and st.last_published_at > %s
              and (%s::bigint[] is null or st.id = any(%s::bigint[]))
            order by st.outlet_count desc, st.last_published_at desc""",
-        (eligibility.MIN_OUTLETS, now - WINDOW, story_ids, story_ids),
+        (now, eligibility.MIN_OUTLETS, now - WINDOW, story_ids, story_ids),
     ).fetchall()
 
 
@@ -76,6 +80,10 @@ def _topics(conn: psycopg.Connection, story_id: int) -> set[str]:
 
 
 def _due(row, articles: list[Article], now: datetime) -> bool:
+    # A story whose summaries keep failing is given a rest (one failed six times in a day, about
+    # 24 model calls, as new reports kept arriving).
+    if row.get("failed_recently", 0) >= MAX_FAILED_PER_DAY:
+        return False
     if row["last_status"] is None:
         return True
     new = [a for a in eligibility.trusted(articles) if a.id not in set(row["last_ids"])]
@@ -84,12 +92,20 @@ def _due(row, articles: list[Article], now: datetime) -> bool:
     return row["last_status"] == "failed" or now - row["last_at"] > RESUMMARISE_AFTER
 
 
-_INLINE_IDS = re.compile(r"\s*[\[(]\s*(A\d+(?:\s*[,;]\s*A\d+)*)\s*[\])]")
+_INLINE_IDS = re.compile(
+    r"\s*[\[(]\s*(?:(?:excerpts?|sources?|see)\s+)?(A\d+(?:\s*(?:[,;]|and)\s*A\d+)*)\s*[\])]",
+    re.IGNORECASE,
+)
+# A bare id typed into a sentence ("as A4 reports", "A1, A3 say").
+_BARE_ID = re.compile(r"(?<![\w-])A\d{1,2}(?![\w-])")
 
 
-def _points(data: dict | None) -> list[dict]:
-    """The draft's points. Excerpt ids a writer put in the text ("... (A1, A4).") move to the
-    point's sources, so readers never see them and they aren't read as names."""
+def _points(data: dict | None, outlets: dict[str, str] | None = None) -> list[dict]:
+    """The draft's points. Excerpt ids a writer put in the text move to the point's sources, so
+    readers never see them and they aren't read as names: "(A1, A4)" is removed, and a bare id
+    in a sentence ("as A4 reports") becomes that excerpt's outlet ("as The Guardian reports").
+    `outlets` maps excerpt ids to outlet names. Invisible characters are removed."""
+    outlets = outlets or {}
     points = (data or {}).get("points")
     if not isinstance(points, list):
         return []
@@ -98,9 +114,16 @@ def _points(data: dict | None) -> list[dict]:
         if isinstance(p, dict):
             sources = list(p["sources"]) if isinstance(p.get("sources"), list) else []
             text = str(p.get("text", ""))
+            text = checks.invisible(text)
             for found in _INLINE_IDS.findall(text):
-                sources += [s for s in re.split(r"\s*[,;]\s*", found) if s not in sources]
-            text = re.sub(r"\s+([.,;])", r"\1", _INLINE_IDS.sub("", text)).strip()
+                ids = re.split(r"\s*(?:[,;]|and)\s*", found, flags=re.IGNORECASE)
+                sources += [s.upper() for s in ids if s.upper() not in sources]
+            text = _INLINE_IDS.sub("", text)
+            for bare in _BARE_ID.findall(text):
+                if bare in outlets and bare not in sources:
+                    sources.append(bare)
+            text = _BARE_ID.sub(lambda m: outlets.get(m.group(), m.group()), text)
+            text = re.sub(r"\s+([.,;])", r"\1", re.sub(r"\s{2,}", " ", text)).strip()
             out.append({"text": text, "sources": sources})
     return out
 
@@ -224,7 +247,7 @@ def summarise(
             record.append((attempt, checks.Check("writer", False, {"error": str(exc)[:500]})))
             break
         facts["writer"] = draft.label
-        points = _points(draft.data)
+        points = _points(draft.data, {pid: a.source for pid, a in by_id.items()})
         facts["draft"] = _with_articles(points, by_id)
         results = checks.run(points, texts)
         if all(c.passed for c in results):
