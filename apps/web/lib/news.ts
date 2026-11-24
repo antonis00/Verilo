@@ -196,3 +196,43 @@ export async function mergedInto(storyId: number): Promise<number | null> {
   }
   return id;
 }
+
+export type SearchResult = {
+  id: number;
+  title: string;
+  last_published_at: string;
+  outlet_count: number;
+  line: string | null;
+};
+
+// Stories matching a reader's words (search_stories: full-text over headlines and excerpts).
+export async function searchStories(query: string): Promise<SearchResult[]> {
+  "use cache";
+  cacheStories();
+  const db = publicClient();
+  const { data: hits, error } = await db.rpc("search_stories", { p_query: query, p_limit: 30 });
+  if (error) {
+    console.error("search failed", error.message);
+    return [];
+  }
+  const ids = ((hits ?? []) as { story_id: number }[]).map((h) => h.story_id);
+  if (!ids.length) return [];
+  const { data } = await db
+    .from("story_cards")
+    .select("id, title, last_published_at, outlet_count, summary, articles")
+    .in("id", ids);
+  const byId = new Map(((data ?? []) as Card[]).map((c) => [c.id, c]));
+  return ids
+    .map((id) => byId.get(id))
+    .filter((c): c is Card => c !== undefined)
+    .map((c) => ({
+      id: c.id,
+      title: c.title,
+      last_published_at: c.last_published_at,
+      outlet_count: c.outlet_count,
+      line:
+        c.summary?.bullets[0]?.text ??
+        c.articles.find((a) => a.kind === "news" && a.snippet)?.snippet ??
+        null,
+    }));
+}
