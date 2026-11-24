@@ -179,3 +179,20 @@ export async function relatedStories(
     later: ((later as { data: { id: number; title: string }[] | null }).data ?? []).slice(0, 5),
   };
 }
+
+// The story a merged story became part of (following a chain of merges), or null.
+export async function mergedInto(storyId: number): Promise<number | null> {
+  "use cache";
+  cacheStories();
+  let id = storyId;
+  for (let hop = 0; hop < 5; hop++) {
+    const { data } = await publicClient()
+      .from("stories")
+      .select("merged_into")
+      .eq("id", id)
+      .maybeSingle();
+    if (!data?.merged_into) return id === storyId ? null : id;
+    id = data.merged_into as number;
+  }
+  return id;
+}
