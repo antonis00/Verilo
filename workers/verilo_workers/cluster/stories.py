@@ -187,6 +187,14 @@ def cluster_pending(
             order by a.published_at, a.id""",
         (sources, sources),
     ).fetchall()
+    # Live blogs, newsletters and roundups cover many events: they join no story.
+    live = [r for r in pending if r["kind"] == "live"]
+    if live:
+        conn.execute(
+            "update public.articles set clustered_at = %s where id = any(%s)",
+            (now, [r["id"] for r in live]),
+        )
+        pending = [r for r in pending if r["kind"] != "live"]
     if not pending:
         return {"placed": 0, "new stories": 0}
 
