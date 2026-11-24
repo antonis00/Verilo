@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { SearchBar } from "@/components/search-bar";
 import { ThemeSwitch } from "@/components/theme-switch";
 import { NavList, SectionsFrame, TopicNav, type NavItem } from "@/components/topic-nav";
 import { getReader } from "@/lib/auth";
@@ -10,28 +11,10 @@ import { loadPreferences } from "@/lib/reader-preferences";
 export function Masthead() {
   return (
     <header className="page pt-4 md:pt-6">
-      <div className="flex min-h-11 items-center justify-end gap-4 text-sm">
+      {/* The top bar: search on the left (it opens across the bar), theme and account on the right. */}
+      <div className="relative flex min-h-11 items-center justify-between gap-4 text-sm">
+        <SearchBar />
         <div className="flex items-center gap-1">
-          <Link
-            href="/search"
-            aria-label="Search"
-            title="Search"
-            className="quiet-link inline-flex size-11 items-center justify-center"
-          >
-            <svg
-              aria-hidden="true"
-              focusable="false"
-              viewBox="0 0 24 24"
-              className="size-[1.5rem]"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.25"
-              strokeLinecap="round"
-            >
-              <circle cx="11" cy="11" r="6.5" />
-              <path d="m20 20-4.2-4.2" />
-            </svg>
-          </Link>
           <ThemeSwitch />
           {/* Reading the session is request-time work, so it streams in without holding up the page. */}
           <Suspense fallback={<span aria-hidden="true" className="min-h-11" />}>
