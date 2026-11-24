@@ -10,6 +10,7 @@ import { requestTime } from "@/lib/request-time";
 import {
   ago,
   COUNTRY_LABEL,
+  coverageGap,
   KIND_LABEL,
   LEAN_LABEL,
   leanSpread,
@@ -119,6 +120,7 @@ async function Story({ params }: Pick<PageProps<"/story/[id]">, "params">) {
         x[0].tier - y[0].tier || (y[0].published_at ?? "").localeCompare(x[0].published_at ?? ""),
     );
   const leans = leanSpread(news.map((a) => a.lean as Lean));
+  const gap = coverageGap(leans, new Set(news.map((a) => a.source_id)).size);
   const topic = card.topic_ids[0];
 
   return (
@@ -132,6 +134,7 @@ async function Story({ params }: Pick<PageProps<"/story/[id]">, "params">) {
         <time dateTime={card.last_published_at}>{ago(card.last_published_at, now)}</time>
         {leans.length ? ` · leans: ${leans.map((l) => LEAN_LABEL[l]).join(", ")}` : ""}
       </p>
+      {gap ? <p className="meta mt-1">{gap}</p> : null}
       {related.earlier ? (
         <p className="meta mt-2">
           Continues an earlier story:{" "}

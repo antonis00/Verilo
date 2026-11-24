@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { leanSpread, summaryReadiness, type Kind, type Lean, type Tier } from "@/lib/sources";
+import {
+  coverageGap,
+  leanSpread,
+  summaryReadiness,
+  type Kind,
+  type Lean,
+  type Tier,
+} from "@/lib/sources";
 
 const art = (id: number, tier: Tier, lean: Lean, kind: Kind = "news") => ({
   kind,
@@ -48,5 +55,15 @@ describe("leanSpread", () => {
       "center",
       "right",
     ]);
+  });
+});
+
+describe("coverageGap", () => {
+  it("names the side of the spectrum no outlet came from, for stories 3+ outlets cover", () => {
+    expect(coverageGap(["lean_left", "center"], 3)).toMatch(/No right-leaning outlet/);
+    expect(coverageGap(["right", "center"], 4)).toMatch(/No left-leaning outlet/);
+    expect(coverageGap(["lean_left", "lean_right"], 3)).toBeNull();
+    expect(coverageGap(["center"], 5)).toBeNull(); // centre only: no side is missing
+    expect(coverageGap(["lean_left"], 2)).toBeNull(); // too few outlets to mean anything
   });
 });

@@ -57,6 +57,18 @@ export function leanSpread(leans: Lean[]): Lean[] {
   return LEAN_ORDER.filter((l) => leans.includes(l));
 }
 
+// The side of the spectrum no news report of a story came from, said plainly on the story page
+// (Nov 2026 review: 45% of summaries had no right-leaning source, none lacked a left one). Only
+// for stories covered by 3 or more outlets, where a gap means something.
+export function coverageGap(leans: Lean[], outlets: number): string | null {
+  if (outlets < 3) return null;
+  const left = leans.some((l) => l === "left" || l === "lean_left");
+  const right = leans.some((l) => l === "right" || l === "lean_right");
+  if (left && !right) return "No right-leaning outlet we follow has reported this story.";
+  if (right && !left) return "No left-leaning outlet we follow has reported this story.";
+  return null;
+}
+
 // The summary rule (CLAUDE.md, Phase 4): only news reports from tier 1–2 outlets count; there
 // must be at least 3 such outlets, at least one of them tier 1, from at least 2 lean groups.
 export const SUMMARY_RULE = { outlets: 3, groups: 2 } as const;
