@@ -117,7 +117,7 @@ export type EmailLinks = {
 
 export type Email = { subject: string; html: string; text: string };
 
-const escapeHtml = (s: string) =>
+export const escapeHtml = (s: string) =>
   s.replace(
     /[&<>"']/g,
     (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!,
@@ -125,15 +125,15 @@ const escapeHtml = (s: string) =>
 
 // Email clients ignore stylesheets and web fonts: inline styles, a table for width, and fonts
 // every device has (Georgia for headlines, the system sans for text). The light theme's colours.
-const C = {
+export const C = {
   paper: "#faf8f3",
   ink: "#151413",
   muted: "#5e5b55",
   rule: "#dcd6ca",
   accent: "#a6261c",
 };
-const SERIF = "Georgia, 'Times New Roman', serif";
-const SANS = "-apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+export const SERIF = "Georgia, 'Times New Roman', serif";
+export const SANS = "-apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
 
 function storyHtml(s: BriefItem, site: string): string {
   const url = `${site}/story/${s.id}`;

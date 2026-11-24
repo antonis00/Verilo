@@ -1,8 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { runBriefings } from "@/lib/briefing-run";
+import { runTrialReminders } from "@/lib/trial-run";
 import { hasBearer } from "@/lib/secrets";
 
-// Sends the daily briefings that are due. The pipeline calls it every 15 minutes with
+// Sends the daily briefings that are due, and the trial reminders (lib/trial-run.ts). The pipeline calls it every 15 minutes with
 // `Authorization: Bearer <BRIEFING_SECRET>`; without that secret the endpoint doesn't exist.
 // Tests may pass {"now": "<ISO time>", "only": ["<user id>"]} to run for a given time and readers.
 export async function POST(request: NextRequest) {
@@ -14,7 +15,8 @@ export async function POST(request: NextRequest) {
   // `now` and `only` are for tests (BRIEFING_TEST_MODE=1); a real run is always now, for everyone.
   if (process.env.BRIEFING_TEST_MODE !== "1") {
     try {
-      return NextResponse.json(await runBriefings());
+      const briefings = await runBriefings();
+      return NextResponse.json({ ...briefings, trial: await runTrialReminders() });
     } catch (error) {
       console.error("briefing run failed", {
         message: error instanceof Error ? error.message : error,
@@ -33,7 +35,8 @@ export async function POST(request: NextRequest) {
     // No body: every reader, now.
   }
   try {
-    return NextResponse.json(await runBriefings({ now, only }));
+    const briefings = await runBriefings({ now, only });
+    return NextResponse.json({ ...briefings, trial: await runTrialReminders({ now, only }) });
   } catch (error) {
     console.error("briefing run failed", {
       message: error instanceof Error ? error.message : error,

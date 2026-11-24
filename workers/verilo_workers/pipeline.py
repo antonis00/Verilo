@@ -61,7 +61,11 @@ def send_briefings() -> str:
         if response.status_code != 200:
             return f"briefings: app said {response.status_code}"
         r = response.json()
-        return f"briefings: {r['sent']} sent, {r['empty']} empty, {r['failed']} failed"
+        trial = r.get("trial") or {}
+        return (
+            f"briefings: {r['sent']} sent, {r['empty']} empty, {r['failed']} failed; "
+            f"trial reminders: {trial.get('sent', 0)} sent"
+        )
     except (httpx.HTTPError, ValueError, KeyError) as exc:
         return f"briefings: app not reachable ({type(exc).__name__})"
 

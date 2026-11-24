@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { signIn, skipWizard, uniqueName } from "./sign-in";
+import { TEST_BRIEFING_SECRET } from "./constants";
+import { countEmailsTo, emailTo } from "./mailpit";
 import { setTrial, userIdFor } from "./supabase-admin";
 
 const inDays = (n: number) => new Date(Date.now() + n * 86_400_000).toISOString();
@@ -37,4 +39,24 @@ test("a new reader's free trial shows in My News, and on the front page near its
   await expect(notice).toHaveCount(0);
   await page.goto("/my-news");
   await expect(page.getByTestId("trial")).toHaveCount(0);
+});
+
+test("a reader gets one reminder 4 days before the trial ends", async ({ page, request }, info) => {
+  const email = `${uniqueName("trial-mail", info.project.name)}@example.com`;
+  await signIn(page, email);
+  await skipWizard(page);
+  const id = await userIdFor(email);
+  await setTrial(id, { trial_ends_at: inDays(3.5) });
+  const run = async () =>
+    (
+      await request.post("/api/briefing/run", {
+        headers: { Authorization: `Bearer ${TEST_BRIEFING_SECRET}` },
+        data: { now: new Date().toISOString(), only: [id] },
+      })
+    ).json();
+  expect((await run()).trial).toEqual({ sent: 1, failed: 0 });
+  expect((await run()).trial).toEqual({ sent: 0, failed: 0 }); // once only
+  const message = await emailTo(email, { subject: /ends in 4 days$/, sentAfter: 0 });
+  expect(message.Text).toContain("nothing is charged");
+  expect(await countEmailsTo(email, /free trial ends/)).toBe(1);
 });
