@@ -8,7 +8,7 @@ export async function GET() {
   const reader = await getReader();
   if (!reader) return new NextResponse(null, { status: 401 });
   const db = await createClient();
-  const [profile, preferences, topics, sources, briefing, briefings] = await Promise.all([
+  const [profile, preferences, topics, sources, briefing, briefings, saved] = await Promise.all([
     db
       .from("profiles")
       .select("created_at, trial_ends_at, subscribed_until")
@@ -31,6 +31,7 @@ export async function GET() {
       .select("local_date, status, sent_at, story_ids")
       .eq("user_id", reader.id)
       .order("local_date", { ascending: false }),
+    db.from("saved_stories").select("saved_at, stories (title)").eq("user_id", reader.id),
   ]);
   const body = {
     exported_at: new Date().toISOString(),
@@ -40,6 +41,7 @@ export async function GET() {
     outlets: sources.data,
     daily_briefing: briefing.data,
     briefings_sent: briefings.data,
+    saved_stories: saved.data,
   };
   return new NextResponse(JSON.stringify(body, null, 2), {
     headers: {

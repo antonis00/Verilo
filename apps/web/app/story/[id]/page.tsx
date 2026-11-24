@@ -4,6 +4,9 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { Suspense } from "react";
 import { StorySummary } from "@/components/story-summary";
 import { ReportMistake } from "@/components/report-mistake";
+import { SaveStory } from "@/components/save-story";
+import { getReader } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
 import { mergedInto, relatedStories, storyCard, storyCorrections, topicNames } from "@/lib/news";
 import type { CardArticle } from "@/lib/feed";
 import { requestTime } from "@/lib/request-time";
@@ -34,6 +37,24 @@ export async function generateMetadata({ params }: PageProps<"/story/[id]">): Pr
 }
 
 const OUTLETS_SHOWN = 10;
+
+// For signed-in readers only; it reads their session, so it streams in on its own.
+async function SaveControl({ storyId }: { storyId: number }) {
+  const reader = await getReader();
+  if (!reader) return null;
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("saved_stories")
+    .select("story_id")
+    .eq("user_id", reader.id)
+    .eq("story_id", storyId)
+    .maybeSingle();
+  return (
+    <p className="mt-3">
+      <SaveStory storyId={storyId} saved={Boolean(data)} />
+    </p>
+  );
+}
 
 function OutletReports({ reports }: { reports: CardArticle[] }) {
   const [a, ...more] = reports;
@@ -135,6 +156,9 @@ async function Story({ params }: Pick<PageProps<"/story/[id]">, "params">) {
         {leans.length ? ` · leans: ${leans.map((l) => LEAN_LABEL[l]).join(", ")}` : ""}
       </p>
       {gap ? <p className="meta mt-1">{gap}</p> : null}
+      <Suspense fallback={null}>
+        <SaveControl storyId={card.id} />
+      </Suspense>
       {related.earlier ? (
         <p className="meta mt-2">
           Continues an earlier story:{" "}

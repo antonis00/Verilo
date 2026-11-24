@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
 import { BriefingForm } from "@/components/briefing-form";
 import { MenuForm } from "@/components/menu-form";
@@ -47,7 +48,8 @@ async function Settings() {
   return (
     <>
       <p className="mt-3 text-ink-muted">
-        Signed in as <span className="font-semibold text-ink">{reader.email}</span>
+        Signed in as <span className="font-semibold text-ink">{reader.email}</span> ·{" "}
+        <Link href="/saved">Saved stories</Link>
       </p>
       {trialLine(reader.trial, settingsFrom(briefing.data).timeZone) ? (
         <p className="meta mt-1" data-testid="trial">
@@ -81,8 +83,9 @@ async function Settings() {
           Your data
         </h2>
         <p className="meta mt-1">
-          Verilo keeps your email address, the choices on this page and the dates of the briefings
-          it sent you. Nothing else, and nothing is sold or shared for advertising.
+          Verilo keeps your email address, the choices on this page, the stories you saved and the
+          dates of the briefings it sent you. Nothing else, and nothing is sold or shared for
+          advertising.
         </p>
         <p className="mt-4">
           <a href="/api/account/export" download>
