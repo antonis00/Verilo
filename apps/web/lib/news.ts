@@ -32,6 +32,8 @@ const SINGLE_HOURS = 12;
 const CARD_COLUMNS =
   "id, title, first_published_at, last_published_at, article_count, outlet_count, articles, topic_ids, summary, follows, places";
 
+// From story_cards_brief: one report per outlet, excerpts trimmed (migration 28); story pages
+// read the full story_cards.
 export async function candidateCards(): Promise<Card[]> {
   "use cache";
   cacheStories();
@@ -39,7 +41,7 @@ export async function candidateCards(): Promise<Card[]> {
   const db = publicClient();
   const [shared, single] = await Promise.all([
     db
-      .from("story_cards")
+      .from("story_cards_brief")
       .select(CARD_COLUMNS)
       .gte("last_published_at", hoursAgo(CANDIDATE_HOURS))
       .gte("outlet_count", 2)
@@ -47,7 +49,7 @@ export async function candidateCards(): Promise<Card[]> {
       .order("last_published_at", { ascending: false })
       .limit(SHARED_CANDIDATES),
     db
-      .from("story_cards")
+      .from("story_cards_brief")
       .select(CARD_COLUMNS)
       .gte("last_published_at", hoursAgo(SINGLE_HOURS))
       .eq("outlet_count", 1)
@@ -170,9 +172,13 @@ export async function relatedStories(
   const db = publicClient();
   const [earlier, later] = await Promise.all([
     follows
-      ? db.from("story_cards").select("id, title").eq("id", follows).maybeSingle()
+      ? db.from("story_cards_brief").select("id, title").eq("id", follows).maybeSingle()
       : Promise.resolve({ data: null }),
-    db.from("story_cards").select("id, title").eq("follows", storyId).order("first_published_at"),
+    db
+      .from("story_cards_brief")
+      .select("id, title")
+      .eq("follows", storyId)
+      .order("first_published_at"),
   ]);
   return {
     earlier: (earlier.data as { id: number; title: string } | null) ?? null,
@@ -218,7 +224,7 @@ export async function searchStories(query: string): Promise<SearchResult[]> {
   const ids = ((hits ?? []) as { story_id: number }[]).map((h) => h.story_id);
   if (!ids.length) return [];
   const { data } = await db
-    .from("story_cards")
+    .from("story_cards_brief")
     .select("id, title, last_published_at, outlet_count, summary, articles")
     .in("id", ids);
   const byId = new Map(((data ?? []) as Card[]).map((c) => [c.id, c]));
