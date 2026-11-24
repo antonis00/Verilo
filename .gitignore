@@ -22,3 +22,7 @@ Thumbs.db
 
 # Notes for the coding assistant: kept on the developer's machine, not published.
 CLAUDE.md
+# Internal documents (design, style guide, AI coding notes): kept on the developer's machine.
+docs/design.md
+docs/style-guide.md
+apps/web/AGENTS.md
