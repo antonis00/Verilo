@@ -131,7 +131,10 @@ test("the welcome wizard saves choices that shape the front page and settings", 
     await page.getByRole("button", { name: "Europe", exact: true }).click();
     await page.getByRole("button", { name: "Next" }).click();
 
-    // Step 3: outlets, grouped by region; Europe is open because it was chosen.
+    // Step 3: a short list of well-known outlets, and all of them by region under a fold, where
+    // Europe is open because it was chosen. (CI has no real outlets: then it's the full list.)
+    const allOutlets = page.getByText(/^All \d+ outlets, by region$/);
+    if (await allOutlets.count()) await allOutlets.click();
     await page.getByRole("button", { name: `Follow Test Outlet ${slug}-a` }).click();
     await page.getByRole("button", { name: `Hide Test Outlet ${slug}-b` }).click();
     await expect(page.getByRole("button", { name: `Hide Test Outlet ${slug}-b` })).toHaveAttribute(

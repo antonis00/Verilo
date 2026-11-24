@@ -105,7 +105,7 @@ export function PreferencesForm({ mode, topics, outlets, initial }: Props) {
   const sections = [
     <TopicsStep key="topics" topics={topics} prefs={prefs} setPrefs={setPrefs} mode={mode} />,
     <PlacesStep key="places" prefs={prefs} setPrefs={setPrefs} />,
-    <OutletsStep key="outlets" outlets={outlets} prefs={prefs} setPrefs={setPrefs} />,
+    <OutletsStep key="outlets" outlets={outlets} prefs={prefs} setPrefs={setPrefs} mode={mode} />,
     <ShowStep key="show" prefs={prefs} setPrefs={setPrefs} />,
   ];
   const steps = mode === "wizard" ? [...STEPS, BRIEFING_STEP] : STEPS;
@@ -282,7 +282,72 @@ function PlacesStep({ prefs, setPrefs }: StepProps) {
   );
 }
 
-function OutletsStep({ outlets, prefs, setPrefs }: StepProps & { outlets: Outlet[] }) {
+// Well-known outlets from across the spectrum, offered first in the welcome wizard so the step
+// takes seconds; every outlet is in the full list below them, and in settings.
+const POPULAR_OUTLETS = [
+  "BBC News",
+  "The New York Times",
+  "The Guardian",
+  "Fox News",
+  "NPR",
+  "The Wall Street Journal",
+  "Financial Times",
+  "The Economist",
+  "The Telegraph",
+  "CNN",
+  "Al Jazeera English",
+  "DW (Deutsche Welle)",
+];
+
+function OutletRow({
+  outlet: o,
+  prefs,
+  set,
+}: {
+  outlet: Outlet;
+  prefs: PreferencesInput;
+  set: (id: number, choice: "follow" | "hide") => void;
+}) {
+  return (
+    <li className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-1.5">
+      <span>
+        <span className="text-sm font-semibold">{o.name}</span>
+        <span className="meta ml-2">
+          {COUNTRY_LABEL[o.country] ?? o.country} · {TIER_LABEL[o.tier]} · {LEAN_LABEL[o.lean]}
+        </span>
+      </span>
+      <span className="flex gap-2">
+        <button
+          type="button"
+          className="chip chip-small"
+          aria-pressed={prefs.followSources.includes(o.id)}
+          aria-label={`Follow ${o.name}`}
+          onClick={() => set(o.id, "follow")}
+        >
+          <Check />
+          Follow
+        </button>
+        <button
+          type="button"
+          className="chip chip-small"
+          aria-pressed={prefs.hideSources.includes(o.id)}
+          aria-label={`Hide ${o.name}`}
+          onClick={() => set(o.id, "hide")}
+        >
+          <Check />
+          Hide
+        </button>
+      </span>
+    </li>
+  );
+}
+
+function OutletsStep({
+  outlets,
+  prefs,
+  setPrefs,
+  mode,
+}: StepProps & { outlets: Outlet[]; mode: Props["mode"] }) {
   // Grouped by region, in the order regions are offered.
   const byRegion = useMemo(() => {
     const order: string[] = [...REGIONS.map((r) => r.code), "international"];
@@ -309,12 +374,15 @@ function OutletsStep({ outlets, prefs, setPrefs }: StepProps & { outlets: Outlet
       if (!was.includes(id)) (choice === "follow" ? follow : hide).push(id);
       return { ...p, followSources: follow, hideSources: hide };
     });
-  return (
+  const popular = POPULAR_OUTLETS.map((name) => outlets.find((o) => o.name === name)).filter(
+    (o): o is Outlet => o !== undefined,
+  );
+  const full = (
     <>
       <div className="mb-4 flex items-start justify-between gap-4">
         <p className="meta">
-          Each outlet shows how much we rely on it (fact base, reputable, labelled) and where it
-          leans. Those labels are the same for every reader.
+          Each outlet shows how much we rely on it (fact base, reputable, lower reliability) and
+          where it leans. Those labels are the same for every reader.
         </p>
         <button
           type="button"
@@ -354,44 +422,30 @@ function OutletsStep({ outlets, prefs, setPrefs }: StepProps & { outlets: Outlet
           </summary>
           <ul className="mt-2">
             {list.map((o) => (
-              <li
-                key={o.id}
-                className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-1.5"
-              >
-                <span>
-                  <span className="text-sm font-semibold">{o.name}</span>
-                  <span className="meta ml-2">
-                    {COUNTRY_LABEL[o.country] ?? o.country} · {TIER_LABEL[o.tier]} ·{" "}
-                    {LEAN_LABEL[o.lean]}
-                  </span>
-                </span>
-                <span className="flex gap-2">
-                  <button
-                    type="button"
-                    className="chip chip-small"
-                    aria-pressed={prefs.followSources.includes(o.id)}
-                    aria-label={`Follow ${o.name}`}
-                    onClick={() => set(o.id, "follow")}
-                  >
-                    <Check />
-                    Follow
-                  </button>
-                  <button
-                    type="button"
-                    className="chip chip-small"
-                    aria-pressed={prefs.hideSources.includes(o.id)}
-                    aria-label={`Hide ${o.name}`}
-                    onClick={() => set(o.id, "hide")}
-                  >
-                    <Check />
-                    Hide
-                  </button>
-                </span>
-              </li>
+              <OutletRow key={o.id} outlet={o} prefs={prefs} set={set} />
             ))}
           </ul>
         </details>
       ))}
+    </>
+  );
+  if (mode !== "wizard" || !popular.length) return full;
+  return (
+    <>
+      <p className="meta mb-3">
+        Optional: every outlet is included unless you hide it. Here are some of the best known.
+      </p>
+      <ul className="border-t border-rule pt-2">
+        {popular.map((o) => (
+          <OutletRow key={o.id} outlet={o} prefs={prefs} set={set} />
+        ))}
+      </ul>
+      <details className="mt-4 border-t border-rule pt-3">
+        <summary className="cursor-pointer font-semibold">
+          All {outlets.length} outlets, by region
+        </summary>
+        <div className="mt-3">{full}</div>
+      </details>
     </>
   );
 }
