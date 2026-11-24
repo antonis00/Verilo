@@ -26,3 +26,6 @@ CLAUDE.md
 docs/design.md
 docs/style-guide.md
 apps/web/AGENTS.md
+
+# Output of start.ps1
+logs/

@@ -1,7 +1,7 @@
 """Keeping only what is needed, once a day (`pipeline` runs it; `python -m verilo_workers prune`).
 
-- Article embeddings older than EMBEDDING_DAYS are dropped: grouping looks back 72 hours, and an
-  embedding is half an article's row (Nov 2026: about 2 GB a year without this).
+- Article embeddings older than EMBEDDING_DAYS are dropped: grouping reaches back about 9 days,
+  and an embedding is half an article's row (Nov 2026: about 2 GB a year without this).
 - Stories with a single article older than SINGLE_STORY_DAYS are deleted (most stories have one
   article; nobody looks for them later). Their article stays.
 - Summary check logs older than CHECK_DAYS are deleted (the summaries themselves stay).
@@ -13,7 +13,7 @@ from datetime import UTC, datetime, timedelta
 
 import psycopg
 
-EMBEDDING_DAYS = 7
+EMBEDDING_DAYS = 10  # longer than grouping can still reach back (a 3-day story, 6 days ago)
 SINGLE_STORY_DAYS = 30
 CHECK_DAYS = 90
 BRIEFING_DAYS = 90

@@ -206,6 +206,7 @@ def cluster_pending(
             join public.sources s on s.id = a.source_id
             join public.stories st on st.id = a.story_id
             where st.merged_into is null and st.last_published_at >= %s
+              and a.embedding is not null
               and (%s::bigint[] is null or a.source_id = any(%s::bigint[]))""",
         (earliest, sources, sources),
     ).fetchall()
@@ -288,6 +289,7 @@ def merge_close(
             join public.sources s on s.id = a.source_id
             join public.stories st on st.id = a.story_id
             where st.merged_into is null and st.last_published_at >= %s
+              and a.embedding is not null
               and (%s::bigint[] is null or a.source_id = any(%s::bigint[]))""",
         (now - WINDOW, sources, sources),
     ).fetchall()

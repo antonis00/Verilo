@@ -318,3 +318,15 @@ def test_the_title_prefers_a_plain_report_over_a_why_headline(conn):
         (SLUGS,),
     ).fetchall()
     assert {t["title"] for t in titles} == {"Leaders meet in Geneva"}
+
+
+def test_grouping_skips_articles_whose_embedding_was_pruned(conn):
+    base = unit(RNG.normal(size=384))
+    old = add(conn, "test-story-wire", "Storm hits coast", base, 30)
+    cluster_pending(conn, NOW - timedelta(hours=29), sources=list(ids(conn).values()))
+    conn.execute("update public.articles set embedding = null where id = %s", (old,))
+    new = add(conn, "test-story-paper", "Storm damage counted", near(base, 0.95), 2)
+    conn.commit()
+    # Used to fail: the pruned article's missing embedding broke the arithmetic.
+    cluster_pending(conn, NOW, sources=list(ids(conn).values()))
+    assert story_of(conn, new) is not None
