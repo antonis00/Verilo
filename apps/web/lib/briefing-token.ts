@@ -2,10 +2,12 @@ import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 // The token in a briefing's "Stop these emails" link: an HMAC of the reader's id with
-// BRIEFING_SECRET, so the link works without signing in but can't be made up for someone else.
+// UNSUBSCRIBE_SECRET, so the link works without signing in but can't be made up for someone else.
+// Its own secret, apart from BRIEFING_SECRET (which lets the pipeline run the briefings): one
+// leaking or being changed doesn't affect the other. Changing it breaks links already sent.
 function secret(): string {
-  const s = process.env.BRIEFING_SECRET;
-  if (!s || s.length < 16) throw new Error("BRIEFING_SECRET is not set (16+ characters).");
+  const s = process.env.UNSUBSCRIBE_SECRET;
+  if (!s || s.length < 16) throw new Error("UNSUBSCRIBE_SECRET is not set (16+ characters).");
   return s;
 }
 
