@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { SignInForm } from "./sign-in-form";
@@ -17,6 +18,10 @@ export default function SignInPage({ searchParams }: PageProps<"/sign-in">) {
       </p>
       <p className="meta mt-2">
         New here? Your first 14 days are free, with everything included and no card needed.
+      </p>
+      <p className="meta mt-1">
+        We keep only your email address and the choices you make.{" "}
+        <Link href="/privacy">Privacy</Link>
       </p>
       <Suspense>
         <LinkProblem searchParams={searchParams} />

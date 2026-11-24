@@ -19,3 +19,6 @@ supabase/.temp/
 .DS_Store
 Thumbs.db
 .vscode/
+
+# Notes for the coding assistant: kept on the developer's machine, not published.
+CLAUDE.md

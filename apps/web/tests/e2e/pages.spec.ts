@@ -4,6 +4,7 @@ import { expect, test } from "@playwright/test";
 const PAGES = [
   { path: "/", h1: "Today’s front page" },
   { path: "/about", h1: "One story per event, not ten copies of the same article" },
+  { path: "/privacy", h1: "Privacy policy" },
   { path: "/sign-in", h1: "Sign in or create an account" },
   { path: "/no-such-page", h1: "There’s no page at this address" },
 ];
