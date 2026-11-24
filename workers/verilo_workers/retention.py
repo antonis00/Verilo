@@ -29,15 +29,21 @@ def prune(conn: psycopg.Connection, now: datetime | None = None) -> dict[str, in
                where embedding is not null and coalesce(published_at, fetched_at) < %s""",
             (days(EMBEDDING_DAYS),),
         ).rowcount
-        counts["single-article stories"] = conn.execute(
-            """delete from public.stories
+        # Repeated: a story kept because another follows it can go once that one has gone.
+        counts["single-article stories"] = 0
+        for _ in range(10):
+            deleted = conn.execute(
+                """delete from public.stories
                where article_count <= 1 and merged_into is null and last_published_at < %s
                  and not exists (select 1 from public.corrections c where c.story_id = stories.id)
                  and not exists (select 1 from public.stories f where f.follows = stories.id)
                  and not exists (select 1 from public.saved_stories v
                                  where v.story_id = stories.id)""",
-            (days(SINGLE_STORY_DAYS),),
-        ).rowcount
+                (days(SINGLE_STORY_DAYS),),
+            ).rowcount
+            counts["single-article stories"] += deleted
+            if not deleted:
+                break
         counts["summary checks"] = conn.execute(
             "delete from public.summary_checks where created_at < %s", (days(CHECK_DAYS),)
         ).rowcount

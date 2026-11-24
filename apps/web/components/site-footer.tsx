@@ -21,6 +21,9 @@ export function SiteFooter() {
           <Link href="/privacy" className="quiet-link">
             Privacy
           </Link>
+          <Link href="/terms" className="quiet-link">
+            Terms
+          </Link>
         </nav>
       </div>
     </footer>

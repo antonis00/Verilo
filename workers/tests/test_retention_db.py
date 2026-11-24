@@ -22,6 +22,10 @@ def test_old_embeddings_stories_and_logs_go_and_recent_ones_stay():
             """select count(*) filter (where embedding is not null) as embedded,
                       count(*) as articles from public.articles"""
         ).fetchone()
+        # The running pipeline may add stories meanwhile: only those that existed are checked.
+        last_id = conn.execute("select coalesce(max(id), 0) as m from public.stories").fetchone()[
+            "m"
+        ]
         counts = prune(conn, now)
         after = conn.execute(
             """select count(*) filter (where embedding is not null) as embedded,
@@ -31,9 +35,12 @@ def test_old_embeddings_stories_and_logs_go_and_recent_ones_stay():
         assert counts["embeddings"] == counts_before["embedded"]
         assert after["articles"] == counts_before["articles"]  # articles themselves stay
         assert not conn.execute(
-            """select 1 from public.stories where article_count <= 1 and merged_into is null
+            """select 1 from public.stories where id <= %s and article_count <= 1
+               and merged_into is null
                and not exists (select 1 from public.corrections c where c.story_id = stories.id)
                and not exists (select 1 from public.stories f where f.follows = stories.id)
-               limit 1"""
+               and not exists (select 1 from public.saved_stories v where v.story_id = stories.id)
+               limit 1""",
+            (last_id,),
         ).fetchone()
         conn.rollback()

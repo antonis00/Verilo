@@ -20,8 +20,8 @@ export default function SignInPage({ searchParams }: PageProps<"/sign-in">) {
         New here? Your first 14 days are free, with everything included and no card needed.
       </p>
       <p className="meta mt-1">
-        We keep only your email address and the choices you make.{" "}
-        <Link href="/privacy">Privacy</Link>
+        By signing in, you agree to the <Link href="/terms">terms of use</Link>. We keep only your
+        email address and the choices you make: see the <Link href="/privacy">privacy policy</Link>.
       </p>
       <Suspense>
         <LinkProblem searchParams={searchParams} />
