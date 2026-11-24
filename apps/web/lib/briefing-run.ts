@@ -1,13 +1,5 @@
 import "server-only";
-import type { SupabaseClient } from "@supabase/supabase-js";
-import {
-  buildBriefing,
-  isDue,
-  renderEmail,
-  settingsFrom,
-  type BriefingSettings,
-  type SettingsRow,
-} from "@/lib/briefing";
+import { buildBriefing, renderEmail } from "@/lib/briefing";
 import { unsubscribeToken } from "@/lib/briefing-token";
 import { rank } from "@/lib/feed";
 import { mailConfigured, send } from "@/lib/mailer";
@@ -17,98 +9,105 @@ import { loadPreferences } from "@/lib/reader-preferences";
 import { adminClient } from "@/lib/supabase/admin";
 
 // Sends the briefings that are due. Called every 15 minutes by the pipeline (POST
-// /api/briefing/run). For each onboarded reader whose local hour has come (lib/briefing.ts
-// isDue), claim today's row in `digests` first: the unique (reader, day) key means a briefing is
-// sent at most once a day, even if two runs overlap. Then rank their stories, build and send.
+// /api/briefing/run). The database works out who is due (due_briefings: opted in, onboarded,
+// their local hour has come, today's briefing not yet sent), a page at a time, with each
+// reader's email. Each briefing is claimed first (claim_briefing: one row per reader per local
+// day, so never sent twice; a failed or stuck send is tried again, up to 3 times). Readers are
+// sent a few at a time, and a run stops after TIME_BUDGET_MS; the next run carries on.
 
 export type RunResult = { due: number; sent: number; empty: number; failed: number };
 
+const PAGE = 100;
+const CONCURRENCY = 5;
+const TIME_BUDGET_MS = 50_000;
+
+type Due = { user_id: string; email: string; send_length: "short" | "full"; local_date: string };
+
 function siteUrl(): string {
   return (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3001").replace(/\/+$/, "");
+}
+
+// What went wrong, as a short code: the raw SMTP error can quote the reader's address.
+export function errorCode(error: unknown): string {
+  const text = error instanceof Error ? error.message : String(error);
+  if (/ECONNREFUSED|ETIMEDOUT|ENOTFOUND|socket|connect/i.test(text)) return "smtp-unreachable";
+  if (/\b5\d\d\b/.test(text)) return "smtp-rejected";
+  if (/\b4\d\d\b/.test(text)) return "smtp-deferred";
+  return "error";
 }
 
 export async function runBriefings(
   options: { now?: number; only?: string[] } = {},
 ): Promise<RunResult> {
   const now = options.now ?? Date.now();
+  const started = Date.now();
   const result: RunResult = { due: 0, sent: 0, empty: 0, failed: 0 };
   const db = adminClient();
-
-  let readersQuery = db
-    .from("reader_preferences")
-    .select("user_id")
-    .not("onboarded_at", "is", null);
-  if (options.only) readersQuery = readersQuery.in("user_id", options.only);
-  const readers = await readersQuery;
-  if (readers.error) throw new Error(`readers: ${readers.error.message}`);
-  const ids = (readers.data ?? []).map((r) => r.user_id as string);
-  if (!ids.length) return result;
-
-  // The whole table (one small row per reader who changed a setting), not filtered by the
-  // readers' ids: a list of every reader's id makes the request address too long.
-  let settingsQuery = db
-    .from("digest_settings")
-    .select("user_id, enabled, send_hour, length, time_zone");
-  if (options.only) settingsQuery = settingsQuery.in("user_id", options.only);
-  const settings = await settingsQuery.returns<SettingsRow[]>();
-  if (settings.error) throw new Error(`settings: ${settings.error.message}`);
-  const byUser = new Map((settings.data ?? []).map((s) => [s.user_id, s]));
-
-  const due = ids
-    .map((id) => ({ id, settings: settingsFrom(byUser.get(id)) }))
-    .map((r) => ({ ...r, ...isDue(r.settings, now) }))
-    .filter((r) => r.due);
-  if (!due.length) return result;
   if (!mailConfigured()) {
-    console.error("briefings due but SMTP_HOST is not set; nothing sent");
-    return { ...result, due: due.length };
+    const { data } = await db.rpc("due_briefings", {
+      p_now: new Date(now).toISOString(),
+      p_only: options.only ?? null,
+      p_limit: 1,
+    });
+    if (data?.length) console.error("briefings due but SMTP_HOST is not set; nothing sent");
+    return result;
   }
 
-  const [cards, names] = await Promise.all([candidateCards(), topicNames()]);
-  for (const reader of due) {
-    // Claim today's briefing; a reader already claimed (sent, or another run) is skipped.
-    const claim = await db
-      .from("digests")
-      .insert({ user_id: reader.id, local_date: reader.date, status: "sending" })
-      .select("id")
-      .single();
-    if (claim.error) continue;
-    result.due += 1;
-    const finish = (fields: Record<string, unknown>) =>
-      db.from("digests").update(fields).eq("id", claim.data.id);
-    try {
-      await sendOne(db, reader.id, reader.settings, reader.date, now, cards, names, finish, result);
-    } catch (error) {
-      result.failed += 1;
-      const message = error instanceof Error ? error.message : String(error);
-      console.error("briefing failed", { message });
-      await finish({ status: "failed", error: message.slice(0, 500) });
+  let cards: Awaited<ReturnType<typeof candidateCards>> | null = null;
+  let names = new Map<number, string>();
+  const seen = new Set<string>();
+  while (Date.now() - started < TIME_BUDGET_MS) {
+    const page = await db.rpc("due_briefings", {
+      p_now: new Date(now).toISOString(),
+      p_only: options.only ?? null,
+      p_limit: PAGE,
+    });
+    if (page.error) throw new Error(`due readers: ${page.error.message}`);
+    // Readers this run already tried (and that may be due again for a retry) are left for the
+    // next run, so one run never loops on the same reader.
+    const due = ((page.data ?? []) as Due[]).filter((r) => !seen.has(r.user_id));
+    if (!due.length) break;
+    if (!cards) [cards, names] = await Promise.all([candidateCards(), topicNames()]);
+    for (let i = 0; i < due.length; i += CONCURRENCY) {
+      await Promise.all(
+        due.slice(i, i + CONCURRENCY).map(async (reader) => {
+          seen.add(reader.user_id);
+          const claim = await db.rpc("claim_briefing", {
+            p_user: reader.user_id,
+            p_date: reader.local_date,
+          });
+          if (claim.error || claim.data === null) return;
+          result.due += 1;
+          const finish = (fields: Record<string, unknown>) =>
+            db.from("digests").update(fields).eq("id", claim.data);
+          try {
+            await sendOne(reader, now, cards!, names, finish, result);
+          } catch (error) {
+            result.failed += 1;
+            const code = errorCode(error);
+            console.error("briefing failed", { code });
+            await finish({ status: "failed", error: code });
+          }
+        }),
+      );
+      if (Date.now() - started >= TIME_BUDGET_MS) break;
     }
   }
   return result;
 }
 
 async function sendOne(
-  db: SupabaseClient,
-  userId: string,
-  settings: BriefingSettings,
-  date: string,
+  reader: Due,
   now: number,
   cards: Awaited<ReturnType<typeof candidateCards>>,
   names: Map<number, string>,
   finish: (fields: Record<string, unknown>) => PromiseLike<unknown>,
   result: RunResult,
 ) {
-  const [{ input }, user] = await Promise.all([
-    loadPreferences(userId, db),
-    db.auth.admin.getUserById(userId),
-  ]);
-  const email = user.data.user?.email;
-  if (!email) throw new Error("the reader has no email address");
-
+  const { input } = await loadPreferences(reader.user_id, adminClient());
   const briefing = buildBriefing(
     rank(cards, toRanking(input), now, { topicNames: names }),
-    settings.length,
+    reader.send_length,
     names,
   );
   if (!briefing.stories.length && !briefing.everyone.length) {
@@ -117,20 +116,25 @@ async function sendOne(
     return;
   }
   const site = siteUrl();
-  const unsubscribe = `${site}/briefing/stop?u=${userId}&t=${unsubscribeToken(userId)}`;
-  const dateLabel = new Intl.DateTimeFormat("en-GB", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    timeZone: "UTC",
-  }).format(new Date(`${date}T12:00:00Z`));
-  const message = renderEmail(briefing, dateLabel, { site, unsubscribe });
+  const token = unsubscribeToken(reader.user_id);
+  const unsubscribe = `${site}/briefing/stop?u=${reader.user_id}&t=${token}`;
+  const day = new Date(`${reader.local_date}T12:00:00Z`);
+  const fmt = (o: Intl.DateTimeFormatOptions) =>
+    new Intl.DateTimeFormat("en-GB", { ...o, timeZone: "UTC" }).format(day);
+  const message = renderEmail(
+    briefing,
+    {
+      label: fmt({ weekday: "long", day: "numeric", month: "long" }),
+      weekday: fmt({ weekday: "long" }),
+    },
+    { site, unsubscribe },
+  );
   await send({
-    to: email,
+    to: reader.email,
     ...message,
     // One-click unsubscribe in the mail app itself (RFC 8058), which Gmail and Yahoo expect.
     headers: {
-      "List-Unsubscribe": `<${site}/api/briefing/unsubscribe?u=${userId}&t=${unsubscribeToken(userId)}>`,
+      "List-Unsubscribe": `<${site}/api/briefing/unsubscribe?u=${reader.user_id}&t=${token}>`,
       "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
     },
   });

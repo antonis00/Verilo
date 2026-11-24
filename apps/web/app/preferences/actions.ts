@@ -66,6 +66,8 @@ export async function saveBriefing(raw: unknown): Promise<SaveResult> {
       send_hour: hour,
       length: r.length,
       time_zone: r.timeZone,
+      // Turning it on is the reader's consent to the email; when they agreed is kept.
+      ...(r.enabled ? { consented_at: new Date().toISOString() } : {}),
     },
     { onConflict: "user_id" },
   );

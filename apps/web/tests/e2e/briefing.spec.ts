@@ -49,6 +49,10 @@ test("a reader sets the daily briefing, gets it once that morning and stops it f
     await page.goto("/my-news");
     const form = page.getByRole("form", { name: "Daily briefing" });
     await expect(form).toContainText("Your time (Asia/Qatar)");
+    // Off until the reader turns it on.
+    const toggle = form.getByRole("switch", { name: /Send me the daily briefing/ });
+    await expect(toggle).not.toBeChecked();
+    await toggle.check();
     await form.getByLabel("Time", { exact: true }).selectOption({ label: "6 am" });
     await form.getByLabel(/^Full/).check();
     await form.getByRole("button", { name: "Save briefing" }).click();
@@ -73,7 +77,7 @@ test("a reader sets the daily briefing, gets it once that morning and stops it f
     expect(await run(at(tomorrow, 6))).toMatchObject({ due: 1, sent: 1 }); // 06:30
     expect(await run(at(tomorrow, 7))).toMatchObject({ due: 0, sent: 0 }); // once a day
 
-    const message = await emailTo(email, { subject: /^Your briefing: /, sentAfter });
+    const message = await emailTo(email, { subject: /^Your \w+ briefing: /, sentAfter });
     expect(message.HTML).toContain(headline);
     expect(message.Text).toContain("FOR YOU");
 
@@ -96,7 +100,7 @@ test("a reader sets the daily briefing, gets it once that morning and stops it f
     );
 
     expect(await run(at(after, 6))).toMatchObject({ due: 0, sent: 0 });
-    expect(await countEmailsTo(email, /^Your briefing: /)).toBe(1); // only the first morning's
+    expect(await countEmailsTo(email, /^Your \w+ briefing: /)).toBe(1); // only the first morning's
     await page.goto("/my-news");
     await expect(
       page.getByRole("switch", { name: /Send me the daily briefing/ }),

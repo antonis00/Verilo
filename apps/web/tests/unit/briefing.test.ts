@@ -2,41 +2,15 @@ import { describe, expect, it } from "vitest";
 import {
   buildBriefing,
   DEFAULT_BRIEFING,
-  isDue,
   isTimeZone,
-  localTime,
   renderEmail,
   settingsFrom,
   type Briefing,
 } from "@/lib/briefing";
 import type { Card, CardArticle, Ranked } from "@/lib/feed";
 
-const at = (iso: string) => Date.parse(iso);
-
-describe("when a briefing is due", () => {
-  it("reads the reader's own date and hour", () => {
-    // 04:30 UTC is 07:30 in Qatar and still the day before in New York.
-    expect(localTime(at("2026-11-20T04:30:00Z"), "Asia/Qatar")).toEqual({
-      date: "2026-11-20",
-      hour: 7,
-    });
-    expect(localTime(at("2026-11-20T04:30:00Z"), "America/New_York")).toEqual({
-      date: "2026-11-19",
-      hour: 23,
-    });
-  });
-
-  it("is due from the chosen hour for three hours, never in the afternoon", () => {
-    const qatar = { ...DEFAULT_BRIEFING, timeZone: "Asia/Qatar" };
-    expect(isDue(qatar, at("2026-11-20T03:59:00Z")).due).toBe(false); // 06:59
-    expect(isDue(qatar, at("2026-11-20T04:00:00Z"))).toEqual({ due: true, date: "2026-11-20" });
-    expect(isDue(qatar, at("2026-11-20T06:59:00Z")).due).toBe(true); // 09:59
-    expect(isDue(qatar, at("2026-11-20T07:00:00Z")).due).toBe(false); // 10:00
-    // A reader who finished the wizard at 4 pm gets nothing until the next morning.
-    expect(isDue(qatar, at("2026-11-20T13:00:00Z")).due).toBe(false);
-    expect(isDue({ ...qatar, enabled: false }, at("2026-11-20T04:30:00Z")).due).toBe(false);
-  });
-
+// Who is due is decided in the database: workers/tests/test_briefing_db.py.
+describe("briefing settings", () => {
   it("accepts only real time zones and falls back to the defaults", () => {
     expect(isTimeZone("Europe/London")).toBe(true);
     expect(isTimeZone("Mars/Olympus")).toBe(false);
@@ -140,8 +114,8 @@ describe("renderEmail", () => {
   };
 
   it("leads the subject with the top story and escapes what outlets wrote", () => {
-    const email = renderEmail(briefing, "Friday 20 November", links);
-    expect(email.subject).toBe("Your briefing: Rates <held> & steady");
+    const email = renderEmail(briefing, { label: "Friday 20 November", weekday: "Friday" }, links);
+    expect(email.subject).toBe("Your Friday briefing: Rates <held> & steady");
     expect(email.html).toContain("Rates &lt;held&gt; &amp; steady");
     expect(email.html).not.toContain("<held>");
     expect(email.html).toContain('href="https://verilo.example/story/1"');
@@ -151,7 +125,11 @@ describe("renderEmail", () => {
   });
 
   it("has a plain-text version with every link", () => {
-    const { text } = renderEmail(briefing, "Friday 20 November", links);
+    const { text } = renderEmail(
+      briefing,
+      { label: "Friday 20 November", weekday: "Friday" },
+      links,
+    );
     expect(text).toContain("FOR YOU");
     expect(text).toContain("https://verilo.example/story/1");
     expect(text).toContain("Stop these emails: https://verilo.example/briefing/stop?u=1&t=x");

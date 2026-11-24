@@ -115,7 +115,7 @@ test("the welcome wizard saves choices that shape the front page and settings", 
     expect(await axe(page)).toEqual([]);
 
     // Step 1: topics. Featured ones are chips; others are found by searching.
-    await expect(page.getByText("Step 1 of 4")).toBeVisible();
+    await expect(page.getByText("Step 1 of 5")).toBeVisible();
     const topicChip = page.getByRole("button", { name: topicName });
     await expect(topicChip).toHaveCount(0);
     await page.getByRole("searchbox", { name: "Search topics to follow" }).fill(`alias-${slug}`);
@@ -143,6 +143,14 @@ test("the welcome wizard saves choices that shape the front page and settings", 
     // Step 4: what to show.
     await page.getByRole("switch", { name: /Opinion pieces/ }).uncheck();
     expect(await axe(page)).toEqual([]);
+    await page.getByRole("button", { name: "Next" }).click();
+
+    // Step 5: the morning briefing, off unless the reader turns it on.
+    const briefing = page.getByRole("switch", { name: /email me a daily briefing/ });
+    await expect(briefing).not.toBeChecked();
+    await briefing.check();
+    await page.getByLabel("Time", { exact: true }).selectOption({ label: "8 am" });
+    expect(await axe(page)).toEqual([]);
     await page.getByRole("button", { name: "Show my front page" }).click();
 
     // The personal front page: no invitation, and the followed story says why it's there.
@@ -158,6 +166,11 @@ test("the welcome wizard saves choices that shape the front page and settings", 
 
     // Settings show the same choices, and saving a change works.
     await page.goto("/my-news");
+    const briefingForm = page.getByRole("form", { name: "Daily briefing" });
+    await expect(
+      briefingForm.getByRole("switch", { name: /Send me the daily briefing/ }),
+    ).toBeChecked();
+    await expect(briefingForm.getByLabel("Time", { exact: true })).toHaveValue("8");
     await expect(page.getByRole("button", { name: topicName }).first()).toHaveAttribute(
       "aria-pressed",
       "true",

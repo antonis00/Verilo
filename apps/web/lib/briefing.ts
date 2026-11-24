@@ -17,8 +17,9 @@ export type BriefingSettings = {
   timeZone: string;
 };
 
+// Off until the reader turns it on (opt-in, with consent recorded).
 export const DEFAULT_BRIEFING: BriefingSettings = {
-  enabled: true,
+  enabled: false,
   sendHour: 7,
   length: "short",
   timeZone: "UTC",
@@ -42,9 +43,9 @@ export function settingsFrom(row: SettingsRow | null | undefined): BriefingSetti
   };
 }
 
-// How long after the chosen hour a briefing may still go out (a late run, the laptop asleep).
-// Past it, that day's briefing is skipped rather than arriving in the afternoon.
-export const SEND_WINDOW_HOURS = 3;
+// Who is due is worked out in the database (due_briefings, migration 16): opted in, onboarded,
+// their local hour from send_hour to 3 hours after (later than that, the day is skipped, so a
+// briefing never arrives in the afternoon), and not yet sent that local day.
 
 export const STORY_COUNT: Record<BriefingLength, number> = { short: 5, full: 10 };
 export const EVERYONE_COUNT: Record<BriefingLength, number> = { short: 1, full: 2 };
@@ -58,29 +59,6 @@ export function isTimeZone(value: unknown): value is string {
   } catch {
     return false;
   }
-}
-
-// The reader's local date ("2026-11-20") and hour (0–23) at `now`.
-export function localTime(now: number, timeZone: string): { date: string; hour: number } {
-  const parts = Object.fromEntries(
-    new Intl.DateTimeFormat("en-CA", {
-      timeZone,
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      hourCycle: "h23",
-    })
-      .formatToParts(new Date(now))
-      .map((p) => [p.type, p.value]),
-  );
-  return { date: `${parts.year}-${parts.month}-${parts.day}`, hour: Number(parts.hour) };
-}
-
-export function isDue(s: BriefingSettings, now: number): { due: boolean; date: string } {
-  const { date, hour } = localTime(now, s.timeZone);
-  const due = s.enabled && hour >= s.sendHour && hour < s.sendHour + SEND_WINDOW_HOURS;
-  return { due, date };
 }
 
 export type BriefItem = {
@@ -179,9 +157,17 @@ function storyText(s: BriefItem, site: string): string {
     .join("\n");
 }
 
-export function renderEmail(b: Briefing, dateLabel: string, links: EmailLinks): Email {
+// The day: "Tuesday 24 November" and "Tuesday".
+export type BriefingDay = { label: string; weekday: string };
+
+export function renderEmail(b: Briefing, day: BriefingDay, links: EmailLinks): Email {
   const lead = b.stories[0] ?? b.everyone[0];
-  const subject = lead ? `Your briefing: ${lead.headline}` : "Your Verilo briefing";
+  const more = b.stories.length + b.everyone.length - 1;
+  // The day and the top story, and how many more: what an inbox shows before opening.
+  const subject = lead
+    ? `Your ${day.weekday} briefing: ${lead.headline}${more > 0 ? ` + ${more} more` : ""}`
+    : "Your Verilo briefing";
+  const dateLabel = day.label;
   const section = (title: string, items: BriefItem[]) =>
     items.length
       ? `<tr><td style="padding:28px 0 4px;font:700 13px ${SANS};letter-spacing:.06em;text-transform:uppercase;color:${C.ink}">${title}</td></tr>${items.map((s) => storyHtml(s, links.site)).join("")}`
