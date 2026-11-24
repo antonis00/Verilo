@@ -4,6 +4,7 @@ import { getReader } from "@/lib/auth";
 import { clientIp } from "@/lib/client-ip";
 import { allow } from "@/lib/rate-limit";
 import { adminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 
 export type ReportState = { ok: boolean; message: string } | null;
 
@@ -44,4 +45,22 @@ export async function reportMistake(_prev: ReportState, form: FormData): Promise
     return { ok: false, message: "We couldn't send that just now. Try again in a moment." };
   }
   return { ok: true, message: "Thank you. An editor will check it." };
+}
+
+// Save a story for later, or take it off the list. Signed-in readers only; their own rows.
+export async function toggleSaved(storyId: number, save: boolean): Promise<boolean> {
+  const reader = await getReader();
+  if (!reader || !Number.isInteger(storyId) || storyId <= 0) return false;
+  const supabase = await createClient();
+  const { error } = save
+    ? await supabase
+        .from("saved_stories")
+        .upsert({ user_id: reader.id, story_id: storyId }, { onConflict: "user_id,story_id" })
+    : await supabase
+        .from("saved_stories")
+        .delete()
+        .eq("user_id", reader.id)
+        .eq("story_id", storyId);
+  if (error) console.error("saving a story failed", { code: error.code });
+  return !error;
 }

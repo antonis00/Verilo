@@ -33,7 +33,9 @@ def prune(conn: psycopg.Connection, now: datetime | None = None) -> dict[str, in
             """delete from public.stories
                where article_count <= 1 and merged_into is null and last_published_at < %s
                  and not exists (select 1 from public.corrections c where c.story_id = stories.id)
-                 and not exists (select 1 from public.stories f where f.follows = stories.id)""",
+                 and not exists (select 1 from public.stories f where f.follows = stories.id)
+                 and not exists (select 1 from public.saved_stories v
+                                 where v.story_id = stories.id)""",
             (days(SINGLE_STORY_DAYS),),
         ).rowcount
         counts["summary checks"] = conn.execute(
