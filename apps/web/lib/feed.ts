@@ -35,6 +35,7 @@ export type Card = {
   topic_ids: number[];
   summary: Summary | null;
   follows?: number | null; // the earlier story this one continues
+  places?: string[] | null; // where the story happens (regions, or "global"); null: not tagged
 };
 
 // A checked AI summary (Phase 4): points, each citing the articles it was drawn from.
@@ -139,9 +140,7 @@ export function score(
   const sourceHit = visible.find((a) => followedSources.has(a.source_id));
   const regions = new Set(p.regions);
   const bySource = new Map(visible.map((a) => [a.source_id, a]));
-  const placesShare = regions.size
-    ? [...bySource.values()].filter((a) => regions.has(a.region)).length / bySource.size
-    : 0;
+  const placesShare = placesScore(card, [...bySource.values()], regions);
   const reliability =
     [...bySource.values()].reduce((sum, a) => sum + TIER_WEIGHT[a.tier], 0) / bySource.size;
 
@@ -255,4 +254,16 @@ export function rankTopic(
     .sort((a, b) => b.score - a.score || b.outlets - a.outlets)
     .slice(0, TOPIC_PAGE_LIMIT);
   return { top, alsoImportant: [] };
+}
+
+// How much a story is about the places a reader chose: where it happens when the story has been
+// placed (a "global" story counts half), else, for stories not yet placed, the share of its
+// outlets based in those places.
+export function placesScore(card: Card, outlets: CardArticle[], regions: Set<string>): number {
+  if (!regions.size) return 0;
+  if (card.places?.length) {
+    if (card.places.some((r) => regions.has(r))) return 1;
+    return card.places.includes("global") ? 0.5 : 0;
+  }
+  return outlets.length ? outlets.filter((a) => regions.has(a.region)).length / outlets.length : 0;
 }

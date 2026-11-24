@@ -25,6 +25,14 @@ export const REGION_LABEL: Record<string, string> = Object.fromEntries(
 
 export const REGION_CODES = new Set<string>(REGIONS.map((r) => r.code));
 
+// Where a story happens, for display: "Middle East", "Europe and Middle East", "Global".
+export function placeLabel(places: string[] | null | undefined): string | null {
+  if (!places?.length) return null;
+  const names = places.map((p) => (p === "global" ? "Global" : (REGION_LABEL[p] ?? null)));
+  const known = names.filter((n): n is string => n !== null);
+  return known.length ? known.join(" and ") : null;
+}
+
 export const COUNTRY_LABEL: Record<string, string> = {
   US: "US",
   CA: "Canada",

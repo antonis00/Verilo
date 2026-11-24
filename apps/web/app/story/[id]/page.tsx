@@ -9,6 +9,7 @@ import { getReader } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { mergedInto, relatedStories, storyCard, storyCorrections, topicNames } from "@/lib/news";
 import type { CardArticle } from "@/lib/feed";
+import { placeLabel } from "@/lib/regions";
 import { requestTime } from "@/lib/request-time";
 import {
   ago,
@@ -160,6 +161,7 @@ async function Story({ params }: Pick<PageProps<"/story/[id]">, "params">) {
       ) : null}
       <h1 className="mt-2 text-3xl md:text-4xl">{card.title}</h1>
       <p className="meta mt-4">
+        {placeLabel(card.places) ? `${placeLabel(card.places)} · ` : ""}
         Reported by {card.outlet_count} {card.outlet_count === 1 ? "outlet" : "outlets"} · first
         reported <time dateTime={card.first_published_at}>{dayLabel(card.first_published_at)}</time>{" "}
         · updated <time dateTime={card.last_published_at}>{ago(card.last_published_at, now)}</time>

@@ -30,7 +30,7 @@ const SHARED_CANDIDATES = 400;
 const SINGLE_CANDIDATES = 150;
 const SINGLE_HOURS = 12;
 const CARD_COLUMNS =
-  "id, title, first_published_at, last_published_at, article_count, outlet_count, articles, topic_ids, summary, follows";
+  "id, title, first_published_at, last_published_at, article_count, outlet_count, articles, topic_ids, summary, follows, places";
 
 export async function candidateCards(): Promise<Card[]> {
   "use cache";
@@ -113,7 +113,7 @@ export async function storyCard(id: number): Promise<Card | null> {
   const { data, error } = await publicClient()
     .from("story_cards")
     .select(
-      "id, title, first_published_at, last_published_at, article_count, outlet_count, articles, topic_ids, summary, follows",
+      "id, title, first_published_at, last_published_at, article_count, outlet_count, articles, topic_ids, summary, follows, places",
     )
     .eq("id", id)
     .maybeSingle();

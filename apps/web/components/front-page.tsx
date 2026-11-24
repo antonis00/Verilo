@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import type { FrontPage as Page, Ranked } from "@/lib/feed";
 import { StorySummary } from "@/components/story-summary";
+import { placeLabel } from "@/lib/regions";
 import { ago, LEAN_LABEL } from "@/lib/sources";
 
 type Props = {
@@ -151,6 +152,7 @@ function Story({
         <p className="mt-2 line-clamp-2 text-sm text-ink-muted">{cardLine(story)}</p>
       ) : null}
       <p className="meta mt-3">
+        {placeLabel(story.card.places) ? `${placeLabel(story.card.places)} · ` : ""}
         {story.outlets} {story.outlets === 1 ? "outlet" : "outlets"}: {outletLine(story)} ·{" "}
         <time dateTime={story.card.last_published_at}>
           {ago(story.card.last_published_at, now)}

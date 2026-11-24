@@ -19,6 +19,7 @@ from verilo_workers.config import (
     REVALIDATE_SECRET,
     REVALIDATE_URL,
 )
+from verilo_workers.enrich.llm_places import place_pending
 from verilo_workers.enrich.llm_topics import tag_pending
 from verilo_workers.enrich.run import enrich_pending
 from verilo_workers.ingest import store
@@ -118,6 +119,7 @@ def _round(database_url: str | None) -> str:
         conn.commit()
         merged = merge_close(conn)
         conn.commit()
+        located = place_pending(conn)
         summaries = summarize_due(conn)
     changed = placed["placed"] or merged or summaries["published"] or tagged["tagged"]
     due = summaries["published"] or time.monotonic() - _last_notify >= NOTIFY_EVERY
@@ -130,6 +132,7 @@ def _round(database_url: str | None) -> str:
         f"{fetched.describe()}; enriched {enriched}; "
         f"AI-tagged {tagged['tagged']} of {tagged['looked at']}; placed {placed['placed']} "
         f"({placed['new stories']} new stories); merged {merged}; "
+        f"placed on the map {located['placed']} of {located['looked at']}; "
         f"summaries {summaries['published']} published, {summaries['failed']} failed; {note}"
     )
 

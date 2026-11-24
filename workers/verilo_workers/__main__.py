@@ -45,6 +45,8 @@ def main(argv: list[str] | None = None) -> int:
         "reclassify", help="run the opinion/analysis/live rules again over stored news articles"
     )
     commands.add_parser("cluster", help="group enriched articles into stories")
+    place = commands.add_parser("place", help="tag where recent stories happen (AI tagger)")
+    place.add_argument("--limit", type=int, default=8, help="at most this many stories")
     commands.add_parser(
         "recluster",
         help="rebuild every story under the current rules (deletes stories and their summaries; "
@@ -69,6 +71,14 @@ def main(argv: list[str] | None = None) -> int:
             pipe.loop()
         else:
             print(pipe.run_round())
+        return 0
+
+    if args.command == "place":
+        from verilo_workers.enrich.llm_places import place_pending
+        from verilo_workers.ingest import store
+
+        with store.connect() as conn:
+            print(place_pending(conn, limit=args.limit))
         return 0
 
     if args.command == "recluster":

@@ -23,7 +23,7 @@ const STEPS = [
   },
   {
     title: "Which parts of the world matter to you?",
-    hint: "Stories covered by outlets from these regions are lifted on your front page.",
+    hint: "Stories about these parts of the world are lifted on your front page.",
   },
   {
     title: "Any outlets you prefer, or want to skip?",

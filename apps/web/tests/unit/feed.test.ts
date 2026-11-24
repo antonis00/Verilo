@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  placesScore,
   ALSO_IMPORTANT_MIN_OUTLETS,
   MAX_PER_SOURCE,
   MAX_PER_TOPIC,
@@ -249,5 +250,23 @@ describe("places", () => {
     expect(score(local, NO_PREFERENCES, NOW)!.score).toBeCloseTo(
       score(elsewhere, NO_PREFERENCES, NOW)!.score,
     );
+  });
+});
+
+describe("placesScore", () => {
+  const a = (region: string) => ({ ...article(1), region }) as CardArticle;
+  it("uses where a placed story happens, global counting half", () => {
+    const regions = new Set(["middle-east"]);
+    const story = (places: string[] | null) => ({ ...card(1, [article(1)]), places }) as Card;
+    expect(placesScore(story(["middle-east", "europe"]), [a("uk-ireland")], regions)).toBe(1);
+    expect(placesScore(story(["europe"]), [a("middle-east")], regions)).toBe(0);
+    expect(placesScore(story(["global"]), [], regions)).toBe(0.5);
+  });
+
+  it("falls back to where the outlets are based for a story not yet placed", () => {
+    const regions = new Set(["europe"]);
+    const story = { ...card(1, [article(1)]), places: null } as Card;
+    expect(placesScore(story, [a("europe"), a("uk-ireland")], regions)).toBe(0.5);
+    expect(placesScore(story, [a("europe")], new Set())).toBe(0);
   });
 });
