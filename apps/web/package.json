@@ -18,17 +18,17 @@
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
-    "@supabase/supabase-js": "^2.119.1",
+    "@supabase/supabase-js": "^2.119.2",
     "next": "16.4.6",
-    "nodemailer": "10.3.1",
-    "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "nodemailer": "10.6.1",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
     "@lhci/cli": "^0.16.1",
     "@playwright/test": "^1.65.1",
-    "@tailwindcss/turbopack": "4.3.3",
+    "@tailwindcss/turbopack": "4.3.5",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^8.0.0",
     "@testing-library/react": "^16.3.3",
@@ -42,7 +42,7 @@
     "eslint-config-prettier": "^10.1.8",
     "jsdom": "^31.0.1",
     "prettier": "^3.10.1",
-    "tailwindcss": "4.3.3",
+    "tailwindcss": "4.3.5",
     "typescript": "^5",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^5.1.1"
