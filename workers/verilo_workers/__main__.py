@@ -40,6 +40,7 @@ def main(argv: list[str] | None = None) -> int:
         "tag", help="AI-tag recent news articles the embeddings left without a topic"
     )
     tag.add_argument("--limit", type=int, default=10, help="at most this many articles")
+    commands.add_parser("prune", help="drop old embeddings, stories and logs (runs daily anyway)")
     commands.add_parser(
         "reclassify", help="run the opinion/analysis/live rules again over stored news articles"
     )
@@ -63,6 +64,14 @@ def main(argv: list[str] | None = None) -> int:
             pipe.loop()
         else:
             print(pipe.run_round())
+        return 0
+
+    if args.command == "prune":
+        from verilo_workers.ingest import store
+        from verilo_workers.retention import prune
+
+        with store.connect() as conn:
+            print(prune(conn))
         return 0
 
     if args.command == "reclassify":

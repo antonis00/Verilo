@@ -3,8 +3,8 @@ can check.
 
 - analysis: a journalist's interpretation ("Analysis:", "writes X", /analysis/), labelled.
 - live: live blogs, newsletters, podcasts and daily round-ups. They cover many events at once,
-  so they join no story. (A video report is about one event: it stays news.) (Nov 2026 review: a newsletter and a two-subject show had pulled
-  separate events together).
+  so they join no story (Nov 2026 review: a newsletter and a two-subject show had pulled
+  separate events together). A video report is about one event: it stays news.
 
 Only articles classed "news" may ever feed a summary. Each decision records the rule that made it
 (`kind_reason`, shown on the desk), so a wrong call can be traced and the rule fixed. The rules

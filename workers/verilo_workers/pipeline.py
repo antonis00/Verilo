@@ -21,6 +21,7 @@ from verilo_workers.enrich.llm_topics import tag_pending
 from verilo_workers.enrich.run import enrich_pending
 from verilo_workers.ingest import store
 from verilo_workers.ingest.run import ingest_due
+from verilo_workers.retention import prune
 from verilo_workers.summarize.run import summarize_due
 
 LOOP_SECONDS = 60
@@ -89,6 +90,7 @@ def run_round(database_url: str | None = None) -> str:
 def loop() -> None:
     print(f"Running the pipeline every {LOOP_SECONDS} s; Ctrl+C stops.", flush=True)
     last_briefing = float("-inf")
+    last_prune = float("-inf")
     while True:
         started = time.monotonic()
         try:
@@ -98,4 +100,11 @@ def loop() -> None:
         if time.monotonic() - last_briefing >= BRIEFING_EVERY * 60:
             last_briefing = time.monotonic()
             print(f"{datetime.now(UTC):%H:%M:%S}  {send_briefings()}", flush=True)
+        if time.monotonic() - last_prune >= 24 * 3600:
+            last_prune = time.monotonic()
+            try:
+                with store.connect() as conn:
+                    print(f"{datetime.now(UTC):%H:%M:%S}  pruned {prune(conn)}", flush=True)
+            except Exception as exc:  # keep going; tomorrow tries again
+                print(f"pruning failed: {type(exc).__name__}: {exc}", flush=True)
         time.sleep(max(1.0, LOOP_SECONDS - (time.monotonic() - started)))
