@@ -81,7 +81,7 @@ jobs:
           cache: pip
           cache-dependency-path: workers/pyproject.toml
 
-      - run: pip install -e ".[dev]"
+      - run: pip install -c requirements.lock -e ".[dev]"
       - run: ruff check .
       - run: ruff format --check .
 
@@ -103,6 +103,11 @@ jobs:
         with:
           path: workers/.cache
           key: fastembed-bge-small-en-v1.5
+
+      # Checks the SQL functions for errors the migrations alone don't catch.
+      - name: Database lint
+        working-directory: .
+        run: npx supabase db lint --level warning --fail-on error
 
       # Some database tests use the real topic list.
       - name: Load topics
