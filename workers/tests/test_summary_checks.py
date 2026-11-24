@@ -104,9 +104,15 @@ def test_passages_take_one_per_outlet_tier_one_first_and_mix_leans():
         art(6, 5, 3, "right"),
     ]
     chosen = eligibility.passages(arts)
-    assert chosen[0].id == 2  # the outlet's fuller excerpt
+    assert chosen[0].id == 1  # the outlet's newest report (art 1 is an hour newer than art 2)
     assert len({a.source_id for a in chosen}) == len(chosen) == 4  # tier 3 left out
     assert {eligibility.LEAN_GROUP[a.lean] for a in chosen[:3]} == {"centre", "left", "right"}
+
+
+def test_passages_leave_out_reports_overtaken_by_newer_coverage():
+    # Art i is i hours old: art 60 is from 2.5 days before the newest report.
+    arts = [art(1, 1, 1, "center"), art(2, 2, 2, "lean_left"), art(60, 3, 2, "right")]
+    assert [a.id for a in eligibility.passages(arts)] == [1, 2]
 
 
 def name_problems(text, cited):

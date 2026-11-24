@@ -14,8 +14,16 @@ let the biggest story sprawl from a summit into neighbouring news (124 articles)
 member check kept it on the summit (86) while keeping 73 stories with three or more outlets.
 
 `merge_close` joins stories that turn out to be the same event (found separately, then converging).
+
+A story has a life: it takes articles only within MAX_SPAN of its first one, and each new article
+must stay ANCHOR-close to the story's opening articles (its anchor), not only to the moving centre.
+Without these (Nov 2026 review) big stories never closed: one ran 12 days and 284 articles, and
+"Ukraine attacks Russian ships in Libya" was half Crimea bridge strikes, so its summary led with
+the wrong event. Coverage after a story's life starts a new story that `follows` the old one, so
+the story page can link the earlier and later developments.
 """
 
+import re
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 
@@ -27,6 +35,9 @@ JOIN_CENTRE = 0.75
 JOIN_MEMBER = 0.80
 MERGE_CENTRE = 0.85
 WINDOW = timedelta(hours=72)
+MAX_SPAN = timedelta(hours=72)  # a story's life, from its first article
+ANCHOR_SIZE = 5  # the opening articles that define what a story is about
+ANCHOR = 0.70  # a new article's least similarity to the anchor's centre
 CANDIDATES = 5  # nearest stories tried for each article
 
 
@@ -46,6 +57,7 @@ class Story:
     id: int | None
     members: list[Member] = field(default_factory=list)
     changed: bool = False
+    follows: "Story | None" = None  # the earlier story this one continues
 
     @property
     def centre(self) -> np.ndarray:
@@ -60,13 +72,49 @@ class Story:
     def last(self) -> datetime:
         return max(m.published_at for m in self.members)
 
+    @property
+    def anchor(self) -> np.ndarray:
+        """The centre of the story's opening articles: what the story is about."""
+        opening = sorted(self.members, key=lambda m: (m.published_at, m.article_id))[:ANCHOR_SIZE]
+        total = np.sum([m.vector for m in opening], axis=0)
+        return total / max(float(np.linalg.norm(total)), 1e-12)
+
+    def open_to(self, m: "Member") -> bool:
+        """Whether `m` is within the story's life and still about the story's event."""
+        if not (self.first - WINDOW <= m.published_at <= self.first + MAX_SPAN):
+            return False
+        return float(self.anchor @ m.vector) >= ANCHOR
+
     def title(self) -> str:
         """The headline that best represents the story: from a reputable outlet's news report
-        when there is one (never an opinion piece's headline), closest to the centre."""
+        when there is one (never an opinion piece's headline), a plain report rather than a
+        question or a "Why..." explainer, closest to the centre; without agency prefixes."""
         centre = self.centre
         preferred = [m for m in self.members if m.kind == "news" and m.tier <= 2]
         pool = preferred or [m for m in self.members if m.kind == "news"] or self.members
-        return max(pool, key=lambda m: float(m.vector @ centre)).title
+        plain = [m for m in pool if not is_explainer(m.title)] or pool
+        return clean_headline(max(plain, key=lambda m: float(m.vector @ centre)).title)
+
+
+# Prefixes outlets put on headlines that aren't part of the news: "(LEAD)", "Live:", "WATCH:".
+_PREFIX = re.compile(
+    r"^\s*(?:\((?:LEAD|\d+(?:st|nd|rd|th) LD|URGENT|UPDATE\s*\d*)\)\s*"
+    r"|(?:live updates|live|watch|video|breaking|exclusive|update)\s*[:|\u2013\u2014-]\s*)+",
+    re.IGNORECASE,
+)
+_EXPLAINER = re.compile(
+    r"^(?:why|how|what|who|where|when|is|are|can|should|will)\b|\?\s*$", re.IGNORECASE
+)
+
+
+def clean_headline(title: str) -> str:
+    cleaned = _PREFIX.sub("", title).strip()
+    return cleaned[:1].upper() + cleaned[1:] if cleaned else title
+
+
+def is_explainer(title: str) -> bool:
+    """A question or a "Why/How..." headline: an explainer, not the report of what happened."""
+    return bool(_EXPLAINER.search(clean_headline(title)))
 
 
 def _array(value) -> np.ndarray:
@@ -101,12 +149,27 @@ def _choose(story_list: list[Story], centres: np.ndarray, m: Member) -> tuple[St
         if score < JOIN_CENTRE:
             break
         story = story_list[k]
-        if not (story.first - WINDOW <= m.published_at <= story.last + WINDOW):
+        if not story.open_to(m):
             continue
         if max(float(o.vector @ m.vector) for o in story.members) < JOIN_MEMBER:
             continue
         return story, score
     return None, 0.0
+
+
+def _followed(story_list: list[Story], centres: np.ndarray, m: Member) -> Story | None:
+    """An earlier story this article continues: the same event by similarity, past its life."""
+    if not story_list:
+        return None
+    sims = centres @ m.vector
+    for k in np.argsort(-sims)[:CANDIDATES]:
+        if float(sims[k]) < JOIN_CENTRE:
+            break
+        story = story_list[k]
+        past_life = m.published_at > story.first + MAX_SPAN
+        if past_life and max(float(o.vector @ m.vector) for o in story.members) >= JOIN_MEMBER:
+            return story
+    return None
 
 
 def cluster_pending(
@@ -127,7 +190,8 @@ def cluster_pending(
     if not pending:
         return {"placed": 0, "new stories": 0}
 
-    earliest = min(r["published_at"] for r in pending) - WINDOW
+    # Stories an article could join or follow: started within MAX_SPAN + WINDOW before it.
+    earliest = min(r["published_at"] for r in pending) - MAX_SPAN - WINDOW
     rows = conn.execute(
         f"""select {ARTICLE_COLUMNS} from public.articles a
             join public.sources s on s.id = a.source_id
@@ -148,7 +212,9 @@ def cluster_pending(
         m = _member(r)
         story, score = _choose(story_list, centres, m)
         if story is None:
+            earlier = _followed(story_list, centres, m)
             story, score = Story(None), 1.0
+            story.follows = earlier
             story_list.append(story)
             centres = np.vstack([centres, m.vector]) if len(centres) else m.vector[None, :]
             created += 1
@@ -158,7 +224,8 @@ def cluster_pending(
         placements.append((m, story, score))
 
     with conn.transaction():
-        for story in story_list:
+        # Oldest first, so a story is saved before any story that follows it.
+        for story in sorted(story_list, key=lambda st: st.first):
             if story.changed:
                 _save(conn, story)
         for m, story, score in placements:
@@ -182,10 +249,11 @@ def _save(conn: psycopg.Connection, story: Story) -> None:
     if story.id is None:
         story.id = conn.execute(
             """insert into public.stories (title, first_published_at, last_published_at, centroid,
-                 article_count, outlet_count)
-               values (%(title)s, %(first)s, %(last)s, %(centre)s, %(articles)s, %(outlets)s)
+                 article_count, outlet_count, follows)
+               values (%(title)s, %(first)s, %(last)s, %(centre)s, %(articles)s, %(outlets)s,
+                       %(follows)s)
                returning id""",
-            values,
+            {**values, "follows": story.follows.id if story.follows else None},
         ).fetchone()["id"]
     else:
         conn.execute(
@@ -231,6 +299,11 @@ def merge_close(
             for j in range(i + 1, len(alive)):
                 small = alive[j]
                 if small.id in gone or sims[i, j] < MERGE_CENTRE:
+                    continue
+                # One event, one life: no merge that would outgrow MAX_SPAN or leave the anchor.
+                if max(big.last, small.last) - min(big.first, small.first) > MAX_SPAN:
+                    continue
+                if float(big.anchor @ small.anchor) < ANCHOR:
                     continue
                 close = max(float(a.vector @ b.vector) for a in big.members for b in small.members)
                 if close < JOIN_MEMBER:
