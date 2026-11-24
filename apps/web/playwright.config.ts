@@ -22,6 +22,7 @@ if (!process.env.SUPABASE_SECRET_KEY) {
 }
 
 export default defineConfig({
+  globalSetup: "./tests/e2e/global-setup.ts",
   testDir: "tests/e2e",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
