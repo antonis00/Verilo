@@ -218,7 +218,7 @@ test("a reader can skip the wizard and still gets a front page", async ({ page }
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Today’s front page");
 
   // Next time the link goes straight to the front page, not the wizard.
-  await page.getByRole("link", { name: "My News" }).click();
+  await page.getByRole("link", { name: "Settings" }).click();
   await page.getByRole("button", { name: "Sign out" }).click();
   await expect(page).toHaveURL(/\/$/);
   await signIn(page, `${slug}@example.com`, /\/$/);
