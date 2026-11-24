@@ -115,6 +115,7 @@ def test_every_decision_names_its_rule_in_plain_words():
             "Officials said talks ended.",
             "news",
         ),
+        ("https://x.example/a", "UK papers: 'Huang returns' and 'Burnham opens door'", "", "live"),
         # A video report is about one event: news, not a roundup.
         ("https://x.example/video/ipo", "Anthropic goes public after record IPO", "", "news"),
         ("https://x.example/a", "Quad meetings explained | The Hindu Editorial", "", "opinion"),

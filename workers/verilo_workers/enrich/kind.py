@@ -86,6 +86,12 @@ LIVE_TITLES = [
         r"evening briefing|news highlights|the bottom line)\b",
     ),
 ]
+LIVE_TITLES.append(
+    (
+        "headline is a press review of other papers' front pages",
+        r"^(uk papers|the papers|newspaper headlines|newspapers|front pages)\s*:",
+    )
+)
 LIVE_TAGS = {"podcast", "podcasts", "live", "newsletter"}
 
 _OPINION_TITLES = [(label, re.compile(p, re.IGNORECASE)) for label, p in OPINION_TITLES]
