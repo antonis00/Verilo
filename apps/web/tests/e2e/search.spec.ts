@@ -11,7 +11,7 @@ test("search finds a story by a word in its headline", async ({ page }, info) =>
     const { storyId } = await seedStory(slug, headline);
     await refreshCaches(page.request);
     await page.goto("/");
-    await page.getByRole("link", { name: "Search" }).click();
+    await page.getByRole("link", { name: "Search", exact: true }).click();
     await page.getByLabel("Search stories").fill(word);
     await page.getByRole("button", { name: "Search", exact: true }).click();
     await expect(page.getByRole("status")).toContainText(`1 story for “${word}”`);
