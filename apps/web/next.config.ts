@@ -6,9 +6,12 @@ import type { NextConfig } from "next";
 // no frames, no plugins, and forms posting only here. Inline scripts stay allowed: Next.js
 // streams pages with inline scripts, and nonces would stop pages being served from the static
 // shell. Everything from another site is refused, which is what stops most injected code.
+// `next dev` alone also allows eval(): React uses it there for its debugging tools (and shows an
+// error without it); a production build never does, and its policy doesn't allow it.
+const DEV = process.env.NODE_ENV === "development";
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  `script-src 'self' 'unsafe-inline'${DEV ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data:",
   "font-src 'self'",
