@@ -23,7 +23,7 @@ export function Masthead() {
         </div>
       </div>
 
-      <div className="border-b-[3px] border-double border-ink pb-4 text-center md:pb-5">
+      <div className="mt-3 border-b-[3px] border-double border-ink pb-4 text-center md:pb-5">
         <Link
           href="/"
           className="quiet-link font-serif text-3xl font-semibold tracking-tight md:text-4xl"

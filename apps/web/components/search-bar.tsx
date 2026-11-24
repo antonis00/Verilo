@@ -139,11 +139,11 @@ export function SearchBar() {
   }
 
   return (
-    <div ref={box} className="absolute -inset-x-2 top-0 z-30 bg-paper px-2 pb-2">
+    <div ref={box} className="absolute -inset-x-2 top-0 z-30 bg-paper px-2">
       <form
         role="search"
         action="/search"
-        className="flex min-h-11 items-center gap-2 border-b border-ink"
+        className="flex h-11 items-center gap-2 border-b border-ink"
         onSubmit={(e) => {
           e.preventDefault();
           if (active >= 0 && active < shown.length) go(`/story/${shown[active].id}`);
@@ -169,8 +169,8 @@ export function SearchBar() {
           autoComplete="off"
           spellCheck={false}
           maxLength={200}
-          placeholder="Search stories: a name, a place, an event…"
-          className="min-w-0 flex-1 bg-transparent py-2 font-serif text-lg text-ink outline-none placeholder:text-ink-muted md:text-xl [&::-webkit-search-cancel-button]:hidden"
+          placeholder="A name, a place, an event…"
+          className="min-w-0 flex-1 bg-transparent py-0 font-serif text-lg text-ink outline-none placeholder:text-ink-muted md:text-xl [&::-webkit-search-cancel-button]:hidden"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => {
