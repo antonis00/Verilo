@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
+import { dismissReport, withdrawSummary } from "./actions";
 import { requireEditor } from "@/lib/auth";
 import {
   ago,
@@ -159,7 +161,7 @@ async function Desk() {
   }
 
   const now = await requestTime();
-  const readers = await readerCounts(now);
+  const [readers, reports] = await Promise.all([readerCounts(now), openReports()]);
   const rows = sources.data ?? [];
   const active = rows.filter((s) => s.status === "active");
   const failing = active.filter((s) =>
@@ -198,6 +200,8 @@ async function Desk() {
         <Figure label="Trials ended, not subscribed" value={readers.ended} />
         <Figure label="Subscribed" value={readers.subscribed} />
       </dl>
+
+      <Reports reports={reports} now={now} />
 
       <div className="mt-10 grid gap-12 lg:grid-cols-12">
         <section aria-labelledby="stories-title" className="lg:col-span-7">
@@ -346,6 +350,93 @@ async function readerCounts(now: number) {
     count((q) => q.gt("subscribed_until", at)),
   ]);
   return { inTrial, ended, subscribed };
+}
+
+type Report = {
+  id: number;
+  story_id: number;
+  note: string;
+  created_at: string;
+  stories: { title: string } | null;
+  story_summaries: { bullets: { text: string }[]; status: string } | null;
+};
+
+// Mistakes readers reported, oldest first: each answered by withdrawing the story's summary (with
+// a public correction) or dismissing the report.
+async function openReports(): Promise<Report[]> {
+  const { data, error } = await adminClient()
+    .from("summary_reports")
+    .select("id, story_id, note, created_at, stories (title), story_summaries (bullets, status)")
+    .eq("status", "open")
+    .order("created_at")
+    .limit(50)
+    .returns<Report[]>();
+  if (error) console.error("reports failed", error.message);
+  return data ?? [];
+}
+
+function Reports({ reports, now }: { reports: Report[]; now: number }) {
+  return (
+    <section aria-labelledby="reports-title" className="mt-10">
+      <h2 id="reports-title" className="text-xl">
+        Reported mistakes
+      </h2>
+      {!reports.length ? (
+        <p className="meta mt-1">None open.</p>
+      ) : (
+        <ol className="mt-4">
+          {reports.map((r) => (
+            <li key={r.id} className="border-t border-rule py-4">
+              <p className="meta">
+                Reported <time dateTime={r.created_at}>{ago(r.created_at, now)}</time> on{" "}
+                <Link href={`/story/${r.story_id}`}>
+                  {r.stories?.title ?? `story ${r.story_id}`}
+                </Link>
+              </p>
+              <p className="mt-1 border-l-2 border-accent pl-3">{r.note}</p>
+              {r.story_summaries?.status === "published" ? (
+                <details className="mt-2 text-sm">
+                  <summary className="cursor-pointer text-ink-muted hover:text-ink">
+                    The summary reported
+                  </summary>
+                  <ul className="mt-2 space-y-1 border-l border-rule pl-4">
+                    {r.story_summaries.bullets.map((b, i) => (
+                      <li key={i}>{b.text}</li>
+                    ))}
+                  </ul>
+                </details>
+              ) : null}
+              <div className="mt-3 flex flex-wrap items-end gap-3">
+                <form action={withdrawSummary} className="flex flex-wrap items-end gap-2">
+                  <input type="hidden" name="report" value={r.id} />
+                  <label className="text-sm">
+                    <span className="block font-semibold">Correction note (public)</span>
+                    <input
+                      name="note"
+                      required
+                      minLength={3}
+                      maxLength={1000}
+                      className="field mt-1 w-72 max-w-full"
+                      placeholder="What was wrong"
+                    />
+                  </label>
+                  <button type="submit" className="button">
+                    Withdraw the summary
+                  </button>
+                </form>
+                <form action={dismissReport}>
+                  <input type="hidden" name="report" value={r.id} />
+                  <button type="submit" className="button button-secondary">
+                    Dismiss
+                  </button>
+                </form>
+              </div>
+            </li>
+          ))}
+        </ol>
+      )}
+    </section>
+  );
 }
 
 function Figure({ label, value }: { label: string; value: number }) {

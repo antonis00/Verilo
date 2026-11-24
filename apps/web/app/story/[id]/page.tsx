@@ -3,7 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { StorySummary } from "@/components/story-summary";
-import { storyCard, topicNames } from "@/lib/news";
+import { ReportMistake } from "@/components/report-mistake";
+import { relatedStories, storyCard, storyCorrections, topicNames } from "@/lib/news";
 import { requestTime } from "@/lib/request-time";
 import {
   ago,
@@ -31,8 +32,14 @@ async function Story({ params }: Pick<PageProps<"/story/[id]">, "params">) {
   const { id } = await params;
   const storyId = Number(id);
   if (!Number.isInteger(storyId) || storyId <= 0) notFound();
-  const [card, names, now] = await Promise.all([storyCard(storyId), topicNames(), requestTime()]);
+  const [card, names, now, corrections] = await Promise.all([
+    storyCard(storyId),
+    topicNames(),
+    requestTime(),
+    storyCorrections(storyId),
+  ]);
   if (!card) notFound();
+  const related = await relatedStories(card.id, card.follows);
 
   const articles = [...card.articles].sort(
     (a, b) => a.tier - b.tier || (b.published_at ?? "").localeCompare(a.published_at ?? ""),
@@ -52,6 +59,31 @@ async function Story({ params }: Pick<PageProps<"/story/[id]">, "params">) {
         <time dateTime={card.last_published_at}>{ago(card.last_published_at, now)}</time>
         {leans.length ? ` · leans: ${leans.map((l) => LEAN_LABEL[l]).join(", ")}` : ""}
       </p>
+      {related.earlier ? (
+        <p className="meta mt-2">
+          Continues an earlier story:{" "}
+          <Link href={`/story/${related.earlier.id}`}>{related.earlier.title}</Link>
+        </p>
+      ) : null}
+      {related.later.length ? (
+        <p className="meta mt-2">
+          Later developments:{" "}
+          {related.later.map((s, i) => (
+            <span key={s.id}>
+              {i ? " · " : ""}
+              <Link href={`/story/${s.id}`}>{s.title}</Link>
+            </span>
+          ))}
+        </p>
+      ) : null}
+      {corrections.map((c) => (
+        <p key={c.id} className="mt-4 border-l-2 border-accent pl-3 text-sm">
+          <span className="font-semibold">
+            Correction, <time dateTime={c.created_at}>{ago(c.created_at, now)}</time>:
+          </span>{" "}
+          {c.note} <Link href="/corrections">All corrections</Link>
+        </p>
+      ))}
 
       {card.summary ? (
         <section
@@ -100,7 +132,10 @@ async function Story({ params }: Pick<PageProps<"/story/[id]">, "params">) {
         </ol>
       </section>
 
-      <p className="mt-8 border-t border-rule pt-6 text-sm">
+      <div className="mt-8 border-t border-rule pt-6">
+        <ReportMistake storyId={card.id} />
+      </div>
+      <p className="mt-6 text-sm">
         <Link href="/">Back to the front page</Link>
       </p>
     </article>
