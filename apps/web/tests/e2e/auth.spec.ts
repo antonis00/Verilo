@@ -37,7 +37,9 @@ test("sign in with an emailed link, then sign out", async ({ page }, info) => {
   await expect(page).toHaveURL(/\/welcome$/);
   await page.goto("/my-news");
   await expect(page.getByText(`Signed in as ${email}`)).toBeVisible();
-  await expect(page.getByRole("navigation", { name: "Account" })).toContainText("My News");
+  await expect(
+    page.getByRole("navigation", { name: "Account" }).getByRole("link", { name: "Settings" }),
+  ).toBeVisible();
 
   await page.getByRole("button", { name: "Sign out" }).click();
   await expect(page).toHaveURL(/\/$/);

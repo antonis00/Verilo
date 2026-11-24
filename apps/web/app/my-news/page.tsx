@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { BriefingForm } from "@/components/briefing-form";
+import { MenuForm } from "@/components/menu-form";
 import { PreferencesForm } from "@/components/preferences-form";
 import { requireReader } from "@/lib/auth";
 import { outlets, topics } from "@/lib/news";
 import { settingsFrom, type SettingsRow } from "@/lib/briefing";
+import { menuTopics } from "@/lib/menu";
 import { loadPreferences } from "@/lib/reader-preferences";
 import { trialLine } from "@/lib/trial";
 import { createClient } from "@/lib/supabase/server";
@@ -61,6 +63,13 @@ async function Settings() {
         />
       </div>
       <div className="mt-12">
+        <MenuForm
+          topics={topicList.map(({ id, slug, name, featured }) => ({ id, slug, name, featured }))}
+          initial={menuTopics(topicList, saved.input.followTopics, saved.menu).map((t) => t.id)}
+          custom={saved.menu !== null}
+        />
+      </div>
+      <div className="mt-4">
         <BriefingForm initial={settingsFrom(briefing.data)} />
       </div>
       <section

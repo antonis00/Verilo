@@ -3,7 +3,7 @@ import { EMPTY_INPUT, type PreferencesInput } from "@/lib/preferences";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 
-export type Saved = { input: PreferencesInput; onboarded: boolean };
+export type Saved = { input: PreferencesInput; onboarded: boolean; menu: number[] | null };
 
 // A reader's choices. By default as the signed-in reader (row-level security returns only their
 // rows); the briefing job passes the secret-key client to read any reader's.
@@ -12,7 +12,7 @@ export async function loadPreferences(userId: string, client?: SupabaseClient): 
   const [prefs, topicRows, sourceRows] = await Promise.all([
     supabase
       .from("reader_preferences")
-      .select("regions, show_opinion, show_tier3, onboarded_at")
+      .select("regions, show_opinion, show_tier3, onboarded_at, menu_topics")
       .eq("user_id", userId)
       .maybeSingle(),
     supabase.from("reader_topics").select("topic_id, choice").eq("user_id", userId),
@@ -22,6 +22,7 @@ export async function loadPreferences(userId: string, client?: SupabaseClient): 
   const sources = sourceRows.data ?? [];
   return {
     onboarded: Boolean(prefs.data?.onboarded_at),
+    menu: (prefs.data?.menu_topics as number[] | null) ?? null,
     input: {
       ...EMPTY_INPUT,
       regions: prefs.data?.regions ?? [],
