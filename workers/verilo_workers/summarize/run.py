@@ -283,10 +283,25 @@ def summarise(
     return [], record, facts
 
 
+def bullet_topics(points: list[dict]) -> list[dict]:
+    """Each point's topics (the embedding matcher, as for articles), so a topic page can show the
+    points about its topic first. Same summary, nothing left out; no model call."""
+    if not points:
+        return points
+    from verilo_workers.enrich import topics as topic_tags
+    from verilo_workers.enrich.embed import embed
+
+    catalog = topic_tags.load()
+    vectors = embed([p["text"] for p in points])
+    found = topic_tags.assign(vectors, [None] * len(points), catalog)
+    return [{**p, "topics": [slug for slug, _, _ in f]} for p, f in zip(points, found, strict=True)]
+
+
 def _store(conn, story_id: int, points, record, facts) -> int:
     last = max((attempt for attempt, _ in record), default=0)
     failed = [c for attempt, c in record if attempt == last and not c.passed]
     status = "published" if points else "failed"
+    points = bullet_topics(points)
     failure = None if points else "; ".join(feedback(failed))[:2000] or "no usable draft"
     with conn.transaction():
         if points:

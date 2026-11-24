@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  forTopic,
   placesScore,
   ALSO_IMPORTANT_MIN_OUTLETS,
   MAX_PER_SOURCE,
@@ -268,5 +269,30 @@ describe("placesScore", () => {
     const story = { ...card(1, [article(1)]), places: null } as Card;
     expect(placesScore(story, [a("europe"), a("uk-ireland")], regions)).toBe(0.5);
     expect(placesScore(story, [a("europe")], new Set())).toBe(0);
+  });
+});
+
+describe("forTopic", () => {
+  const summary = {
+    bullets: [
+      { text: "Rates rise.", article_ids: [1], topics: ["economy"] },
+      { text: "The striker scores.", article_ids: [2], topics: ["football", "sport"] },
+      { text: "Talks end.", article_ids: [3] },
+    ],
+    writer: "w",
+    checker: "c",
+    created_at: "",
+  };
+  it("puts a topic's points first and keeps every point", () => {
+    expect(forTopic(summary, "football")!.bullets.map((b) => b.text)).toEqual([
+      "The striker scores.",
+      "Rates rise.",
+      "Talks end.",
+    ]);
+  });
+  it("leaves the order as it is elsewhere", () => {
+    expect(forTopic(summary, "science")).toBe(summary);
+    expect(forTopic(summary)).toBe(summary);
+    expect(forTopic(null, "football")).toBeNull();
   });
 });

@@ -53,6 +53,7 @@ async function Section({ params }: Pick<PageProps<"/topic/[slug]">, "params">) {
         now={now}
         personal={false}
         label={`${topic.name} stories`}
+        topicSlug={topic.slug}
         empty={{
           title: `No ${topic.name.toLowerCase()} stories right now`,
           body: (

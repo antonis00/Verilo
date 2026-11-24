@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import type { FrontPage as Page, Ranked } from "@/lib/feed";
+import { forTopic, type FrontPage as Page, type Ranked, type Summary } from "@/lib/feed";
 import { StorySummary } from "@/components/story-summary";
 import { placeLabel } from "@/lib/regions";
 import { ago, LEAN_LABEL } from "@/lib/sources";
@@ -13,11 +13,13 @@ type Props = {
   // For section pages: the hidden heading over the stories, and what to say when there are none.
   label?: string;
   empty?: { title: string; body: ReactNode };
+  // On a topic's page: its slug, so each summary leads with the points about it.
+  topicSlug?: string;
 };
 
 // The newspaper layout: a lead story across eight columns, three down the side, then rows of
 // three, "Also important today", and an end. Every card links to its story page.
-export function FrontPage({ page, topicNames, now, personal, label, empty }: Props) {
+export function FrontPage({ page, topicNames, now, personal, label, empty, topicSlug }: Props) {
   const [lead, ...rest] = page.top;
   if (!lead) {
     return (
@@ -38,7 +40,7 @@ export function FrontPage({ page, topicNames, now, personal, label, empty }: Pro
   }
   const side = rest.slice(0, 3);
   const grid = rest.slice(3);
-  const card = { topicNames, now, personal };
+  const card = { topicNames, now, personal, topicSlug };
   return (
     <>
       <section
@@ -113,6 +115,7 @@ function Story({
   topicNames,
   now,
   personal,
+  topicSlug,
   className = "",
 }: {
   story: Ranked;
@@ -120,8 +123,10 @@ function Story({
   topicNames: Map<number, string>;
   now: number;
   personal: boolean;
+  topicSlug?: string;
   className?: string;
 }) {
+  const summary = forTopic(story.card.summary, topicSlug);
   const topic = story.card.topic_ids[0];
   const kicker = topic !== undefined ? topicNames.get(topic) : undefined;
   const headingClass =
@@ -138,18 +143,18 @@ function Story({
           {story.headline}
         </Link>
       </h3>
-      {size === "lead" && story.card.summary ? (
+      {size === "lead" && summary ? (
         <StorySummary
-          summary={story.card.summary}
+          summary={summary}
           articles={story.card.articles}
           storyId={story.card.id}
           compact
         />
       ) : size === "lead" && story.lead.snippet ? (
         <p className="mt-4 max-w-prose text-lg text-ink-muted">{story.lead.snippet}</p>
-      ) : size === "grid" && cardLine(story) ? (
+      ) : size === "grid" && cardLine(story, summary) ? (
         // One line of context, so a story can be judged by more than its headline.
-        <p className="mt-2 line-clamp-2 text-sm text-ink-muted">{cardLine(story)}</p>
+        <p className="mt-2 line-clamp-2 text-sm text-ink-muted">{cardLine(story, summary)}</p>
       ) : null}
       <p className="meta mt-3">
         {placeLabel(story.card.places) ? `${placeLabel(story.card.places)} · ` : ""}
@@ -207,8 +212,8 @@ function OtherVersions({ story }: { story: Ranked }) {
 }
 
 // A grid card's line: the checked summary's first point, else the lead outlet's excerpt.
-function cardLine(story: Ranked): string | null {
-  return story.card.summary?.bullets[0]?.text ?? (story.lead.snippet || null);
+function cardLine(story: Ranked, summary: Summary | null): string | null {
+  return summary?.bullets[0]?.text ?? (story.lead.snippet || null);
 }
 
 // Why the story is on this reader's page; the outlet count is already on the card.

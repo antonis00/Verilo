@@ -213,3 +213,17 @@ def test_outlets_running_the_same_agency_copy_count_as_one_source():
     # The writer gets one excerpt per source.
     assert len(eligibility.passages(copies)) == 3
     assert eligibility.agency(copies[3]) == "Reuters"
+
+
+def test_summary_points_carry_their_own_topics():
+    from verilo_workers.summarize.run import bullet_topics
+
+    points = [
+        {"text": "Arsenal beat Chelsea 2-0 in the Premier League on Sunday.", "article_ids": [1]},
+        {"text": "The Bank of England raised interest rates to 5 percent.", "article_ids": [2]},
+    ]
+    tagged = bullet_topics(points)
+    assert "football" in tagged[0]["topics"]
+    assert "football" not in tagged[1]["topics"]
+    assert tagged[0]["text"] == points[0]["text"]
+    assert bullet_topics([]) == []

@@ -40,7 +40,8 @@ export type Card = {
 
 // A checked AI summary (Phase 4): points, each citing the articles it was drawn from.
 export type Summary = {
-  bullets: { text: string; article_ids: number[] }[];
+  // `topics`: the topics each point is about (slugs), for ordering on a topic's page.
+  bullets: { text: string; article_ids: number[]; topics?: string[] }[];
   writer: string;
   checker: string | null;
   created_at: string;
@@ -266,4 +267,14 @@ export function placesScore(card: Card, outlets: CardArticle[], regions: Set<str
     return card.places.includes("global") ? 0.5 : 0;
   }
   return outlets.length ? outlets.filter((a) => regions.has(a.region)).length / outlets.length : 0;
+}
+
+// On a topic's page, the summary's points about that topic come first; the rest follow in their
+// order. The same checked summary: nothing added, nothing left out.
+export function forTopic(summary: Summary | null, topicSlug?: string): Summary | null {
+  if (!summary || !topicSlug) return summary;
+  const about = summary.bullets.filter((b) => b.topics?.includes(topicSlug));
+  if (!about.length) return summary;
+  const rest = summary.bullets.filter((b) => !b.topics?.includes(topicSlug));
+  return { ...summary, bullets: [...about, ...rest] };
 }
