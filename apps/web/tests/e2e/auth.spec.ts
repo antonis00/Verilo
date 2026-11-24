@@ -31,6 +31,7 @@ test("sign in with an emailed link, then sign out", async ({ page }, info) => {
   // The email points at the configured site URL; open the same path on the test server.
   const { pathname, search } = new URL(link);
   await page.goto(pathname + search);
+  await page.getByRole("button", { name: "Sign in to Verilo" }).click();
 
   // A new reader lands on the welcome wizard; their account is in My News.
   await expect(page).toHaveURL(/\/welcome$/);
@@ -48,6 +49,9 @@ test("sign in with an emailed link, then sign out", async ({ page }, info) => {
 
 test("a used or broken link says so", async ({ page }) => {
   await page.goto("/auth/confirm?token_hash=nonsense&type=email");
+  // Opening the link only shows the button; mail scanners that open links don't sign anyone in.
+  await expect(page).toHaveURL(/\/auth\/continue/);
+  await page.getByRole("button", { name: "Sign in to Verilo" }).click();
   await expect(page).toHaveURL(/\/sign-in\?error=link$/);
   // Next.js has its own hidden role="alert" route announcer, so match the message by its text.
   const problem = page.getByText("That sign-in link has expired or was already used.");
@@ -58,5 +62,16 @@ test("a used or broken link says so", async ({ page }) => {
 test("the link can't send a reader to another site", async ({ page }) => {
   // A bad token falls back to the sign-in page whatever `next` says.
   await page.goto("/auth/confirm?token_hash=nonsense&type=email&next=//evil.example");
+  await page.getByRole("button", { name: "Sign in to Verilo" }).click();
   await expect(page).toHaveURL(/^http:\/\/localhost:\d+\/sign-in/);
+});
+
+test("signing in can't be posted from another site", async ({ request }) => {
+  const response = await request.post("/auth/confirm", {
+    headers: { Origin: "https://evil.example" },
+    form: { token_hash: "nonsense", type: "email" },
+    maxRedirects: 0,
+  });
+  expect(response.status()).toBe(303);
+  expect(response.headers().location).toContain("/sign-in?error=link");
 });

@@ -24,5 +24,7 @@ export async function signIn(page: Page, email: string, landing: RegExp = /\/wel
   }).toPass({ timeout: 20_000 });
   const { pathname, search } = new URL(await signInLinkFor(email, { sentAfter }));
   await page.goto(pathname + search);
+  // The link opens a "Continue" page; signing in takes the button (mail scanners don't press it).
+  await page.getByRole("button", { name: "Sign in to Verilo" }).click();
   await expect(page).toHaveURL(landing);
 }

@@ -46,6 +46,8 @@ export default defineConfig({
       BRIEFING_SECRET: TEST_BRIEFING_SECRET,
       SMTP_HOST: "127.0.0.1",
       SMTP_PORT: "54325",
+      // Every test signs in from this one machine.
+      SIGN_IN_PER_VISITOR_HOUR: "1000",
     },
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,
