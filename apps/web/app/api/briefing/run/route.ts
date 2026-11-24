@@ -11,6 +11,17 @@ export async function POST(request: NextRequest) {
   }
   let now: number | undefined;
   let only: string[] | undefined;
+  // `now` and `only` are for tests (BRIEFING_TEST_MODE=1); a real run is always now, for everyone.
+  if (process.env.BRIEFING_TEST_MODE !== "1") {
+    try {
+      return NextResponse.json(await runBriefings());
+    } catch (error) {
+      console.error("briefing run failed", {
+        message: error instanceof Error ? error.message : error,
+      });
+      return NextResponse.json({ error: "briefing run failed" }, { status: 500 });
+    }
+  }
   try {
     const body = (await request.json()) as { now?: unknown; only?: unknown };
     if (typeof body.now === "string" && !Number.isNaN(Date.parse(body.now))) {

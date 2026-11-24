@@ -44,6 +44,8 @@ export default defineConfig({
       ...(process.env as Record<string, string>),
       REVALIDATE_SECRET: TEST_REVALIDATE_SECRET,
       BRIEFING_SECRET: TEST_BRIEFING_SECRET,
+      BRIEFING_TEST_MODE: "1",
+      UNSUBSCRIBE_SECRET: "test-unsubscribe-secret-0123",
       SMTP_HOST: "127.0.0.1",
       SMTP_PORT: "54325",
       // Every test signs in from this one machine.
