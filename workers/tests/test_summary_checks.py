@@ -137,3 +137,53 @@ def test_names_still_catch_people_and_places_the_excerpts_never_mention():
     assert name_problems("The European Union met in Paris.", cited) == ["European", "Union"]
     # A name at the start of a sentence counts when it's more than one word.
     assert name_problems("Emmanuel Macron hosted Trump.", cited) == ["Emmanuel", "Macron"]
+
+
+# Real failures from the first live week (Nov 2026 review), each a false alarm, not invention.
+
+
+def passing(text, cited):
+    return all(c.passed for c in checks.run([{"text": text, "sources": ["A1"]}] * 2, {"A1": cited}))
+
+
+def test_the_excerpt_date_the_writer_sees_can_be_used():
+    from verilo_workers.summarize.prompts import passage_text
+
+    a = Article(
+        1,
+        1,
+        "BBC News",
+        1,
+        "center",
+        "news",
+        "Talks end",
+        "Talks ended.",
+        datetime(2026, 11, 24, 9, 30, tzinfo=UTC),
+    )
+    assert passing("Talks ended on 24 November 2026.", passage_text(a))
+
+
+def test_invisible_characters_and_punctuation_inside_quotes_are_ignored():
+    cited = "RTE: The region is on the ⁠verge of triggering open war, officials said."
+    assert passing('Officials said the region is on the "verge of triggering open war."', cited)
+    cited = 'Guardian: Residents felt a "sense of hope alongside uncertainty" on Monday.'
+    assert passing(
+        'Residents described a "sense of hope alongside uncertainty," the Guardian said.', cited
+    )
+    assert checks.invisible("Neb​al") == "Nebal"
+
+
+def test_spelled_out_names_adjectives_and_abbreviations_of_cited_names_pass():
+    assert passing("The United States and American officials met.", "AP: U.S. officials met.")
+    assert passing("French officials spoke.", "Le Monde: France's officials spoke.")
+    assert passing("The SCMP reported it.", "South China Morning Post: It happened.")
+    assert passing("The ICJ ruled.", "Reuters: The International Court of Justice ruled.")
+    assert not passing("Officials said Dutch ships left.", "Le Monde: France's ships left.")
+
+
+def test_a_story_that_keeps_failing_is_rested():
+    from verilo_workers.summarize.run import _due
+
+    row = {"last_status": None, "failed_recently": 2}
+    assert not _due(row, [], NOW)
+    assert _due({**row, "failed_recently": 1}, [], NOW)

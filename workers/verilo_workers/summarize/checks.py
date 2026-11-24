@@ -20,8 +20,18 @@ class Check:
     detail: dict = field(default_factory=dict)
 
 
+# Characters that print as nothing: zero-width spaces and joiners, the word joiner, the byte-order
+# mark, soft hyphens. Outlets' feeds carry them (RTE's "\u2060verge of..."); they're removed from
+# both sides before comparing, and from published text (`invisible`).
+INVISIBLE = re.compile("[\u00ad\u200b-\u200f\u2060-\u2064\ufeff]")
+
+
+def invisible(text: str) -> str:
+    return INVISIBLE.sub("", text)
+
+
 def normalise(text: str) -> str:
-    text = unicodedata.normalize("NFKC", text)
+    text = unicodedata.normalize("NFKC", invisible(text))
     text = text.replace("’", "'").replace("‘", "'").replace("“", '"').replace("”", '"')
     text = re.sub(r"[‐-―−]", "-", text)  # dashes and minus signs
     return re.sub(r"\s+", " ", text).strip().lower()
@@ -39,8 +49,10 @@ _QUOTE = re.compile(r'["“]([^"”]{8,})["”]')
 
 
 def quotes(text: str) -> list[str]:
-    """Quoted phrases of three words or more (shorter ones are often just terms in quotes)."""
-    return [q for q in _QUOTE.findall(text) if len(q.split()) >= 3]
+    """Quoted phrases of three words or more (shorter ones are often just terms in quotes), without
+    the punctuation a writer puts inside the closing quotation mark ("...uncertainty,")."""
+    found = (q.strip().rstrip(".,;:!?").strip() for q in _QUOTE.findall(text))
+    return [q for q in found if len(q.split()) >= 3]
 
 
 # Capitalised words that start sentences or are ordinary words, not names.
@@ -117,6 +129,35 @@ def _present(needle: str, haystack: str) -> bool:
     return _flat(needle) in _flat(haystack)
 
 
+# Adjectives of places that don't start like the place ("French" for France); the rest are found
+# by their shared beginning ("Iranian" for Iran).
+DEMONYMS = {
+    "french": "france", "british": "britain", "dutch": "netherlands", "swiss": "switzerland",
+    "greek": "greece", "spanish": "spain", "danish": "denmark", "swedish": "sweden",
+    "finnish": "finland", "polish": "poland", "turkish": "turkey", "thai": "thailand",
+    "filipino": "philippines", "emirati": "uae", "welsh": "wales", "scottish": "scotland",
+    "irish": "ireland", "norwegian": "norway", "portuguese": "portugal", "belgian": "belgium",
+    "peruvian": "peru", "chilean": "chile", "malagasy": "madagascar", "lebanese": "lebanon",
+    "sudanese": "sudan", "vietnamese": "vietnam", "japanese": "japan", "chinese": "china",
+    "congolese": "congo", "nepalese": "nepal", "kiwi": "zealand", "afghan": "afghanistan",
+    "kurdish": "kurd", "yemeni": "yemen", "omani": "oman", "iraqi": "iraq",
+}  # fmt: skip
+
+
+def _initials(cited: str) -> set[str]:
+    """Abbreviations of the cited names: "South China Morning Post" gives SCMP,
+    "International Court of Justice" gives ICJ (small words skipped)."""
+    found = set()
+    for run in re.findall(r"(?:[A-Z][\w'-]+(?:\s+(?:of|the|and|for)\s+|\s+))+[A-Z][\w'-]+", cited):
+        words = run.split()
+        if words[0] in ("The", "A", "An"):
+            words = words[1:]
+        letters = "".join(w[0] for w in words if w[0].isupper())
+        if len(letters) >= 2:
+            found.add(letters.lower())
+    return found
+
+
 class CitedNames:
     """What the cited excerpts allow a point to name."""
 
@@ -124,13 +165,19 @@ class CitedNames:
         extra = " ".join(words for pattern, words in EXPANSIONS if pattern.search(cited))
         self.text = _flat(f"{cited} {extra}")
         self.words = {w.lower() for w in re.findall(r"[A-Z][A-Za-z]{3,}", f"{cited} {extra}")}
+        self.initials = _initials(cited)
 
     def has(self, token: str) -> bool:
         flat = _flat(token)
         if re.search(rf"(?<![\w]){re.escape(flat)}(?![\w])", self.text):
             return True
-        # An adjective of a cited name: "Iranian" for Iran, "Israeli" for Israel.
         low = token.lower()
+        if low in self.initials:
+            return True
+        place = DEMONYMS.get(low)
+        if place and re.search(rf"(?<![\w]){place}", self.text):
+            return True
+        # An adjective of a cited name: "Iranian" for Iran, "Israeli" for Israel.
         return any(low != w and low.startswith(w[: max(4, len(w) - 1)]) for w in self.words)
 
     def problems(self, run: list[str]) -> list[str]:
