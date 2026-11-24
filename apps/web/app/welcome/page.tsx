@@ -18,6 +18,9 @@ export default function WelcomePage() {
       <p className="mt-3 text-lg text-ink-muted">
         Five quick questions. Skip any of them: you’ll get today’s top stories until you choose.
       </p>
+      <p className="meta mt-2">
+        Your 14-day free trial has started: everything is open, and there’s nothing to pay.
+      </p>
       <div className="mt-10">
         <Suspense fallback={<p className="meta">Loading…</p>}>
           <Wizard />
