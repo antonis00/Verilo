@@ -52,9 +52,10 @@ export function BriefingForm({ initial }: { initial: BriefingSettings }) {
 
   return (
     <form
+      id="briefing"
       aria-labelledby="briefing-title"
       data-ready={ready}
-      className="border-t border-rule pt-6 pb-8"
+      className="scroll-mt-8 border-t border-rule pt-6 pb-8"
       onSubmit={(e) => {
         e.preventDefault();
         save();

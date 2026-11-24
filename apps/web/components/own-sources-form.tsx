@@ -39,7 +39,7 @@ export function OwnSourcesForm({ accepted, sources }: { accepted: boolean; sourc
       id="own-sources"
       aria-labelledby="own-sources-title"
       data-ready={ready}
-      className="border-t border-rule pt-6 pb-8"
+      className="scroll-mt-8 border-t border-rule pt-6 pb-8"
     >
       <h2 id="own-sources-title" className="text-xl">
         Your own sources

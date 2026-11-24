@@ -57,9 +57,10 @@ export function MenuForm({
 
   return (
     <section
+      id="sections-menu"
       aria-labelledby="menu-title"
       data-ready={ready}
-      className="border-t border-rule pt-6 pb-8"
+      className="scroll-mt-8 border-t border-rule pt-6 pb-8"
     >
       <h2 id="menu-title" className="text-xl">
         Your sections menu

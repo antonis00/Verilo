@@ -19,18 +19,22 @@ type Props = {
 
 const STEPS = [
   {
+    anchor: "topics",
     title: "What do you want to follow?",
     hint: "Pick five or more for a good start, or search for anything more specific.",
   },
   {
+    anchor: "places",
     title: "Which parts of the world matter to you?",
     hint: "Stories about these parts of the world are lifted on your front page.",
   },
   {
+    anchor: "outlets",
     title: "Any outlets you prefer, or want to skip?",
     hint: "Followed outlets lead your stories when they cover them. Hidden ones never appear.",
   },
   {
+    anchor: "show",
     title: "What should your front page include?",
     hint: "Whatever you choose, opinion pieces are never used to write summaries.",
   },
@@ -138,7 +142,12 @@ export function PreferencesForm({ mode, topics, outlets, initial }: Props) {
         }}
       >
         {sections.map((section, i) => (
-          <section key={i} aria-labelledby={`pref-${i}`} className="border-t border-rule pt-6 pb-8">
+          <section
+            key={i}
+            id={`settings-${STEPS[i].anchor}`}
+            aria-labelledby={`pref-${i}`}
+            className="scroll-mt-8 border-t border-rule pt-6 pb-8"
+          >
             <h2 id={`pref-${i}`} className="text-xl">
               {steps[i].title}
             </h2>
@@ -312,14 +321,15 @@ function OutletRow({
   set: (id: number, choice: "follow" | "hide") => void;
 }) {
   return (
-    <li className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-1.5">
-      <span>
-        <span className="text-sm font-semibold">{o.name}</span>
-        <span className="meta ml-2">
+    // The same shape everywhere: the name with its labels under it, the two buttons on the right.
+    <li className="flex items-center justify-between gap-4 py-2">
+      <span className="min-w-0">
+        <span className="block text-sm font-semibold">{o.name}</span>
+        <span className="meta block">
           {COUNTRY_LABEL[o.country] ?? o.country} · {TIER_LABEL[o.tier]} · {LEAN_LABEL[o.lean]}
         </span>
       </span>
-      <span className="flex gap-2">
+      <span className="flex shrink-0 gap-2">
         <button
           type="button"
           className="chip chip-small"
@@ -423,7 +433,7 @@ function OutletsStep({
             {REGION_LABEL[region] ?? region}{" "}
             <span className="meta font-normal">({list.length})</span>
           </summary>
-          <ul className="mt-2">
+          <ul className="mt-2 xl:grid xl:grid-cols-2 xl:gap-x-10">
             {list.map((o) => (
               <OutletRow key={o.id} outlet={o} prefs={prefs} set={set} />
             ))}
