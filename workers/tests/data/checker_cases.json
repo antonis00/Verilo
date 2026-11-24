@@ -1,0 +1,181 @@
+{
+  "about": "Summaries with planted faults, to measure how many the checks catch (python -m verilo_workers eval-summaries). Each point is either correct (fault null) or carries one fault, named. The excerpts are written for this set; they report no real events.",
+  "cases": [
+    {
+      "id": "quake-toll",
+      "excerpts": {
+        "A1": "Reuters, 4 March 2030: Quake kills 31 in coastal Peru. At least 31 people died and 112 were injured when a magnitude 6.8 earthquake struck near Arequipa, officials said.",
+        "A2": "BBC News, 4 March 2030: Peru earthquake: dozens dead near Arequipa. The civil defence agency said 31 people had died."
+      },
+      "points": [
+        {"text": "A magnitude 6.8 earthquake struck near Arequipa, Peru, killing at least 31 people, officials said.", "sources": ["A1", "A2"], "fault": null},
+        {"text": "At least 112 people died in the earthquake, officials said.", "sources": ["A1"], "fault": "injured counted as dead"}
+      ]
+    },
+    {
+      "id": "rates",
+      "excerpts": {
+        "A1": "Financial Times, 4 March 2030: The Bank of England raised interest rates by a quarter point to 4.5 per cent on Thursday, citing persistent inflation.",
+        "A2": "The Guardian, 4 March 2030: The Bank of England lifted its base rate to 4.5% in a 6-3 vote."
+      },
+      "points": [
+        {"text": "The Bank of England raised interest rates to 4.5 per cent in a 6-3 vote.", "sources": ["A1", "A2"], "fault": null},
+        {"text": "The Bank of England raised interest rates to 4.75 per cent.", "sources": ["A1"], "fault": "wrong number"}
+      ]
+    },
+    {
+      "id": "who-said",
+      "excerpts": {
+        "A1": "DW, 4 March 2030: Germany's chancellor said the bloc must spend more on defence. France's president called for a joint European fund.",
+        "A2": "France 24, 4 March 2030: The French president proposed a joint EU defence fund at the summit in Brussels."
+      },
+      "points": [
+        {"text": "The French president proposed a joint EU defence fund at the Brussels summit.", "sources": ["A2"], "fault": null},
+        {"text": "Germany's chancellor called for a joint European defence fund.", "sources": ["A1"], "fault": "claim given to the wrong person"}
+      ]
+    },
+    {
+      "id": "factory-fire",
+      "excerpts": {
+        "A1": "The Straits Times, 4 March 2030: A fire at a textile factory near Jakarta killed nine workers on Tuesday. Police are investigating the cause.",
+        "A2": "Rappler, 4 March 2030: Nine killed in Jakarta factory fire; cause unknown, authorities say."
+      },
+      "points": [
+        {"text": "A fire at a textile factory near Jakarta killed nine workers; the cause is under investigation.", "sources": ["A1", "A2"], "fault": null},
+        {"text": "The fire, caused by faulty wiring, killed nine workers near Jakarta.", "sources": ["A1"], "fault": "invented cause"}
+      ]
+    },
+    {
+      "id": "treaty",
+      "excerpts": {
+        "A1": "AP, 4 March 2030: Brazil's Senate voted 48 to 27 to ratify the trade treaty on Wednesday.",
+        "A2": "MercoPress, 4 March 2030: The treaty now goes to Argentina's congress, which has not yet scheduled a vote."
+      },
+      "points": [
+        {"text": "Brazil's Senate ratified the trade treaty by 48 votes to 27.", "sources": ["A1"], "fault": null},
+        {"text": "Argentina's congress has voted on the treaty.", "sources": ["A2"], "fault": "negation flipped"}
+      ]
+    },
+    {
+      "id": "school-closures",
+      "excerpts": {
+        "A1": "RNZ, 4 March 2030: Three schools in Christchurch closed on Monday after flooding, the education ministry said.",
+        "A2": "Stuff, 4 March 2030: Flooding shut three Christchurch schools; others stayed open."
+      },
+      "points": [
+        {"text": "Flooding closed three schools in Christchurch on Monday, the education ministry said.", "sources": ["A1", "A2"], "fault": null},
+        {"text": "All schools in Christchurch were closed by the flooding.", "sources": ["A2"], "fault": "overgeneralisation"}
+      ]
+    },
+    {
+      "id": "ngo-report",
+      "excerpts": {
+        "A1": "Al Jazeera English, 4 March 2030: Oxfam said in a report that 70 percent of the region's wells were damaged. The government disputed the figure.",
+        "A2": "BBC News, 4 March 2030: An Oxfam report says most wells in the region are damaged; officials call it exaggerated."
+      },
+      "points": [
+        {"text": "Oxfam said 70 percent of the region's wells were damaged; the government disputed the figure.", "sources": ["A1"], "fault": null},
+        {"text": "70 percent of the region's wells were damaged.", "sources": ["A1"], "fault": "disputed claim stated as fact"}
+      ]
+    },
+    {
+      "id": "minister-criticised",
+      "excerpts": {
+        "A1": "The Irish Times, 4 March 2030: Opposition leaders criticised the housing minister's plan, saying it did too little for renters.",
+        "A2": "RTE News, 4 March 2030: The housing plan was criticised by opposition parties in the Dail."
+      },
+      "points": [
+        {"text": "Opposition leaders criticised the housing minister's plan, saying it did too little for renters.", "sources": ["A1"], "fault": null},
+        {"text": "Opposition leaders slammed the minister's disastrous housing plan.", "sources": ["A1", "A2"], "fault": "loaded words"}
+      ]
+    },
+    {
+      "id": "ceo-named",
+      "excerpts": {
+        "A1": "Bloomberg, 4 March 2030: The carmaker named a new chief executive on Monday, its first change of leader in a decade.",
+        "A2": "Reuters, 4 March 2030: The carmaker's board appointed a new CEO, ending a ten-year tenure."
+      },
+      "points": [
+        {"text": "The carmaker named a new chief executive, its first change of leader in a decade.", "sources": ["A1"], "fault": null},
+        {"text": "The carmaker named Laura Chen as its new chief executive.", "sources": ["A1"], "fault": "invented name"}
+      ]
+    },
+    {
+      "id": "quote",
+      "excerpts": {
+        "A1": "NPR, 4 March 2030: The governor said, \"we will rebuild every bridge that was lost\" after the storm.",
+        "A2": "CBS News, 4 March 2030: The governor promised to rebuild bridges destroyed by the storm."
+      },
+      "points": [
+        {"text": "The governor promised to rebuild the bridges destroyed by the storm.", "sources": ["A1", "A2"], "fault": null},
+        {"text": "The governor said, \"we will rebuild every road and bridge\" after the storm.", "sources": ["A1"], "fault": "altered quotation"}
+      ]
+    },
+    {
+      "id": "suspect",
+      "excerpts": {
+        "A1": "Sky News, 4 March 2030: Police arrested a 34-year-old man on suspicion of arson after the warehouse fire.",
+        "A2": "The Independent, 4 March 2030: A man has been arrested over the warehouse blaze; no one has been charged."
+      },
+      "points": [
+        {"text": "Police arrested a 34-year-old man on suspicion of arson after the warehouse fire; no one has been charged.", "sources": ["A1", "A2"], "fault": null},
+        {"text": "Police confirmed a 34-year-old man started the warehouse fire.", "sources": ["A1"], "fault": "added certainty"}
+      ]
+    },
+    {
+      "id": "talks",
+      "excerpts": {
+        "A1": "Reuters, 4 March 2030: Talks between the two sides ended in Geneva on Friday without an agreement.",
+        "A2": "Euronews, 4 March 2030: The Geneva talks closed with no deal and no date for another round."
+      },
+      "points": [
+        {"text": "Talks in Geneva ended on Friday without an agreement and with no date set for another round.", "sources": ["A1", "A2"], "fault": null},
+        {"text": "The two sides are expected to reach a deal at the next round of talks.", "sources": ["A2"], "fault": "speculation"}
+      ]
+    },
+    {
+      "id": "different-figures",
+      "excerpts": {
+        "A1": "BBC News, 4 March 2030: Officials said 12 people were killed in the landslide.",
+        "A2": "Fox News, 4 March 2030: Local media reported 15 deaths in the landslide."
+      },
+      "points": [
+        {"text": "Officials told the BBC 12 people were killed; Fox News cited local media reporting 15 deaths.", "sources": ["A1", "A2"], "fault": null},
+        {"text": "Officials said 15 people were killed in the landslide.", "sources": ["A2"], "fault": "figure given to the wrong source"}
+      ]
+    },
+    {
+      "id": "election",
+      "excerpts": {
+        "A1": "The Hindu, 4 March 2030: The ruling party won 142 of 234 seats in the state election, the election commission said.",
+        "A2": "NDTV, 4 March 2030: The ruling party kept power in the state with 142 seats."
+      },
+      "points": [
+        {"text": "The ruling party won 142 of 234 seats in the state election, the election commission said.", "sources": ["A1"], "fault": null},
+        {"text": "The ruling party won a two-thirds majority in the state election.", "sources": ["A1", "A2"], "fault": "wrong conclusion from numbers"}
+      ]
+    },
+    {
+      "id": "all-correct",
+      "excerpts": {
+        "A1": "The Japan Times, 4 March 2030: Japan's population fell by 512,000 in 2029 to 122.8 million, the interior ministry said.",
+        "A2": "Yonhap News Agency, 4 March 2030: Japan reported its population shrank for the 19th year in a row."
+      },
+      "points": [
+        {"text": "Japan's population fell by 512,000 in 2029 to 122.8 million, the interior ministry said.", "sources": ["A1"], "fault": null},
+        {"text": "It was the 19th year in a row that Japan's population shrank, Yonhap reported.", "sources": ["A2"], "fault": null}
+      ]
+    },
+    {
+      "id": "place",
+      "excerpts": {
+        "A1": "Daily Maverick, 4 March 2030: Protesters marched through Cape Town on Saturday against water price rises.",
+        "A2": "Mail & Guardian, 4 March 2030: Thousands protested in Cape Town over water tariffs."
+      },
+      "points": [
+        {"text": "Thousands protested in Cape Town on Saturday against water price rises.", "sources": ["A1", "A2"], "fault": null},
+        {"text": "Thousands protested in Johannesburg against water price rises.", "sources": ["A2"], "fault": "wrong place"}
+      ]
+    }
+  ]
+}

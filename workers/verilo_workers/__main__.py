@@ -45,6 +45,10 @@ def main(argv: list[str] | None = None) -> int:
         "reclassify", help="run the opinion/analysis/live rules again over stored news articles"
     )
     commands.add_parser("cluster", help="group enriched articles into stories")
+    commands.add_parser(
+        "eval-summaries",
+        help="measure how many planted mistakes the summary checks catch (uses the AI allowance)",
+    )
     place = commands.add_parser("place", help="tag where recent stories happen (AI tagger)")
     place.add_argument("--limit", type=int, default=8, help="at most this many stories")
     commands.add_parser(
@@ -71,6 +75,12 @@ def main(argv: list[str] | None = None) -> int:
             pipe.loop()
         else:
             print(pipe.run_round())
+        return 0
+
+    if args.command == "eval-summaries":
+        from verilo_workers.summarize import evaluate
+
+        print(evaluate.report(evaluate.evaluate(evaluate.load())))
         return 0
 
     if args.command == "place":
