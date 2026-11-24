@@ -14,7 +14,7 @@ export const LEAN_LABEL: Record<Lean, string> = {
 export const TIER_LABEL: Record<Tier, string> = {
   1: "Fact base",
   2: "Reputable",
-  3: "Labelled",
+  3: "Lower reliability",
 };
 
 export { COUNTRY_LABEL } from "@/lib/regions";

@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { StorySummary } from "@/components/story-summary";
 import { ReportMistake } from "@/components/report-mistake";
 import { mergedInto, relatedStories, storyCard, storyCorrections, topicNames } from "@/lib/news";
+import type { CardArticle } from "@/lib/feed";
 import { requestTime } from "@/lib/request-time";
 import {
   ago,
@@ -16,7 +17,63 @@ import {
   type Lean,
 } from "@/lib/sources";
 
-export const metadata: Metadata = { title: "Story" };
+// The story's own headline as the page title, for tabs, bookmarks and shared links.
+export async function generateMetadata({ params }: PageProps<"/story/[id]">): Promise<Metadata> {
+  const id = Number((await params).id);
+  const card = Number.isInteger(id) && id > 0 ? await storyCard(id) : null;
+  if (!card) return { title: "Story" };
+  const description =
+    card.summary?.bullets[0]?.text ??
+    `${card.outlet_count} outlets report this story. See how each one covered it.`;
+  return {
+    title: card.title,
+    description,
+    openGraph: { title: card.title, description, type: "article" },
+  };
+}
+
+const OUTLETS_SHOWN = 10;
+
+function OutletReports({ reports }: { reports: CardArticle[] }) {
+  const [a, ...more] = reports;
+  return (
+    <li className="border-t border-rule py-4">
+      <p className="meta">
+        <span className="font-semibold text-ink">{a.source}</span> ·{" "}
+        {COUNTRY_LABEL[a.country] ?? a.country} · {TIER_LABEL[a.tier]} · {LEAN_LABEL[a.lean]}
+        {KIND_LABEL[a.kind] ? (
+          <>
+            {" · "}
+            <span className="font-semibold text-accent">{KIND_LABEL[a.kind]}</span>
+          </>
+        ) : null}
+      </p>
+      <h3 className="mt-1 text-lg leading-snug">
+        <a href={a.url} rel="noopener noreferrer" className="quiet-link">
+          {a.title}
+        </a>
+      </h3>
+      {a.snippet ? <p className="mt-1 text-sm text-ink-muted">{a.snippet}</p> : null}
+      {more.length ? (
+        <details className="mt-2 text-sm">
+          <summary className="cursor-pointer text-ink-muted hover:text-ink">
+            {more.length} more from {a.source}
+          </summary>
+          <ul className="mt-2 space-y-1 border-l border-rule pl-4">
+            {more.map((m) => (
+              <li key={m.id}>
+                <a href={m.url} rel="noopener noreferrer" className="quiet-link">
+                  {m.title}
+                </a>
+                {KIND_LABEL[m.kind] ? <span className="meta"> · {KIND_LABEL[m.kind]}</span> : null}
+              </li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
+    </li>
+  );
+}
 
 // One story: the event's headline and every outlet's version, with how much we rely on each
 // outlet and where it leans, under the checked AI summary when the story has one.
@@ -50,6 +107,17 @@ async function Story({ params }: Pick<PageProps<"/story/[id]">, "params">) {
     (a, b) => a.tier - b.tier || (b.published_at ?? "").localeCompare(a.published_at ?? ""),
   );
   const news = articles.filter((a) => a.kind === "news");
+  // One entry per outlet, most trusted first: its newest report, the rest folded under it.
+  const grouped = new Map<number, CardArticle[]>();
+  for (const a of articles) grouped.set(a.source_id, [...(grouped.get(a.source_id) ?? []), a]);
+  const byOutlet = [...grouped.values()]
+    .map((reports) =>
+      [...reports].sort((x, y) => (y.published_at ?? "").localeCompare(x.published_at ?? "")),
+    )
+    .sort(
+      (x, y) =>
+        x[0].tier - y[0].tier || (y[0].published_at ?? "").localeCompare(x[0].published_at ?? ""),
+    );
   const leans = leanSpread(news.map((a) => a.lean as Lean));
   const topic = card.topic_ids[0];
 
@@ -113,28 +181,22 @@ async function Story({ params }: Pick<PageProps<"/story/[id]">, "params">) {
           Headlines and short excerpts; the full articles are on each outlet’s site.
         </p>
         <ol className="mt-4">
-          {articles.map((a) => (
-            <li key={a.id} className="border-t border-rule py-4">
-              <p className="meta">
-                <span className="font-semibold text-ink">{a.source}</span> ·{" "}
-                {COUNTRY_LABEL[a.country] ?? a.country} · {TIER_LABEL[a.tier]} ·{" "}
-                {LEAN_LABEL[a.lean]}
-                {KIND_LABEL[a.kind] ? (
-                  <>
-                    {" · "}
-                    <span className="font-semibold text-accent">{KIND_LABEL[a.kind]}</span>
-                  </>
-                ) : null}
-              </p>
-              <h3 className="mt-1 text-lg leading-snug">
-                <a href={a.url} rel="noopener noreferrer" className="quiet-link">
-                  {a.title}
-                </a>
-              </h3>
-              {a.snippet ? <p className="mt-1 text-sm text-ink-muted">{a.snippet}</p> : null}
-            </li>
+          {byOutlet.slice(0, OUTLETS_SHOWN).map((reports) => (
+            <OutletReports key={reports[0].source_id} reports={reports} />
           ))}
         </ol>
+        {byOutlet.length > OUTLETS_SHOWN ? (
+          <details className="mt-2">
+            <summary className="cursor-pointer border-t border-rule pt-4 text-sm text-ink-muted hover:text-ink">
+              Show all {byOutlet.length} outlets
+            </summary>
+            <ol>
+              {byOutlet.slice(OUTLETS_SHOWN).map((reports) => (
+                <OutletReports key={reports[0].source_id} reports={reports} />
+              ))}
+            </ol>
+          </details>
+        ) : null}
       </section>
 
       <div className="mt-8 border-t border-rule pt-6">
