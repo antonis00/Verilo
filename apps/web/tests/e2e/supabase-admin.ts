@@ -233,3 +233,11 @@ export async function sweepTestData() {
   }
   await rest(`topics?slug=match.${encodeURIComponent(TEST_NAME)}`, { method: "DELETE" });
 }
+
+// Marks a story as merged into another, as the pipeline's merge does.
+export async function mergeStory(fromId: number, intoId: number) {
+  await rest(`stories?id=eq.${fromId}`, {
+    method: "PATCH",
+    body: JSON.stringify({ merged_into: intoId, article_count: 0, outlet_count: 0 }),
+  });
+}

@@ -39,6 +39,9 @@ def prune(conn: psycopg.Connection, now: datetime | None = None) -> dict[str, in
         counts["summary checks"] = conn.execute(
             "delete from public.summary_checks where created_at < %s", (days(CHECK_DAYS),)
         ).rowcount
+        counts["pipeline runs"] = conn.execute(
+            "delete from public.pipeline_runs where started_at < %s", (days(30),)
+        ).rowcount
         counts["briefings"] = conn.execute(
             "delete from public.digests where created_at < %s", (days(BRIEFING_DAYS),)
         ).rowcount

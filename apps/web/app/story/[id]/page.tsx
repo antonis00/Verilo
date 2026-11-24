@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { Suspense } from "react";
 import { StorySummary } from "@/components/story-summary";
 import { ReportMistake } from "@/components/report-mistake";
-import { relatedStories, storyCard, storyCorrections, topicNames } from "@/lib/news";
+import { mergedInto, relatedStories, storyCard, storyCorrections, topicNames } from "@/lib/news";
 import { requestTime } from "@/lib/request-time";
 import {
   ago,
@@ -38,7 +38,12 @@ async function Story({ params }: Pick<PageProps<"/story/[id]">, "params">) {
     requestTime(),
     storyCorrections(storyId),
   ]);
-  if (!card) notFound();
+  if (!card) {
+    // A story merged into another (the same event, found twice): its links go to that one.
+    const into = await mergedInto(storyId);
+    if (into) permanentRedirect(`/story/${into}`);
+    notFound();
+  }
   const related = await relatedStories(card.id, card.follows);
 
   const articles = [...card.articles].sort(

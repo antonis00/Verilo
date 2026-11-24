@@ -134,9 +134,18 @@ def tag_pending(
             print(f"AI tagging paused: {exc}", flush=True)
             break
         except AIError as exc:
-            # A bad reply: leave these articles for the next round rather than mark them.
             print(f"AI tagging failed for a batch: {exc}", flush=True)
-            break
+            if "unreachable" in str(exc):
+                break  # the model is down: these articles wait for the next round
+            # A reply the model can't get right: marked as looked at, so it isn't retried forever.
+            with conn.transaction():
+                conn.execute(
+                    "update public.articles set topics_llm_at = %s where id = any(%s)",
+                    (now, [r["id"] for r in batch]),
+                )
+            conn.commit()
+            counts["looked at"] += len(batch)
+            continue
         found = read_reply(reply.data, len(batch), slugs)
         with conn.transaction():
             for n, row in enumerate(batch, 1):

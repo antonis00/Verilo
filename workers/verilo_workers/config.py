@@ -27,3 +27,7 @@ REVALIDATE_SECRET = os.environ.get("VERILO_REVALIDATE_SECRET", "")
 BRIEFING_URL = os.environ.get("VERILO_BRIEFING_URL", "http://localhost:3001/api/briefing/run")
 BRIEFING_SECRET = os.environ.get("VERILO_BRIEFING_SECRET", "")
 BRIEFING_EVERY = 15
+
+# A heartbeat: each pipeline round pings this URL (and URL/fail when a round fails), so a service
+# such as healthchecks.io can alert when the pipeline stops. Empty: no pings.
+HEARTBEAT_URL = os.environ.get("VERILO_HEARTBEAT_URL", "").rstrip("/")

@@ -161,7 +161,19 @@ async function Desk() {
   }
 
   const now = await requestTime();
-  const [readers, reports] = await Promise.all([readerCounts(now), openReports()]);
+  const [readers, reports, lastRun] = await Promise.all([
+    readerCounts(now),
+    openReports(),
+    adminClient()
+      .from("pipeline_runs")
+      .select("started_at, ok, error")
+      .order("started_at", { ascending: false })
+      .limit(1)
+      .maybeSingle<{ started_at: string; ok: boolean; error: string | null }>(),
+  ]);
+  const run = lastRun.data;
+  // The pipeline runs every minute; quiet for 15 minutes means it has stopped.
+  const stalled = !run || now - Date.parse(run.started_at) > 15 * 60_000;
   const rows = sources.data ?? [];
   const active = rows.filter((s) => s.status === "active");
   const failing = active.filter((s) =>
@@ -200,6 +212,20 @@ async function Desk() {
         <Figure label="Trials ended, not subscribed" value={readers.ended} />
         <Figure label="Subscribed" value={readers.subscribed} />
       </dl>
+      <p
+        role={stalled || (run && !run.ok) ? "alert" : undefined}
+        className={`mt-4 text-sm ${stalled || (run && !run.ok) ? "border-l-2 border-accent pl-3" : "meta"}`}
+      >
+        {run ? (
+          <>
+            Pipeline last ran <time dateTime={run.started_at}>{ago(run.started_at, now)}</time>
+            {run.ok ? "" : `, and failed: ${run.error ?? "unknown error"}`}
+            {stalled ? ". It runs every minute, so it has stopped: start it again." : "."}
+          </>
+        ) : (
+          "The pipeline hasn’t run yet."
+        )}
+      </p>
 
       <Reports reports={reports} now={now} />
 
