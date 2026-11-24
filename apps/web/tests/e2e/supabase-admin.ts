@@ -210,3 +210,26 @@ export async function setTrial(
 ) {
   await rest(`profiles?id=eq.${userId}`, { method: "PATCH", body: JSON.stringify(fields) });
 }
+
+// Test outlets and topics are named "<what>-<desktop|phone>-<timestamp>-<random>" (uniqueName) or
+// "test-outlet-…". Each test removes its own; this sweeps what a failed cleanup left behind (a
+// leftover featured topic shows in the real menu), before a run starts.
+const TEST_NAME = "-(desktop|phone)-[0-9]{10,}";
+
+export async function sweepTestData() {
+  // Quoted: the pattern's parentheses would otherwise end the or=(…) filter.
+  const match = encodeURIComponent(`"${TEST_NAME}"`);
+  const sources = (await rest(
+    `sources?select=id&or=(slug.match.${match},slug.like.test-outlet-*)`,
+  )) as { id: number }[];
+  if (sources.length) {
+    const ids = sources.map((s) => s.id).join(",");
+    const articles = (await rest(
+      `articles?select=story_id&source_id=in.(${ids})&story_id=not.is.null`,
+    )) as { story_id: number }[];
+    const stories = [...new Set(articles.map((a) => a.story_id))];
+    if (stories.length) await rest(`stories?id=in.(${stories.join(",")})`, { method: "DELETE" });
+    await rest(`sources?id=in.(${ids})`, { method: "DELETE" });
+  }
+  await rest(`topics?slug=match.${encodeURIComponent(TEST_NAME)}`, { method: "DELETE" });
+}
