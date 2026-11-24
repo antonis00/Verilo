@@ -43,7 +43,9 @@ test("a reader sets the daily briefing, gets it once that morning and stops it f
 
     await signIn(page, email);
     // Typing before the form's script has run is lost (the search never filters).
-    await expect(page.locator("[data-testid=wizard][data-ready=true]")).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator("[data-testid=wizard][data-ready=true]")).toBeVisible({
+      timeout: 15_000,
+    });
     // Under load it's tried again until the topic shows.
     await expect(async () => {
       await page
