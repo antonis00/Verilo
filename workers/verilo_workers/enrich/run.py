@@ -112,3 +112,28 @@ def enrich_pending(conn: psycopg.Connection, now: datetime | None = None) -> int
                 )
                 _save_topics(conn, row["id"], found, ids)
         done += len(rows)
+
+
+def reclassify(conn: psycopg.Connection) -> dict[str, int]:
+    """Run the kind rules again over stored news articles (after kind.py changes). Only articles
+    classed news are looked at, so earlier opinion and sponsored calls (some made from feed
+    categories, which aren't stored) stay. Live pieces leave their stories."""
+    from verilo_workers.enrich.kind import LIVE, NEWS, classify
+
+    rows = conn.execute(
+        "select id, url, title, snippet from public.articles where kind = 'news'"
+    ).fetchall()
+    counts: dict[str, int] = {}
+    with conn.transaction():
+        for r in rows:
+            kind, reason = classify(r["url"], r["title"], (), r["snippet"])
+            if kind == NEWS:
+                continue
+            counts[kind] = counts.get(kind, 0) + 1
+            conn.execute(
+                """update public.articles set kind = %s, kind_reason = %s,
+                     story_id = case when %s then null else story_id end
+                   where id = %s""",
+                (kind, reason, kind == LIVE, r["id"]),
+            )
+    return counts

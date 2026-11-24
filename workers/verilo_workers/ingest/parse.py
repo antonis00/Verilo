@@ -101,7 +101,7 @@ def parse_feed(body: bytes, now: datetime | None = None, max_age_days: int = 7) 
             snippet = ""
         # The feed's categories are read only to tell opinion and paid content from news.
         tags = [t.get("term") or t.get("label") or "" for t in entry.get("tags", [])]
-        kind, kind_reason = classify(url, title, tags)
+        kind, kind_reason = classify(url, title, tags, snippet)
         items.append(
             Item(
                 url=url,

@@ -64,7 +64,7 @@ CASES = [
         "https://www.theguardian.com/world/live/2026/nov/18/apec-summit-live-updates",
         "Apec summit as it happened: Xi welcomes Trump on China visit",
         ["World news"],
-        NEWS,
+        "live",  # a live blog covers many events: it joins no story (Nov 2026 review)
     ),
     (
         "https://example.com/business/2026/budget-preview",
@@ -92,3 +92,35 @@ def test_every_decision_names_its_rule_in_plain_words():
     _, reason = classify("https://example.com/a", "The Times view on the budget", [])
     assert reason and "editorial" in reason
     assert "\\" not in reason  # no raw regular expressions on the desk
+
+
+@pytest.mark.parametrize(
+    ("url", "title", "snippet", "kind"),
+    [
+        ("https://x.example/news/huang-nvidia-analysis", "Huang is back", "", "analysis"),
+        ("https://x.example/a", "Analysis: what the ruling means", "", "analysis"),
+        (
+            "https://x.example/a",
+            "Huang returns",
+            "The deal is risky, writes Adam Maguire.",
+            "analysis",
+        ),
+        ("https://x.example/podcasts/ep-12", "Episode 12", "", "live"),
+        ("https://x.example/a", "The Bottom Line newsletter: chips", "", "live"),
+        ("https://x.example/a", "Live: Ukraine latest", "", "live"),
+        ("https://x.example/a", "HT Evening News Brief November 18", "", "live"),
+        (
+            "https://x.example/world/talks",
+            "Talks end in Geneva",
+            "Officials said talks ended.",
+            "news",
+        ),
+        # A video report is about one event: news, not a roundup.
+        ("https://x.example/video/ipo", "Anthropic goes public after record IPO", "", "news"),
+        ("https://x.example/a", "Quad meetings explained | The Hindu Editorial", "", "opinion"),
+        # A news report quoting someone who "writes" lower-case isn't signed analysis.
+        ("https://x.example/a", "Author dies", "She writes novels about the sea.", "news"),
+    ],
+)
+def test_analysis_and_live_pieces_are_told_from_news(url, title, snippet, kind):
+    assert classify(url, title, (), snippet)[0] == kind

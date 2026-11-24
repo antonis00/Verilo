@@ -30,11 +30,14 @@ export function ago(iso: string | null, now: number): string {
   return `${Math.round(hours / 24)} days ago`;
 }
 
-export type Kind = "news" | "opinion" | "sponsored";
+// Only news reports feed summaries; the others are labelled wherever they show.
+export type Kind = "news" | "opinion" | "analysis" | "live" | "sponsored";
 
 export const KIND_LABEL: Record<Kind, string | null> = {
   news: null,
   opinion: "Opinion",
+  analysis: "Analysis",
+  live: "Live / roundup",
   sponsored: "Sponsored",
 };
 
