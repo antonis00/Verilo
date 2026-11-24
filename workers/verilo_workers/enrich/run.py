@@ -52,7 +52,7 @@ def retag_all(conn: psycopg.Connection) -> int:
     rows = conn.execute(
         """select a.id, a.embedding, f.section
            from public.articles a left join public.source_feeds f on f.id = a.feed_id
-           where a.enriched_at is not null order by a.id"""
+           where a.enriched_at is not null and a.embedding is not null order by a.id"""
     ).fetchall()
     if not rows:
         return 0
