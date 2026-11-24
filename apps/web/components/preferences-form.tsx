@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { rememberTimeZone, savePreferences } from "@/app/preferences/actions";
+import { rememberTimeZone, saveBriefing, savePreferences } from "@/app/preferences/actions";
 import { TopicPicker } from "@/components/topic-picker";
 import type { Outlet, Topic } from "@/lib/news";
 import { type PreferencesInput } from "@/lib/preferences";
@@ -19,7 +19,7 @@ type Props = {
 const STEPS = [
   {
     title: "What do you want to follow?",
-    hint: "Pick five or more for a good start, or search for anything more specific. Everything here can be changed later in My News.",
+    hint: "Pick five or more for a good start, or search for anything more specific.",
   },
   {
     title: "Which parts of the world matter to you?",
@@ -34,6 +34,18 @@ const STEPS = [
     hint: "Whatever you choose, opinion pieces are never used to write summaries.",
   },
 ];
+
+// The wizard's last question; in My News the briefing has its own form.
+const BRIEFING_STEP = {
+  title: "Would you like a morning briefing?",
+  hint: "A short email once a day: your top stories, and one or two everyone should know. Off unless you turn it on; stop any time.",
+};
+
+const HOURS = Array.from({ length: 24 }, (_, h) => h);
+const hourLabel = (h: number) =>
+  new Intl.DateTimeFormat("en-GB", { hour: "numeric", hour12: true, timeZone: "UTC" }).format(
+    new Date(Date.UTC(2026, 0, 1, h)),
+  );
 
 const toggle = (list: number[], id: number) =>
   list.includes(id) ? list.filter((x) => x !== id) : [...list, id];
@@ -50,6 +62,7 @@ export function PreferencesForm({ mode, topics, outlets, initial }: Props) {
   const router = useRouter();
   const [prefs, setPrefs] = useState<PreferencesInput>(initial);
   const [step, setStep] = useState(0);
+  const [briefing, setBriefing] = useState({ enabled: false, sendHour: 7 });
   const [message, setMessage] = useState<{ kind: "error" | "saved"; text: string } | null>(null);
   const [pending, startTransition] = useTransition();
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -78,8 +91,13 @@ export function PreferencesForm({ mode, topics, outlets, initial }: Props) {
 
   const finish = () =>
     save(async () => {
-      // The first briefing comes the next morning, at 7 in the reader's own time zone.
-      await rememberTimeZone(Intl.DateTimeFormat().resolvedOptions().timeZone);
+      // The briefing's hour is in the reader's own time zone; the first comes the next morning.
+      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (briefing.enabled) {
+        await saveBriefing({ ...briefing, length: "short", timeZone });
+      } else {
+        await rememberTimeZone(timeZone);
+      }
       router.push("/");
       router.refresh();
     });
@@ -90,6 +108,10 @@ export function PreferencesForm({ mode, topics, outlets, initial }: Props) {
     <OutletsStep key="outlets" outlets={outlets} prefs={prefs} setPrefs={setPrefs} />,
     <ShowStep key="show" prefs={prefs} setPrefs={setPrefs} />,
   ];
+  const steps = mode === "wizard" ? [...STEPS, BRIEFING_STEP] : STEPS;
+  if (mode === "wizard") {
+    sections.push(<BriefingStep key="briefing" value={briefing} onChange={setBriefing} />);
+  }
 
   const status = message ? (
     <p
@@ -115,9 +137,9 @@ export function PreferencesForm({ mode, topics, outlets, initial }: Props) {
         {sections.map((section, i) => (
           <section key={i} aria-labelledby={`pref-${i}`} className="border-t border-rule pt-6 pb-8">
             <h2 id={`pref-${i}`} className="text-xl">
-              {STEPS[i].title}
+              {steps[i].title}
             </h2>
-            <p className="meta mt-1">{STEPS[i].hint}</p>
+            <p className="meta mt-1">{steps[i].hint}</p>
             <div className="mt-4">{section}</div>
           </section>
         ))}
@@ -131,12 +153,12 @@ export function PreferencesForm({ mode, topics, outlets, initial }: Props) {
     );
   }
 
-  const last = step === STEPS.length - 1;
+  const last = step === steps.length - 1;
   return (
     <div>
       <div className="flex items-baseline justify-between gap-4">
         <p className="meta">
-          Step {step + 1} of {STEPS.length}
+          Step {step + 1} of {steps.length}
         </p>
         <button
           type="button"
@@ -152,16 +174,16 @@ export function PreferencesForm({ mode, topics, outlets, initial }: Props) {
         role="progressbar"
         aria-label="Setup progress"
         aria-valuemin={1}
-        aria-valuemax={STEPS.length}
+        aria-valuemax={steps.length}
         aria-valuenow={step + 1}
       >
-        <span style={{ width: `${((step + 1) / STEPS.length) * 100}%` }} />
+        <span style={{ width: `${((step + 1) / steps.length) * 100}%` }} />
       </div>
 
       <h2 ref={headingRef} tabIndex={-1} className="mt-8 text-2xl outline-none md:text-3xl">
-        {STEPS[step].title}
+        {steps[step].title}
       </h2>
-      <p className="mt-2 text-ink-muted">{STEPS[step].hint}</p>
+      <p className="mt-2 text-ink-muted">{steps[step].hint}</p>
       <div className="mt-6">{sections[step]}</div>
 
       <div className="mt-10 flex flex-wrap items-center gap-3 border-t border-rule pt-6">
@@ -371,6 +393,51 @@ function OutletsStep({ outlets, prefs, setPrefs }: StepProps & { outlets: Outlet
         </details>
       ))}
     </>
+  );
+}
+
+function BriefingStep({
+  value,
+  onChange,
+}: {
+  value: { enabled: boolean; sendHour: number };
+  onChange: (v: { enabled: boolean; sendHour: number }) => void;
+}) {
+  return (
+    <div className="space-y-5">
+      <label className="flex cursor-pointer items-start gap-3">
+        <input
+          type="checkbox"
+          role="switch"
+          className="mt-1 size-5 accent-[var(--ink)]"
+          checked={value.enabled}
+          onChange={(e) => onChange({ ...value, enabled: e.target.checked })}
+        />
+        <span>
+          <span className="font-semibold">Yes, email me a daily briefing</span>
+          <span className="meta block">The first one comes tomorrow morning.</span>
+        </span>
+      </label>
+      <div className={value.enabled ? "" : "opacity-60"}>
+        <label htmlFor="wizard-briefing-hour" className="font-semibold">
+          Time
+        </label>
+        <select
+          id="wizard-briefing-hour"
+          className="field mt-1 block w-full max-w-48"
+          disabled={!value.enabled}
+          value={value.sendHour}
+          onChange={(e) => onChange({ ...value, sendHour: Number(e.target.value) })}
+        >
+          {HOURS.map((h) => (
+            <option key={h} value={h}>
+              {hourLabel(h)}
+            </option>
+          ))}
+        </select>
+        <p className="meta mt-1">In your own time zone.</p>
+      </div>
+    </div>
   );
 }
 

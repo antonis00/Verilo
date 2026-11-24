@@ -16,7 +16,7 @@ export default function WelcomePage() {
       <p className="kicker">Welcome to Verilo</p>
       <h1 className="mt-2 text-3xl md:text-4xl">Make the front page yours</h1>
       <p className="mt-3 text-lg text-ink-muted">
-        Four quick questions. Skip any of them: you’ll get today’s top stories until you choose.
+        Five quick questions. Skip any of them: you’ll get today’s top stories until you choose.
       </p>
       <div className="mt-10">
         <Suspense fallback={<p className="meta">Loading…</p>}>
