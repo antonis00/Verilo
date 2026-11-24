@@ -8,7 +8,7 @@ import { settingsFrom, type SettingsRow } from "@/lib/briefing";
 import { loadPreferences } from "@/lib/reader-preferences";
 import { trialLine } from "@/lib/trial";
 import { createClient } from "@/lib/supabase/server";
-import { signOut } from "./actions";
+import { deleteAccount, signOut } from "./actions";
 
 export const metadata: Metadata = {
   title: "My News",
@@ -63,6 +63,50 @@ async function Settings() {
       <div className="mt-12">
         <BriefingForm initial={settingsFrom(briefing.data)} />
       </div>
+      <section
+        id="your-data"
+        aria-labelledby="your-data-title"
+        className="mt-12 border-t border-rule pt-6"
+      >
+        <h2 id="your-data-title" className="text-xl">
+          Your data
+        </h2>
+        <p className="meta mt-1">
+          Verilo keeps your email address, the choices on this page and the dates of the briefings
+          it sent you. Nothing else, and nothing is sold or shared for advertising.
+        </p>
+        <p className="mt-4">
+          <a href="/api/account/export" download>
+            Download my data
+          </a>{" "}
+          <span className="meta">(a JSON file)</span>
+        </p>
+        <details className="mt-4">
+          <summary className="cursor-pointer text-ink-muted hover:text-ink">
+            Delete my account
+          </summary>
+          <form action={deleteAccount} className="mt-3">
+            <p className="text-sm">
+              This deletes your account, your choices and your briefing history at once. It
+              can&rsquo;t be undone.
+            </p>
+            <label htmlFor="confirm-delete" className="mt-3 block text-sm font-semibold">
+              Type &ldquo;delete&rdquo; to confirm
+            </label>
+            <input
+              id="confirm-delete"
+              name="confirm"
+              required
+              pattern="[Dd][Ee][Ll][Ee][Tt][Ee]"
+              autoComplete="off"
+              className="field mt-1 w-48"
+            />
+            <button type="submit" className="button mt-3 block">
+              Delete my account
+            </button>
+          </form>
+        </details>
+      </section>
       <form action={signOut} className="mt-12 border-t border-rule pt-6">
         <button type="submit" className="button button-secondary">
           Sign out
