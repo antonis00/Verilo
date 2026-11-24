@@ -85,7 +85,7 @@ def test_eligibility_needs_three_reputable_outlets_a_tier_one_and_two_leans():
     assert eligibility.check(good, set()).eligible
     # Opinion and tier 3 don't count.
     weak = [*good[:2], art(3, 3, 3, "lean_right"), art(4, 4, 2, "right", kind="opinion")]
-    assert eligibility.check(weak, set()).reason == "1 more reputable outlet(s)"
+    assert eligibility.check(weak, set()).reason == "1 more independent reputable source(s)"
     no_wire = [art(1, 1, 2, "center"), art(2, 2, 2, "lean_left"), art(3, 3, 2, "right")]
     assert "wire service" in eligibility.check(no_wire, set()).reason
     one_side = [art(1, 1, 1, "lean_left"), art(2, 2, 2, "left"), art(3, 3, 2, "lean_left")]
@@ -187,3 +187,29 @@ def test_a_story_that_keeps_failing_is_rested():
     row = {"last_status": None, "failed_recently": 2}
     assert not _due(row, [], NOW)
     assert _due({**row, "failed_recently": 1}, [], NOW)
+
+
+def test_outlets_running_the_same_agency_copy_count_as_one_source():
+    wire = (
+        "Rescuers pulled 12 people from the rubble after the quake struck the coastal city at dawn."
+    )
+    copies = [
+        art(
+            1, 1, 1, "center", snippet="Officials said the death toll rose overnight to 30 people."
+        ),
+        art(2, 2, 2, "lean_left", snippet=wire),
+        art(3, 3, 2, "center", snippet=wire + " More soon."),
+        art(
+            4, 4, 2, "lean_right", snippet="(Reuters) - Power was cut across the region on Monday."
+        ),
+        art(5, 5, 2, "right", snippet="Schools closed (Reuters) as aftershocks continued."),
+    ]
+    groups = eligibility.sources(copies)
+    assert sorted(len(g) for g in groups) == [1, 2, 2]
+    # Five outlets, three independent sources; agency copy counts as centre, so no right lean.
+    verdict = eligibility.check(copies, set())
+    assert verdict.outlets == 3
+    assert "another lean group" in verdict.reason
+    # The writer gets one excerpt per source.
+    assert len(eligibility.passages(copies)) == 3
+    assert eligibility.agency(copies[3]) == "Reuters"

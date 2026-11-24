@@ -22,7 +22,13 @@ SLUGS = ["test-sum-wire", "test-sum-left", "test-sum-right", "test-sum-extra"]
 THREE = ["test-sum-wire", "test-sum-left", "test-sum-right"]
 NOW = datetime.now(UTC).replace(microsecond=0)
 RNG = np.random.default_rng(7)
-SNIPPET = "Officials in Lisbon said 40 ministers attended the summit on Thursday."
+# Each outlet's own wording: the same excerpt from several outlets is one source (wire copy).
+SNIPPETS = {
+    "test-sum-wire": "Officials in Lisbon said 40 ministers attended the summit on Thursday.",
+    "test-sum-left": "Forty ministers gathered in Lisbon on Thursday for talks on trade and aid.",
+    "test-sum-right": "The meeting in the Portuguese capital opened Thursday with 40 ministers.",
+    "test-sum-extra": "Ministers from 40 countries met in Lisbon this Thursday to discuss energy.",
+}
 
 
 def source(slug, tier, lean):
@@ -87,7 +93,7 @@ def add(conn, sid, slug):
         (
             src,
             f"https://test.example/{slug}/{RNG.integers(1e12)}",
-            SNIPPET,
+            SNIPPETS[slug],
             NOW - timedelta(hours=1),
             format(int(RNG.integers(1 << 62)), "064x"),
             sid,
