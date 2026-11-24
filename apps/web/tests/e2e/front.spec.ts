@@ -183,8 +183,11 @@ test("the welcome wizard saves choices that shape the front page and settings", 
 
     // The outlets list folds: all regions at once, or one at a time. Which way the control
     // starts depends on the data (with outlets in one region only, it opens all of them).
-    const regions = page.locator("details");
-    const openCount = () => page.locator("details[open]").count();
+    const outletsSection = page.getByRole("region", {
+      name: "Any outlets you prefer, or want to skip?",
+    });
+    const regions = outletsSection.locator("details");
+    const openCount = () => outletsSection.locator("details[open]").count();
     const fold = page.getByRole("button", { name: /^(Expand|Collapse) all$/ });
     if ((await fold.textContent())?.includes("Expand")) await fold.click();
     await expect.poll(openCount).toBe(await regions.count());

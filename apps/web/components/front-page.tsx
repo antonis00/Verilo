@@ -146,6 +146,9 @@ function Story({
         />
       ) : size === "lead" && story.lead.snippet ? (
         <p className="mt-4 max-w-prose text-lg text-ink-muted">{story.lead.snippet}</p>
+      ) : size === "grid" && cardLine(story) ? (
+        // One line of context, so a story can be judged by more than its headline.
+        <p className="mt-2 line-clamp-2 text-sm text-ink-muted">{cardLine(story)}</p>
       ) : null}
       <p className="meta mt-3">
         {story.outlets} {story.outlets === 1 ? "outlet" : "outlets"}: {outletLine(story)} ·{" "}
@@ -153,8 +156,8 @@ function Story({
           {ago(story.card.last_published_at, now)}
         </time>
       </p>
-      {personal && story.reasons.length && size !== "side" ? (
-        <p className="meta mt-1">{story.reasons[0]}</p>
+      {personal && reason(story) && size !== "side" ? (
+        <p className="meta mt-1">{reason(story)}</p>
       ) : null}
       {size === "lead" ? <OtherVersions story={story} /> : null}
     </article>
@@ -199,4 +202,14 @@ function OtherVersions({ story }: { story: Ranked }) {
       </ul>
     </section>
   );
+}
+
+// A grid card's line: the checked summary's first point, else the lead outlet's excerpt.
+function cardLine(story: Ranked): string | null {
+  return story.card.summary?.bullets[0]?.text ?? (story.lead.snippet || null);
+}
+
+// Why the story is on this reader's page; the outlet count is already on the card.
+function reason(story: Ranked): string | null {
+  return story.reasons.find((r) => !r.startsWith("Covered by")) ?? null;
 }

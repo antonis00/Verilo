@@ -450,7 +450,7 @@ function ShowStep({ prefs, setPrefs }: StepProps) {
     },
     {
       key: "showTier3" as const,
-      label: "Outlets we label",
+      label: "Outlets with a weaker record",
       help: "Outlets with a weaker accuracy record. Always marked, never used for summaries.",
     },
   ];
