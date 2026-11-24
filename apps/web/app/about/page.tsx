@@ -24,7 +24,7 @@ const PRINCIPLES = [
   {
     kicker: "Finite",
     title: "A front page that ends",
-    body: "Your stories for the day, then “You’re caught up”. No endless scroll, no autoplay, no ads.",
+    body: "Your stories for the day, then “You’re caught up”. No endless scroll, no autoplay, no ads, no distractions: the design is plain and calm on purpose, so the news is what you notice.",
   },
 ];
 
@@ -41,9 +41,9 @@ export default function AboutPage() {
             One story per event, not ten copies of the same article
           </h1>
           <p className="mt-5 max-w-prose text-lg text-ink-muted">
-            Verilo gathers the news from wire services, public broadcasters and major papers, groups
-            the articles that report the same event, and gives you one page for each story: the
-            facts so far, and a link to every outlet’s version.
+            Verilo gathers the news from public broadcasters, major papers and news sites around the
+            world, groups the articles that report the same event, and gives you one page for each
+            story: the facts so far, and a link to every outlet’s version.
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
             <Link href="/welcome" className="button">

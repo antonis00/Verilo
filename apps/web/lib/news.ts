@@ -113,10 +113,69 @@ export async function storyCard(id: number): Promise<Card | null> {
   const { data, error } = await publicClient()
     .from("story_cards")
     .select(
-      "id, title, first_published_at, last_published_at, article_count, outlet_count, articles, topic_ids, summary",
+      "id, title, first_published_at, last_published_at, article_count, outlet_count, articles, topic_ids, summary, follows",
     )
     .eq("id", id)
     .maybeSingle();
   if (error) console.error("story failed", error.message);
   return (data as Card | null) ?? null;
+}
+
+export type Correction = {
+  id: number;
+  story_id: number;
+  note: string;
+  created_at: string;
+  story_title?: string;
+};
+
+// Corrections on one story, newest first (a withdrawn summary, and why).
+export async function storyCorrections(storyId: number): Promise<Correction[]> {
+  "use cache";
+  cacheStories();
+  const { data, error } = await publicClient()
+    .from("corrections")
+    .select("id, story_id, note, created_at")
+    .eq("story_id", storyId)
+    .order("created_at", { ascending: false });
+  if (error) console.error("corrections failed", error.message);
+  return (data ?? []) as Correction[];
+}
+
+// Every correction, newest first, for the public corrections page.
+export async function allCorrections(): Promise<Correction[]> {
+  "use cache";
+  cacheStories();
+  const { data, error } = await publicClient()
+    .from("corrections")
+    .select("id, story_id, note, created_at, stories (title)")
+    .order("created_at", { ascending: false })
+    .limit(200);
+  if (error) console.error("corrections failed", error.message);
+  return ((data ?? []) as unknown as (Correction & { stories: { title: string } | null })[]).map(
+    (c) => ({ ...c, story_title: c.stories?.title }),
+  );
+}
+
+// The stories a story continues and is continued by (its earlier and later coverage).
+export async function relatedStories(
+  storyId: number,
+  follows: number | null | undefined,
+): Promise<{
+  earlier: { id: number; title: string } | null;
+  later: { id: number; title: string }[];
+}> {
+  "use cache";
+  cacheStories();
+  const db = publicClient();
+  const [earlier, later] = await Promise.all([
+    follows
+      ? db.from("story_cards").select("id, title").eq("id", follows).maybeSingle()
+      : Promise.resolve({ data: null }),
+    db.from("story_cards").select("id, title").eq("follows", storyId).order("first_published_at"),
+  ]);
+  return {
+    earlier: (earlier.data as { id: number; title: string } | null) ?? null,
+    later: ((later as { data: { id: number; title: string }[] | null }).data ?? []).slice(0, 5),
+  };
 }

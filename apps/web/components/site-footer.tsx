@@ -15,6 +15,9 @@ export function SiteFooter() {
           <Link href="/about" className="quiet-link">
             How Verilo works
           </Link>
+          <Link href="/corrections" className="quiet-link">
+            Corrections
+          </Link>
         </nav>
       </div>
     </footer>
