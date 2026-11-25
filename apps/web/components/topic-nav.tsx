@@ -34,7 +34,14 @@ export function NavList({
                   : "border-transparent text-ink-muted hover:text-ink"
               }`}
             >
-              {item.label}
+              {/* An invisible bold copy keeps each item as wide as when it's current, so the menu
+                  doesn't shift as the current section changes (the front page's is bold). */}
+              <span
+                data-label={item.label}
+                className="flex flex-col after:invisible after:h-0 after:overflow-hidden after:font-semibold after:content-[attr(data-label)]"
+              >
+                {item.label}
+              </span>
             </Link>
           </li>
         );

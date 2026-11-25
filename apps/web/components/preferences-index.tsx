@@ -20,11 +20,12 @@ export function SettingsIndex() {
 
   // The section whose top most recently passed the upper third of the window.
   useEffect(() => {
-    const sections = SETTINGS_SECTIONS.map((s) => document.getElementById(s.id)).filter(
-      (el): el is HTMLElement => el !== null,
-    );
-    if (!sections.length) return;
+    // Looked up each time: the index shows at once, the sections stream in after it.
     const update = () => {
+      const sections = SETTINGS_SECTIONS.map((s) => document.getElementById(s.id)).filter(
+        (el): el is HTMLElement => el !== null,
+      );
+      if (!sections.length) return;
       const line = window.innerHeight / 3;
       let seen = sections[0].id;
       for (const el of sections) if (el.getBoundingClientRect().top <= line) seen = el.id;

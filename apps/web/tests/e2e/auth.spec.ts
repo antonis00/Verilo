@@ -46,9 +46,16 @@ test("sign in with an emailed link, then sign out", async ({ page }, info) => {
   await page.goto("/preferences");
   await expect(page.getByText(`Signed in as ${email}`)).toBeVisible();
   // On Preferences the cog becomes a newspaper back to the front page, and back again there.
+  // The sections bar doesn't shift as the current section changes (none here, Top stories there).
   const account = page.getByRole("navigation", { name: "Account" });
+  const top = page
+    .getByRole("navigation", { name: "Sections" })
+    .getByRole("link", { name: "Top stories" });
+  const width = (await top.boundingBox())?.width;
   await account.getByRole("link", { name: "Back to the front page" }).click();
   await expect(page).toHaveURL(/\/$/);
+  await expect(top).toHaveAttribute("aria-current", "page");
+  expect((await top.boundingBox())?.width).toBe(width);
   await account.getByRole("link", { name: "Preferences" }).click();
   await expect(page).toHaveURL(/\/preferences$/);
 

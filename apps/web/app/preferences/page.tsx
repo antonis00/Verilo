@@ -30,7 +30,13 @@ export default function MyNewsPage() {
         <p className="kicker">Your account</p>
         <h1 className="mt-2 text-2xl md:text-3xl">Preferences</h1>
       </div>
-      <Suspense fallback={<p className="meta mt-4 lg:col-start-2">Loading your preferences…</p>}>
+      {/* The index is part of the page's shell, so it's there from the first frame; the reader's
+          own settings stream in under the title without a loading line flashing first. The
+          placeholder holds the space, so the footer doesn't jump up and back. */}
+      <aside className="mt-5 border-y border-rule lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:mt-1 lg:border-0">
+        <SettingsIndex />
+      </aside>
+      <Suspense fallback={<div aria-busy="true" className="min-h-[70vh] lg:col-start-2" />}>
         <Settings />
       </Suspense>
     </div>
@@ -53,9 +59,6 @@ async function Settings() {
   ]);
   return (
     <>
-      <aside className="mt-5 border-y border-rule lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:mt-1 lg:border-0">
-        <SettingsIndex />
-      </aside>
       {/* Explanations keep a readable width however wide the column. */}
       <div className="lg:col-start-2 [&_.meta]:max-w-prose">
         <p className="mt-3 text-ink-muted">
