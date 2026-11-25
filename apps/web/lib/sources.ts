@@ -51,7 +51,7 @@ export const LEAN_GROUP: Record<Lean, LeanGroup> = {
   right: "right",
 };
 
-const LEAN_ORDER: Lean[] = ["left", "lean_left", "center", "lean_right", "right"];
+export const LEAN_ORDER: Lean[] = ["left", "lean_left", "center", "lean_right", "right"];
 
 export function leanSpread(leans: Lean[]): Lean[] {
   return LEAN_ORDER.filter((l) => leans.includes(l));

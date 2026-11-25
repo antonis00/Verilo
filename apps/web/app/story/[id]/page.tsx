@@ -17,6 +17,7 @@ import {
   coverageGap,
   KIND_LABEL,
   LEAN_LABEL,
+  LEAN_ORDER,
   leanSpread,
   TIER_LABEL,
   type Lean,
@@ -107,6 +108,57 @@ function OutletReports({ reports }: { reports: CardArticle[] }) {
   );
 }
 
+// Who reported the story, at a glance: the outlets with a news report, counted by where they
+// lean and by how much we rely on them. Each count is written out; the bars only draw it.
+function Coverage({ outlets }: { outlets: CardArticle[] }) {
+  if (!outlets.length) return null;
+  const rows = (title: string, entries: [string, number][]) => (
+    <div className="mt-4 first:mt-0">
+      <h3 className="font-sans text-sm font-semibold">{title}</h3>
+      <dl className="mt-2 space-y-1.5">
+        {entries.map(([label, count]) => (
+          <div
+            key={label}
+            className="grid grid-cols-[8.5rem_minmax(0,1fr)_1.5rem] items-center gap-2"
+          >
+            <dt className={`text-sm ${count ? "" : "text-ink-muted"}`}>{label}</dt>
+            <span aria-hidden="true" className="h-1.5 bg-rule">
+              <span
+                className="block h-full bg-ink"
+                style={{ width: `${(count / outlets.length) * 100}%` }}
+              />
+            </span>
+            <dd className={`text-right text-sm tabular-nums ${count ? "" : "text-ink-muted"}`}>
+              {count}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+  const count = (match: (a: CardArticle) => boolean) => outlets.filter(match).length;
+  return (
+    <section aria-labelledby="who-title" className="border border-rule bg-paper-raised p-4">
+      <h2 id="who-title" className="kicker">
+        Who reported it
+      </h2>
+      <p className="meta mt-1">
+        {outlets.length} {outlets.length === 1 ? "outlet" : "outlets"} with a news report
+      </p>
+      <div className="mt-4">
+        {rows(
+          "By lean",
+          LEAN_ORDER.map((l) => [LEAN_LABEL[l], count((a) => a.lean === l)]),
+        )}
+        {rows(
+          "By reliability",
+          ([1, 2, 3] as const).map((t) => [TIER_LABEL[t], count((a) => a.tier === t)]),
+        )}
+      </div>
+    </section>
+  );
+}
+
 // One story: the event's headline and every outlet's version, with how much we rely on each
 // outlet and where it leans, under the checked AI summary when the story has one.
 export default function StoryPage({ params }: PageProps<"/story/[id]">) {
@@ -153,97 +205,112 @@ async function Story({ params }: Pick<PageProps<"/story/[id]">, "params">) {
   const leans = leanSpread(news.map((a) => a.lean as Lean));
   const gap = coverageGap(leans, new Set(news.map((a) => a.source_id)).size);
   const topic = card.topic_ids[0];
+  // Each outlet once, by its news report.
+  const newsOutlets = [...new Map(news.map((a) => [a.source_id, a])).values()];
 
   return (
-    <article className="mx-auto max-w-prose py-4 md:py-8">
-      {topic !== undefined && names.get(topic) ? (
-        <p className="kicker">{names.get(topic)}</p>
-      ) : null}
-      <h1 className="mt-2 text-3xl md:text-4xl">{card.title}</h1>
-      <p className="meta mt-4">
-        {placeLabel(card.places) ? `${placeLabel(card.places)} · ` : ""}
-        Reported by {card.outlet_count} {card.outlet_count === 1 ? "outlet" : "outlets"} · first
-        reported <time dateTime={card.first_published_at}>{dayLabel(card.first_published_at)}</time>{" "}
-        · updated <time dateTime={card.last_published_at}>{ago(card.last_published_at, now)}</time>
-        {leans.length ? ` · leans: ${leans.map((l) => LEAN_LABEL[l]).join(", ")}` : ""}
-      </p>
-      {gap ? <p className="meta mt-1">{gap}</p> : null}
-      <Suspense fallback={null}>
-        <SaveControl storyId={card.id} />
-      </Suspense>
-      {related.earlier ? (
-        <p className="meta mt-2">
-          Continues an earlier story:{" "}
-          <Link href={`/story/${related.earlier.id}`}>{related.earlier.title}</Link>
-        </p>
-      ) : null}
-      {related.later.length ? (
-        <p className="meta mt-2">
-          Later developments:{" "}
-          {related.later.map((s, i) => (
-            <span key={s.id}>
-              {i ? " · " : ""}
-              <Link href={`/story/${s.id}`}>{s.title}</Link>
-            </span>
-          ))}
-        </p>
-      ) : null}
-      {corrections.map((c) => (
-        <p key={c.id} className="mt-4 border-l-2 border-accent pl-3 text-sm">
-          <span className="font-semibold">
-            Correction, <time dateTime={c.created_at}>{ago(c.created_at, now)}</time>:
-          </span>{" "}
-          {c.note} <Link href="/corrections">All corrections</Link>
-        </p>
-      ))}
-
-      {card.summary ? (
-        <section
-          aria-labelledby="summary-title"
-          className="mt-8 border-t-[3px] border-double border-ink pt-6"
-        >
-          <h2 id="summary-title" className="text-xl">
-            In brief
-          </h2>
-          <StorySummary summary={card.summary} articles={card.articles} />
-        </section>
-      ) : null}
-
-      <section
-        aria-labelledby="coverage-title"
-        className="mt-10 border-t-[3px] border-double border-ink pt-6"
-      >
-        <h2 id="coverage-title" className="text-xl">
-          How each outlet reported it
-        </h2>
-        <p className="meta mt-1">
-          Headlines and short excerpts; the full articles are on each outlet’s site.
-        </p>
-        <ol className="mt-4">
-          {byOutlet.slice(0, OUTLETS_SHOWN).map((reports) => (
-            <OutletReports key={reports[0].source_id} reports={reports} />
-          ))}
-        </ol>
-        {byOutlet.length > OUTLETS_SHOWN ? (
-          <details className="mt-2">
-            <summary className="cursor-pointer border-t border-rule pt-4 text-sm text-ink-muted hover:text-ink">
-              Show all {byOutlet.length} outlets
-            </summary>
-            <ol>
-              {byOutlet.slice(OUTLETS_SHOWN).map((reports) => (
-                <OutletReports key={reports[0].source_id} reports={reports} />
-              ))}
-            </ol>
-          </details>
+    // Wide screens: the story on the left, who reported it in a column on the right that stays in
+    // view. A phone: the headline, who reported it, then the story.
+    <article className="py-4 md:py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_17rem] lg:gap-x-14 xl:grid-cols-[minmax(0,1fr)_19rem] xl:gap-x-20">
+      <div className="lg:col-start-1">
+        {topic !== undefined && names.get(topic) ? (
+          <p className="kicker">{names.get(topic)}</p>
         ) : null}
-      </section>
-
-      <div className="mt-8 border-t border-rule pt-6">
-        <ReportMistake storyId={card.id} />
+        <h1 className="mt-2 max-w-4xl text-3xl md:text-4xl xl:text-5xl">{card.title}</h1>
+        <p className="meta mt-4">
+          {placeLabel(card.places) ? `${placeLabel(card.places)} · ` : ""}
+          Reported by {card.outlet_count} {card.outlet_count === 1 ? "outlet" : "outlets"} · first
+          reported{" "}
+          <time dateTime={card.first_published_at}>{dayLabel(card.first_published_at)}</time> ·
+          updated <time dateTime={card.last_published_at}>{ago(card.last_published_at, now)}</time>
+          {leans.length ? ` · leans: ${leans.map((l) => LEAN_LABEL[l]).join(", ")}` : ""}
+        </p>
+        {gap ? <p className="meta mt-1">{gap}</p> : null}
+        <Suspense fallback={null}>
+          <SaveControl storyId={card.id} />
+        </Suspense>
+        {related.earlier ? (
+          <p className="meta mt-2">
+            Continues an earlier story:{" "}
+            <Link href={`/story/${related.earlier.id}`}>{related.earlier.title}</Link>
+          </p>
+        ) : null}
+        {related.later.length ? (
+          <p className="meta mt-2">
+            Later developments:{" "}
+            {related.later.map((s, i) => (
+              <span key={s.id}>
+                {i ? " · " : ""}
+                <Link href={`/story/${s.id}`}>{s.title}</Link>
+              </span>
+            ))}
+          </p>
+        ) : null}
+        {corrections.map((c) => (
+          <p key={c.id} className="mt-4 border-l-2 border-accent pl-3 text-sm">
+            <span className="font-semibold">
+              Correction, <time dateTime={c.created_at}>{ago(c.created_at, now)}</time>:
+            </span>{" "}
+            {c.note} <Link href="/corrections">All corrections</Link>
+          </p>
+        ))}
       </div>
-      <p className="mt-6 text-sm">
-        <Link href="/">Back to the front page</Link>
-      </p>
+
+      <aside className="mt-8 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mt-2">
+        <div className="lg:sticky lg:top-8">
+          <Coverage outlets={newsOutlets} />
+        </div>
+      </aside>
+
+      <div className="lg:col-start-1">
+        {card.summary ? (
+          <section
+            aria-labelledby="summary-title"
+            className="mt-8 max-w-prose border-t-[3px] border-double border-ink pt-6 lg:max-w-none"
+          >
+            <h2 id="summary-title" className="text-xl">
+              In brief
+            </h2>
+            <StorySummary summary={card.summary} articles={card.articles} />
+          </section>
+        ) : null}
+
+        <section
+          aria-labelledby="coverage-title"
+          className="mt-10 border-t-[3px] border-double border-ink pt-6"
+        >
+          <h2 id="coverage-title" className="text-xl">
+            How each outlet reported it
+          </h2>
+          <p className="meta mt-1">
+            Headlines and short excerpts; the full articles are on each outlet’s site.
+          </p>
+          <ol className="mt-4 xl:grid xl:grid-cols-2 xl:gap-x-10">
+            {byOutlet.slice(0, OUTLETS_SHOWN).map((reports) => (
+              <OutletReports key={reports[0].source_id} reports={reports} />
+            ))}
+          </ol>
+          {byOutlet.length > OUTLETS_SHOWN ? (
+            <details className="mt-2">
+              <summary className="cursor-pointer border-t border-rule pt-4 text-sm text-ink-muted hover:text-ink">
+                Show all {byOutlet.length} outlets
+              </summary>
+              <ol className="xl:grid xl:grid-cols-2 xl:gap-x-10">
+                {byOutlet.slice(OUTLETS_SHOWN).map((reports) => (
+                  <OutletReports key={reports[0].source_id} reports={reports} />
+                ))}
+              </ol>
+            </details>
+          ) : null}
+        </section>
+
+        <div className="mt-8 border-t border-rule pt-6">
+          <ReportMistake storyId={card.id} />
+        </div>
+        <p className="mt-6 text-sm">
+          <Link href="/">Back to the front page</Link>
+        </p>
+      </div>
     </article>
   );
 }

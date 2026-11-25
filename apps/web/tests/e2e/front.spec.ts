@@ -55,6 +55,10 @@ test("a story page shows every outlet's version with its lean and labels", async
     await expect(opinion).toContainText("Lean right · Opinion");
     // Leans in the summary line count news reports only.
     await expect(page.getByText(/leans: Centre$/)).toBeVisible();
+    // Who reported it counts each outlet with a news report once: here the centre fact base.
+    const who = page.getByRole("region", { name: "Who reported it" });
+    await expect(who).toContainText("1 outlet with a news report");
+    await expect(who.getByRole("definition")).toHaveText(["0", "0", "1", "0", "0", "1", "0", "0"]);
     expect(await axe(page)).toEqual([]);
   } finally {
     await removeStory(slug, headline);
