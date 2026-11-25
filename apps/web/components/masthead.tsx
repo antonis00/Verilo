@@ -26,13 +26,24 @@ export function Masthead() {
       <div className="mt-3 border-b-[3px] border-double border-ink pb-4 text-center md:pb-5">
         <Link
           href="/"
-          className="quiet-link font-serif text-3xl font-semibold tracking-tight md:text-4xl"
+          className="peer quiet-link font-serif text-3xl font-semibold tracking-tight md:text-4xl"
         >
           Verilo
         </Link>
-        {/* The motto, in capitals by style so screen readers say it as words. */}
-        <p lang="la" className="meta mt-1 tracking-[0.25em] uppercase">
-          Lux veritatis
+        {/* What Verilo is; pointing at the name (or focusing it) shows the motto in its place.
+            Both share one grid cell, so the line doesn't jump. Capitals are by style, so screen
+            readers say the words. */}
+        <p className="meta mt-1 grid">
+          <span className="col-start-1 row-start-1 transition-opacity duration-300 motion-reduce:transition-none [.peer:hover~p_&]:opacity-0 [.peer:focus-visible~p_&]:opacity-0">
+            Every story from every side, each line linked to its source
+          </span>
+          <span
+            lang="la"
+            aria-hidden="true"
+            className="col-start-1 row-start-1 tracking-[0.25em] uppercase opacity-0 transition-opacity duration-300 motion-reduce:transition-none [.peer:focus-visible~p_&]:opacity-100 [.peer:hover~p_&]:opacity-100"
+          >
+            Lux veritatis
+          </span>
         </p>
       </div>
       <Sections />
