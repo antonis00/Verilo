@@ -45,9 +45,12 @@ test("sign in with an emailed link, then sign out", async ({ page }, info) => {
   await expect(page).toHaveURL(/\/welcome$/);
   await page.goto("/preferences");
   await expect(page.getByText(`Signed in as ${email}`)).toBeVisible();
-  await expect(
-    page.getByRole("navigation", { name: "Account" }).getByRole("link", { name: "Preferences" }),
-  ).toBeVisible();
+  // On Preferences the cog becomes a newspaper back to the front page, and back again there.
+  const account = page.getByRole("navigation", { name: "Account" });
+  await account.getByRole("link", { name: "Back to the front page" }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await account.getByRole("link", { name: "Preferences" }).click();
+  await expect(page).toHaveURL(/\/preferences$/);
 
   await page.getByRole("button", { name: "Sign out" }).click();
   await expect(page).toHaveURL(/\/$/);
