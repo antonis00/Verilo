@@ -35,7 +35,7 @@ export function Masthead() {
             readers say the words. */}
         <p className="meta mt-1 grid">
           <span className="col-start-1 row-start-1 transition-opacity duration-300 motion-reduce:transition-none [.peer:hover~p_&]:opacity-0 [.peer:focus-visible~p_&]:opacity-0">
-            Your news, verified, with zero distractions
+            Your news. Verified. Zero distractions.
           </span>
           <span
             lang="la"
